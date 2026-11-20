@@ -1,8 +1,4 @@
-# Render Blueprint for MarketPG
-# Reuses the existing Growgreen PostgreSQL instance.
-# During Blueprint apply, provide Growgreen's INTERNAL Database URL as DB_URL.
-# DB_PREFIX isolates every MarketPG table from Growgreen's application tables.
-
+# MarketPG is deployed independently and uses its own PostgreSQL database.
 services:
   - type: web
     name: marketpg
@@ -31,15 +27,17 @@ services:
         value: pgsql
       - key: DB_URL
         sync: false
-      - key: DB_PREFIX
-        value: marketpg_
       - key: MARKETPG_ADMIN_EMAILS
         sync: false
       - key: SESSION_DRIVER
         value: file
+      - key: SESSION_ENCRYPT
+        value: "true"
       - key: CACHE_STORE
         value: file
       - key: QUEUE_CONNECTION
-        value: database
+        value: sync
       - key: FILESYSTEM_DISK
         value: local
+      - key: SESSION_SECURE_COOKIE
+        value: "true"
