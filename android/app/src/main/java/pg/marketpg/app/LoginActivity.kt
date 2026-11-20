@@ -27,6 +27,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -116,7 +118,7 @@ class LoginActivity : ComponentActivity() {
                             }
                             Spacer(Modifier.height(12.dp))
                         }
-                        AuthInput(email, { email = it; error = null }, "Email address", colors)
+                        AuthInput(email, { email = it; error = null }, "Email address", colors, keyboardType = KeyboardType.Email)
                         Spacer(Modifier.height(12.dp))
                         AuthInput(
                             value = password,
@@ -145,6 +147,10 @@ class LoginActivity : ComponentActivity() {
                                     busy = true
                                     error = null
                                     try {
+                                        MarketDiagnostics.record(
+                                            "INFO", "auth-submit",
+                                            "mode=${if (register) "register" else "login"} email_chars=${email.trim().length} email_has_at=${email.trim().contains("@")} password_present=${password.isNotEmpty()}"
+                                        )
                                         val result = if (register) {
                                             MarketApi.service.register(RegisterRequest(name.trim(), email.trim(), password, confirm, accountType))
                                         } else {
@@ -154,10 +160,29 @@ class LoginActivity : ComponentActivity() {
                                         setResult(RESULT_OK)
                                         finish()
                                     } catch (e: Exception) {
-                                        error = MarketApiErrors.userMessage(
+                                        val friendlyMessage = MarketApiErrors.userMessage(
                                             e,
                                             if (register) "create your account" else "sign in"
                                         )
+                                        MarketDiagnostics.record(
+                                            "ERROR", "auth-submit",
+                                            "mode=${if (register) "register" else "login"} failed: ${e.javaClass.simpleName}; detail=${e.message ?: "no detail"}"
+                                        )
+                                        // Upload immediately, including before authentication succeeds.
+                                        try {
+                                            val appVersion = packageManager.getPackageInfo(packageName, 0).versionName ?: "unknown"
+                                            val uploaded = MarketApi.service.uploadDiagnostics(
+                                                DiagnosticLogRequest(
+                                                    report = MarketDiagnostics.exportReport(),
+                                                    app_version = appVersion,
+                                                    device = MarketDiagnostics.deviceSummary()
+                                                )
+                                            )
+                                            MarketDiagnostics.record("INFO", "diagnostics-upload", "automatic auth-failure upload succeeded: ${uploaded.path ?: "path unavailable"}")
+                                        } catch (uploadError: Exception) {
+                                            MarketDiagnostics.record("ERROR", "diagnostics-upload", "automatic auth-failure upload failed: ${uploadError.javaClass.simpleName}; ${uploadError.message ?: "no detail"}")
+                                        }
+                                        error = friendlyMessage
                                     } finally { busy = false }
                                 }
                             },
@@ -214,7 +239,8 @@ private fun AuthInput(
     label: String,
     colors: ColorScheme,
     passwordVisible: Boolean? = null,
-    onTogglePassword: (() -> Unit)? = null
+    onTogglePassword: (() -> Unit)? = null,
+    keyboardType: KeyboardType = KeyboardType.Text
 ) {
     TextField(
         value = value,
@@ -222,6 +248,7 @@ private fun AuthInput(
         modifier = Modifier.fillMaxWidth(),
         placeholder = { Text(label, color = colors.onSurfaceVariant, fontSize = 16.sp) },
         singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         shape = RoundedCornerShape(18.dp),
         visualTransformation = if (passwordVisible == null || passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
         trailingIcon = if (passwordVisible != null && onTogglePassword != null) {
