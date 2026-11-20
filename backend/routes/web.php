@@ -25,7 +25,7 @@ Route::get('/ads.txt', function () {
         ? (string) ($settings['web_publisher_id'] ?? '')
         : '';
     abort_unless(preg_match('/^ca-pub-[0-9]{6,30}$/', $publisherId), 404);
-    return response("google.com, " . substr($publisherId, 7) . ", DIRECT, f08c47fec0942fa0\\n", 200, [
+    return response("google.com, " . substr($publisherId, 7) . ", DIRECT, f08c47fec0942fa0\n", 200, [
         'Content-Type' => 'text/plain; charset=UTF-8',
         'Cache-Control' => 'public, max-age=3600',
     ]);
