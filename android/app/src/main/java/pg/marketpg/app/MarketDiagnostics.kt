@@ -37,6 +37,15 @@ object MarketDiagnostics {
         } catch (_: Exception) { }
     }
 
+    /** Records exception class and source frames only; never records exception messages or request data. */
+    fun recordException(tag: String, error: Throwable, context: String = "") {
+        val frames = error.stackTrace.take(12).joinToString(" <- ") {
+            "${it.className.substringAfterLast('.')}.${it.methodName}:${it.lineNumber}"
+        }
+        val cause = error.cause?.javaClass?.simpleName?.takeIf { it != error.javaClass.simpleName }
+        record("ERROR", tag, "${context.take(80)} exception=${error.javaClass.simpleName} cause=${cause ?: "-"} frames=${frames.ifBlank { "unavailable" }}")
+    }
+
     fun exportReport(): String {
         val context = appContext ?: return "Logger not initialized."
         val file = File(context.filesDir, FILE_NAME)
