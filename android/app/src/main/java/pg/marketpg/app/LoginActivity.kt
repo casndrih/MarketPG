@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,6 +17,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -144,14 +149,14 @@ class LoginActivity : ComponentActivity() {
                                     android.widget.Toast.LENGTH_LONG
                                 ).show()
                             },
-                            modifier = Modifier.fillMaxWidth().height(58.dp),
+                            modifier = Modifier.fillMaxWidth().height(52.dp),
                             shape = RoundedCornerShape(50),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = if (isDark) Color(0xFF292929) else Color.Black,
                                 contentColor = Color.White
                             )
                         ) {
-                            Text("G", color = if (isDark) Color.White else Color(0xFF4285F4), fontSize = 21.sp)
+                            GoogleMark()
                             Spacer(Modifier.width(12.dp))
                             Text("Continue with Google", fontSize = 17.sp)
                         }
@@ -206,4 +211,20 @@ private fun AuthInput(
             unfocusedTextColor = colors.onSurface
         )
     )
+}
+
+
+@Composable
+private fun GoogleMark() {
+    Canvas(Modifier.size(22.dp)) {
+        val stroke = Stroke(width = size.minDimension * 0.19f, cap = StrokeCap.Butt)
+        val inset = size.minDimension * 0.12f
+        val arcSize = Size(size.width - inset * 2, size.height - inset * 2)
+        val topLeft = Offset(inset, inset)
+        drawArc(Color(0xFF4285F4), -45f, 90f, false, topLeft, arcSize, style = stroke)
+        drawArc(Color(0xFF34A853), 45f, 90f, false, topLeft, arcSize, style = stroke)
+        drawArc(Color(0xFFFBBC05), 135f, 90f, false, topLeft, arcSize, style = stroke)
+        drawArc(Color(0xFFEA4335), 225f, 90f, false, topLeft, arcSize, style = stroke)
+        drawLine(Color(0xFF4285F4), Offset(size.width * 0.52f, size.height * 0.5f), Offset(size.width * 0.94f, size.height * 0.5f), strokeWidth = size.minDimension * 0.19f)
+    }
 }
