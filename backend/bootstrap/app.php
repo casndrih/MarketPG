@@ -12,7 +12,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->statefulApi();
+        // MarketPG API authentication uses Sanctum bearer tokens, not cookie-based SPA sessions.
+        // Keep API routes stateless so browser Origin headers cannot trigger CSRF checks on /api/auth/login.
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
