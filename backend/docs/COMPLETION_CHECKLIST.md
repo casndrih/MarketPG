@@ -37,7 +37,7 @@ MarketPG is not production-complete until every item below is implemented and ve
 - [ ] End-to-end tests on physical Android devices
 
 ## Production release gates
-- [ ] Shared database table prefix is verified against the existing Growgreen schema; no cross-app table writes
+- [x] Dedicated `marketpg-db` PostgreSQL database is provisioned for MarketPG; no shared Growgreen/Casper CV database writes
 - [ ] Private persistent file storage configured; never store identity documents or receipts in public storage
 - [ ] Database migrations and rollback tested against a disposable PostgreSQL database
 - [ ] API authorization, validation, rate-limit, upload and ownership tests pass
