@@ -20,6 +20,7 @@ data class RegisterRequest(val name: String, val email: String, val password: St
 data class AuthResponse(val message: String? = null, val user: AuthUser? = null, val token: String)
 data class MeResponse(val user: AuthUser)
 data class CreateOrderRequest(val payment_method: String = "cash_on_pickup", val buyer_note: String? = null)
+data class CreateListingRequest(val title: String, val description: String, val price: String, val condition: String, val location: String, val category_id: Int)
 data class OrderDto(val id: Long, val order_number: String, val amount: String, val currency: String, val payment_method: String, val status: String, val listing: ListingDto? = null)
 data class OrderResponse(val message: String? = null, val payment_instructions: String? = null, val data: OrderDto)
 data class OrderPage(val data: List<OrderDto> = emptyList())
@@ -54,6 +55,7 @@ interface MarketService {
     @POST("listings/{id}/orders") suspend fun createOrder(@Path("id") id: Long, @Body request: CreateOrderRequest): OrderResponse
     @GET("orders") suspend fun orders(): OrderPage
     @GET("categories") suspend fun categories(): CategoryPage
+    @POST("listings") suspend fun createListing(@Body request: CreateListingRequest): ListingDetailResponse
     @GET("listings") suspend fun listings(
         @Query("q") query: String? = null,
         @Query("category_id") categoryId: Int? = null,
