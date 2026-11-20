@@ -8,14 +8,15 @@
     <script>tailwind = { config: { darkMode: 'class', theme: { extend: { colors: { brand: { 50:'#f7fee7',100:'#ecfccb',400:'#a3e635',500:'#84cc16',600:'#65a30d',700:'#4d7c0f',900:'#365314' } } } } };</script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet">
-</head>
+<script>(function(){try{if(localStorage.getItem('marketpg_theme')==='dark')document.documentElement.classList.add('dark');}catch(e){}})();</script>
+<style>.admin-theme-toggle{display:inline-flex;align-items:center;justify-content:center;min-width:42px;height:38px;padding:0 .8rem;border:0;border-radius:9999px;background:#f3f4f6;color:#374151;font-size:13px;font-weight:600}.dark .admin-theme-toggle{background:#292f3b;color:#facc15}</style></head>
 <body class="bg-gray-50 text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100">
 <nav class="fixed top-0 z-50 w-full border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
     <div class="px-4 py-3 lg:px-6">
         <div class="flex items-center justify-between">
             <a href="/" class="flex items-center gap-3"><span class="grid h-10 w-10 place-items-center rounded-xl bg-lime-400 text-lg font-black text-gray-950">M</span><span class="text-xl font-extrabold tracking-tight dark:text-white">Market<span class="text-lime-600 dark:text-lime-400">PG</span><span class="ml-2 text-xs font-medium text-gray-400">ADMIN</span></span></a>
             <div class="flex items-center gap-3">
-                <span class="hidden text-sm text-gray-500 sm:inline">Marketplace control centre</span>
+                <span class="hidden text-sm text-gray-500 sm:inline">Marketplace control centre</span><button type="button" data-admin-theme-toggle onclick="marketpgToggleAdminTheme()" class="admin-theme-toggle">☾ Dark</button>
                 <form method="POST" action="{{ route('admin.logout') }}">@csrf<button type="submit" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800">Sign out</button></form>
             </div>
         </div>
@@ -86,5 +87,5 @@
     <footer class="mt-8 text-center text-xs text-gray-400">MarketPG administration · Papua New Guinea</footer>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
-</body>
+<script>window.marketpgToggleAdminTheme=function(){var dark=document.documentElement.classList.toggle('dark');try{localStorage.setItem('marketpg_theme',dark?'dark':'light');}catch(e){}document.querySelectorAll('[data-admin-theme-toggle]').forEach(function(b){b.textContent=dark?'☀ Light':'☾ Dark';});};document.addEventListener('DOMContentLoaded',function(){var dark=document.documentElement.classList.contains('dark');document.querySelectorAll('[data-admin-theme-toggle]').forEach(function(b){b.textContent=dark?'☀ Light':'☾ Dark';});});</script></body>
 </html>
