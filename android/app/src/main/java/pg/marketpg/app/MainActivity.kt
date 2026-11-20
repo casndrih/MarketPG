@@ -46,6 +46,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import com.google.android.libraries.ads.mobile.sdk.MobileAds
+import com.google.android.libraries.ads.mobile.sdk.initialization.InitializationConfig
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -89,6 +93,7 @@ fun MarketPGApp() {
     var tab by remember { mutableIntStateOf(0) }
     var retry by remember { mutableIntStateOf(0) }
     var showNetworkDialog by remember { mutableStateOf(false) }
+    var mobileBannerAdUnitId by remember { mutableStateOf<String?>(null) }
     val snackbarHost = remember { SnackbarHostState() }
     var savedListings by remember { mutableStateOf<List<ListingDto>>(emptyList()) }
     var myListings by remember { mutableStateOf<List<ListingDto>>(emptyList()) }
@@ -200,6 +205,17 @@ fun MarketPGApp() {
 
     LaunchedEffect(Unit) {
         try { categories = MarketApi.service.categories().data } catch (_: Exception) { }
+        try {
+            val ads = withContext(Dispatchers.IO) { MarketApi.service.publicConfig().ads }
+            val appId = ads.mobile_app_id?.takeIf { it.startsWith("ca-app-pub-") && it.contains("~") }
+            val unitId = ads.mobile_banner_ad_unit_id?.takeIf { it.startsWith("ca-app-pub-") && it.contains("/") }
+            if (ads.enabled && appId != null && unitId != null) {
+                withContext(Dispatchers.IO) {
+                    MobileAds.initialize(context.applicationContext, InitializationConfig.Builder(appId).build()) { }
+                }
+                mobileBannerAdUnitId = unitId
+            }
+        } catch (_: Exception) { mobileBannerAdUnitId = null }
     }
     LaunchedEffect(signedIn) {
         if (signedIn) {
@@ -297,6 +313,8 @@ fun MarketPGApp() {
             snackbarHost = { SnackbarHost(snackbarHost) },
             bottomBar = {
                 Surface(shadowElevation = 1.dp, color = colors.surface) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                mobileBannerAdUnitId?.let { MarketPgBannerAd(it) }
                 NavigationBar(containerColor = colors.surface, contentColor = colors.onSurface, tonalElevation = 0.dp) {
                     val labels = listOf("Explore", "Saved", "Sell", "Inbox", "Profile")
                     val icons = listOf(
@@ -321,6 +339,7 @@ fun MarketPGApp() {
                             )
                         )
                     }
+                }
                 }
                 }
             }
