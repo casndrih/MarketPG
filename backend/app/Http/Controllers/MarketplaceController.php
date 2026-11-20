@@ -102,7 +102,7 @@ class MarketplaceController extends Controller
             'location' => 'sometimes|required|string|max:120',
             'town' => 'sometimes|required|string|max:100',
             'province' => 'sometimes|required|in:'.implode(',', config('marketpg.png_provinces')),
-            'category_id => 'nullable|integer',
+            'category_id' => 'nullable|integer',
             'image' => 'nullable|image|max:5120',
             'images' => 'sometimes|array|max:10',
             'images.*' => 'image|mimes:jpg,jpeg,png,webp|max:5120',
