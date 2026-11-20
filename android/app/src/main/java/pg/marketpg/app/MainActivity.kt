@@ -1097,6 +1097,12 @@ fun MarketPGApp() {
                     putExtra("seller_rank", listing.user?.seller_rank ?: "New Seller")
                     putExtra("seller_id", listing.user?.id?.toLong() ?: 0L)
                     putExtra("seller_avatar", listing.user?.profile_photo_url ?: "")
+                    putExtra("seller_bio", listing.user?.seller_bio ?: "")
+                    putExtra("seller_website", listing.user?.seller_website ?: "")
+                    putExtra("seller_facebook", listing.user?.seller_facebook_url ?: "")
+                    putExtra("seller_x", listing.user?.seller_x_url ?: "")
+                    putExtra("seller_linkedin", listing.user?.seller_linkedin_url ?: "")
+                    putExtra("seller_sme_status", listing.user?.sme_status ?: "not_submitted")
                 })
                 selected = null
             }
@@ -1150,6 +1156,12 @@ class ListingDetailActivity : ComponentActivity() {
         val sellerRank = intent.getStringExtra("seller_rank").orEmpty()
         val sellerId = intent.getLongExtra("seller_id", 0L)
         val sellerAvatar = intent.getStringExtra("seller_avatar").orEmpty()
+        val sellerBioPublic = intent.getStringExtra("seller_bio").orEmpty()
+        val sellerWebsitePublic = intent.getStringExtra("seller_website").orEmpty()
+        val sellerFacebookPublic = intent.getStringExtra("seller_facebook").orEmpty()
+        val sellerXPublic = intent.getStringExtra("seller_x").orEmpty()
+        val sellerLinkedInPublic = intent.getStringExtra("seller_linkedin").orEmpty()
+        val sellerSmeStatus = intent.getStringExtra("seller_sme_status").orEmpty()
         val listingId = intent.getLongExtra("listing_id", 0L)
         setContent {
             val scope = rememberCoroutineScope()
@@ -1268,6 +1280,26 @@ class ListingDetailActivity : ComponentActivity() {
                                 }
                             }
                             Spacer(Modifier.height(16.dp))
+                            if (sellerSmeStatus == "verified") {
+                                Text("✓ Verified registered SME", color = Color(0xFF16A34A), fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodySmall)
+                            } else if (sellerSmeStatus == "pending") {
+                                Text("◷ SME verification pending", color = Color(0xFFD97706), style = MaterialTheme.typography.bodySmall)
+                            } else {
+                                Text("Unverified seller", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                            }
+                            if (sellerBioPublic.isNotBlank()) Text(sellerBioPublic, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+                            val socialLinks = listOf(
+                                "🌐 Website" to sellerWebsitePublic,
+                                "f Facebook" to sellerFacebookPublic,
+                                "𝕏 X" to sellerXPublic,
+                                "in LinkedIn" to sellerLinkedInPublic
+                            ).filter { it.second.startsWith("https://") || it.second.startsWith("http://") }
+                            socialLinks.forEach { (label, url) ->
+                                TextButton(onClick = { try { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) } catch (_: Exception) { } }) {
+                                    Text(label, color = MaterialTheme.colorScheme.primary)
+                                }
+                            }
+                            Spacer(Modifier.height(8.dp))
                             Text("More items from this seller", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                             when {
                                 sellerItemsLoading -> Box(Modifier.fillMaxWidth().padding(28.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
