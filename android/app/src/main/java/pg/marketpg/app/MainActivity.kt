@@ -205,16 +205,7 @@ fun MarketPGApp() {
             containerColor = colors.background,
             topBar = {
                 TopAppBar(
-                    title = {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("MarketPG", fontWeight = FontWeight.ExtraBold, color = colors.onSurface)
-                            Text(
-                                listOf("Buy & sell across PNG", "Your saved finds", "Seller centre", "Messages", "Your account")[tab],
-                                style = MaterialTheme.typography.labelSmall,
-                                color = colors.onSurfaceVariant
-                            )
-                        }
-                    },
+                    title = { Text("MarketPG", fontWeight = FontWeight.SemiBold, color = colors.onSurface) },
                     actions = {
                         IconButton(onClick = { darkTheme = !darkTheme }) {
                             Icon(
@@ -223,8 +214,8 @@ fun MarketPGApp() {
                             )
                         }
                     },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = colors.surface,
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = colors.background,
                         titleContentColor = colors.onSurface,
                         actionIconContentColor = colors.onSurface
                     )
