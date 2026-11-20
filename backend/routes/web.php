@@ -23,6 +23,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', EnsureMarketplaceAdm
     Route::post('/logout', [AdminWebController::class, 'logout'])->name('logout');
     Route::post('/listings/{listing}/review', [AdminWebController::class, 'reviewListing'])->name('listings.review');
     Route::post('/orders/{order}/review', [AdminWebController::class, 'reviewOrder'])->name('orders.review');
+    Route::post('/disputes/{dispute}/resolve', [AdminWebController::class, 'resolveDispute'])->name('disputes.resolve');
     Route::post('/receipts/{receipt}/review', [AdminWebController::class, 'reviewReceipt'])->name('receipts.review');
     Route::post('/identity/{verification}/review', [AdminWebController::class, 'reviewIdentity'])->name('identity.review');
 });
