@@ -48,6 +48,7 @@ Set `MARKETPG_ADMIN_EMAILS` in Render to a comma-separated allowlist of administ
 - `POST /api/identity-verification` (Sanctum)
 - `GET /api/admin/listings` and `POST /api/admin/listings/{listing}/review` (Sanctum + admin allowlist)
 - `GET /api/admin/orders` and `PATCH /api/admin/orders/{order}` (Sanctum + admin allowlist)
+- `GET /api/admin/payment-receipts`, `GET /api/admin/payment-receipts/{receipt}/document` and `POST /api/admin/payment-receipts/{receipt}/review` (Sanctum + admin allowlist)
 - `GET /api/admin/identity-verifications` (Sanctum + admin allowlist)
 - `POST /api/admin/identity-verifications/{verification}/review` (Sanctum + admin allowlist)
 - `GET /api/admin/identity-verifications/{verification}/documents/{kind}` (Sanctum + admin allowlist)
