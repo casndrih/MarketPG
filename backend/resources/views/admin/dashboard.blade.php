@@ -44,12 +44,18 @@
         <div class="mb-4 flex items-center justify-between"><h2 class="text-xl font-bold">Orders</h2><span class="text-sm text-slate-500">Latest 40</span></div>
         @forelse ($orders as $order)
             <div class="grid gap-3 border-t py-4 lg:grid-cols-[1fr_360px]">
-                <div><h3 class="font-bold">{{ $order->order_number }} · {{ $order->listing?->title }}</h3><p class="mt-1 text-sm text-slate-500">K {{ number_format($order->amount, 2) }} {{ $order->currency }} · {{ str_replace('_', ' ', $order->status) }} · {{ $order->payment_method }}</p><p class="mt-1 text-xs text-slate-500">Buyer: {{ $order->buyer?->email }} · Seller: {{ $order->seller?->email }}</p></div>
+                <div><h3 class="font-bold">{{ $order->order_number }} · {{ $order->listing?->title }}</h3><p class="mt-1 text-sm text-slate-500">K {{ number_format($order->amount, 2) }} {{ $order->currency }} · {{ str_replace('_', ' ', $order->status) }} · {{ $order->payment_method }}</p><p class="mt-1 text-xs text-slate-500">Buyer: {{ $order->buyer?->email }} · Seller: {{ $order->seller?->email }}</p><p class="mt-1 text-xs text-slate-500">Shipment: {{ $order->tracking_reference ?: 'Not shipped' }} · Payout: {{ $order->payout_status ?: 'held' }}</p></div>
                 <form method="POST" action="{{ route('admin.orders.review', $order) }}" class="space-y-2">@csrf
                     <select name="status" class="w-full rounded-lg border p-2 text-sm"><option value="paid">Mark paid</option><option value="cancelled">Cancel</option><option value="disputed">Mark disputed</option></select>
                     <input name="admin_note" placeholder="Admin note" class="w-full rounded-lg border p-2 text-sm">
                     <button class="w-full rounded-lg bg-slate-900 px-3 py-2 text-sm font-bold text-white">Save order status</button>
                 </form>
+                @if ($order->status === 'delivered' && $order->payout_status === 'pending')
+                    <form method="POST" action="{{ route('admin.orders.release-payout', $order) }}" class="space-y-2 lg:col-span-2">@csrf
+                        <input name="payout_reference" required placeholder="Verified seller bank transfer reference" class="w-full rounded-lg border p-2 text-sm">
+                        <button class="rounded-lg bg-blue-600 px-3 py-2 text-sm font-bold text-white">Record seller payout release</button>
+                    </form>
+                @endif
             </div>
         @empty <p class="border-t py-5 text-sm text-slate-500">No orders yet.</p> @endforelse
     </section>
