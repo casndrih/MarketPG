@@ -10,7 +10,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 
 RUN composer create-project laravel/laravel . "^12.0" --no-interaction \
-    && composer require laravel/sanctum --no-interaction \
+    && composer require laravel/sanctum league/flysystem-aws-s3-v3:^3.0 --no-interaction \
     && php artisan install:api --no-interaction
 
 COPY backend/ /tmp/marketpg-backend/
