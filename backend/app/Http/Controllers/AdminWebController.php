@@ -10,6 +10,7 @@ use App\Models\PaymentReceipt;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class AdminWebController extends Controller
@@ -146,6 +147,28 @@ class AdminWebController extends Controller
         });
 
         return back()->with('status', 'Dispute decision saved.');
+    }
+
+    public function identityDocument(IdentityVerification $verification, string $kind)
+    {
+        abort_unless(in_array($kind, ['front', 'back', 'selfie'], true), 404);
+
+        $path = match ($kind) {
+            'front' => $verification->front_path,
+            'back' => $verification->back_path,
+            'selfie' => $verification->selfie_path,
+        };
+
+        abort_unless($path && Storage::disk('local')->exists($path), 404);
+        $mime = Storage::disk('local')->mimeType($path);
+        abort_unless(in_array($mime, ['image/jpeg', 'image/png', 'application/pdf'], true), 404);
+
+        return Storage::disk('local')->response($path, null, [
+            'Cache-Control' => 'private, no-store, max-age=0',
+            'Pragma' => 'no-cache',
+            'X-Content-Type-Options' => 'nosniff',
+            'Content-Security-Policy' => "default-src 'none'; sandbox",
+        ], 'inline');
     }
 
     public function reviewIdentity(Request $request, IdentityVerification $verification)
