@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MarketplaceController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\IdentityVerificationController;
 use App\Http\Middleware\EnsureMarketplaceAdmin;
 
@@ -19,6 +20,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::post('/listings', [MarketplaceController::class, 'store']);
     Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/messages', [MessageController::class, 'index']);
+    Route::get('/listings/{listing}/messages/{participant}', [MessageController::class, 'thread']);
+    Route::post('/listings/{listing}/messages', [MessageController::class, 'store'])->middleware('throttle:30,1');
     Route::post('/listings/{listing}/orders', [OrderController::class, 'store']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
     Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel']);
