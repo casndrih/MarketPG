@@ -22,7 +22,7 @@ class OrderDisputeController extends Controller
     public function store(Request $request, Order $order)
     {
         abort_unless(in_array($request->user()->id, [$order->buyer_id, $order->seller_id], true), 403);
-        abort_unless(in_array($order->status, ['paid', 'completed'], true), 409, 'Only paid or completed orders can be disputed.');
+        abort_unless(in_array($order->status, ['paid', 'shipped', 'delivered', 'completed'], true), 409, 'Only paid or shipped/delivered orders can be disputed.');
 
         $data = $request->validate([
             'reason' => ['required', Rule::in(['item_not_received', 'not_as_described', 'damaged_item', 'payment_issue', 'other'])],
