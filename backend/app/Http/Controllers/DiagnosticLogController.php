@@ -25,7 +25,9 @@ class DiagnosticLogController extends Controller
         // Defense in depth: scrub common secrets even if a client sends an unredacted report.
         $report = preg_replace('/(?i)(authorization\s*[:=]\s*bearer\s+)[^\s]+/', '$1[REDACTED]', $data['report']);
         $report = preg_replace('/(?i)((?:password|passwd|token|secret|api[_-]?key)\s*[:=]\s*)[^\s,;]+/', '$1[REDACTED]', $report);
-        $report = preg_replace('/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}/', '[EMAIL]', $report);\n        $report = preg_replace('/(?<![A-Za-z0-9])\\+?[0-9][0-9 ()-]{6,}[0-9](?![A-Za-z0-9])/', '[PHONE/NUMBER]', $report);\n        $report = mb_substr($report, 0, 60000);
+        $report = preg_replace('/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}/', '[EMAIL]', $report);
+        $report = preg_replace('/(?<![A-Za-z0-9])\\+?[0-9][0-9 ()-]{6,}[0-9](?![A-Za-z0-9])/', '[PHONE/NUMBER]', $report);
+        $report = mb_substr($report, 0, 60000);
 
         $now = now()->utc();
         $path = 'debug-logs/' . $now->format('Y/m/d') . '/' . $now->format('His') . '-' . Str::lower(Str::random(8)) . '.txt';
