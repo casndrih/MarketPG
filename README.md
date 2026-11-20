@@ -412,6 +412,6 @@ Set these environment variables on the MarketPG web service:
 - `MARKETPG_DIAGNOSTICS_GITHUB_REPO=casndrih/MarketPG`
 - `MARKETPG_DIAGNOSTICS_GITHUB_TOKEN=<fine-grained GitHub token>`
 
-Create a fine-grained GitHub token restricted to this repository with **Contents: Read and write** permission. Keep the token only in Render's environment settings; never add it to source code, the Android app, a build secret, or a client configuration. Prefer keeping the repository private because diagnostic reports include technical device and account-ID context. After setting the variables, redeploy the MarketPG web service.
+Create a fine-grained GitHub token restricted to this repository with **Contents: Read and write** permission. Keep the token only in Render's environment settings; never add it to source code, the Android app, a build secret, or a client configuration. The current MarketPG repository is public, so every uploaded report is publicly readable. The report omits account IDs and device model identifiers and redacts common emails, phone numbers, and secrets, but users must still be told that uploads are public. If reports should be private, make the repository private before enabling uploads. After setting the variables, redeploy the MarketPG web service.
 
 If the token is not configured, the endpoint returns HTTP 503 and the app will display that uploads are not configured. This does not affect normal marketplace use.
