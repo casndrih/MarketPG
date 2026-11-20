@@ -17,8 +17,17 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.ChatBubbleOutline
+import androidx.compose.material.icons.filled.PersonOutline
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,9 +40,39 @@ import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-private val Lime = Color(0xFFB7F34A)
-private val Ink = Color(0xFF26321B)
-private val Canvas = Color(0xFFF7F8F4)
+private val MarketLime = Color(0xFFB7F34A)
+private val LightColors = lightColorScheme(
+    primary = Color(0xFF365314),
+    onPrimary = Color.White,
+    primaryContainer = Color(0xFFE5F5C7),
+    onPrimaryContainer = Color(0xFF1E2D0A),
+    secondary = Color(0xFF58752B),
+    onSecondary = Color.White,
+    tertiary = Color(0xFFB7F34A),
+    background = Color(0xFFF7F8F4),
+    onBackground = Color(0xFF1B1C18),
+    surface = Color(0xFFFFFFFF),
+    onSurface = Color(0xFF1B1C18),
+    surfaceVariant = Color(0xFFEEF0E7),
+    onSurfaceVariant = Color(0xFF62665A),
+    outline = Color(0xFF777B6D)
+)
+private val DarkColors = darkColorScheme(
+    primary = Color(0xFFC4F27B),
+    onPrimary = Color(0xFF24340D),
+    primaryContainer = Color(0xFF3B531B),
+    onPrimaryContainer = Color(0xFFE5F5C7),
+    secondary = Color(0xFFB8D58A),
+    onSecondary = Color(0xFF263514),
+    tertiary = Color(0xFFB7F34A),
+    background = Color(0xFF11140E),
+    onBackground = Color(0xFFE4E7DC),
+    surface = Color(0xFF1B2017),
+    onSurface = Color(0xFFE4E7DC),
+    surfaceVariant = Color(0xFF2A3024),
+    onSurfaceVariant = Color(0xFFB9C0AE),
+    outline = Color(0xFF858D79)
+)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,6 +86,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MarketPGApp() {
     var search by remember { mutableStateOf("") }
+    var darkTheme by remember { mutableStateOf(isSystemInDarkTheme()) }
     var categoryId by remember { mutableStateOf<Int?>(null) }
     var showFilters by remember { mutableStateOf(false) }
     var minPrice by remember { mutableStateOf("") }
@@ -186,33 +226,72 @@ fun MarketPGApp() {
         } finally { loading = false }
     }
 
-    MaterialTheme(colorScheme = lightColorScheme(primary = Ink, secondary = Lime, background = Canvas)) {
+    MaterialTheme(colorScheme = if (darkTheme) DarkColors else LightColors) {
+        val colors = MaterialTheme.colorScheme
         Scaffold(
-            containerColor = Canvas,
+            containerColor = colors.background,
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("MarketPG", fontWeight = FontWeight.ExtraBold, color = colors.onSurface)
+                            Text(
+                                listOf("Buy & sell across PNG", "Your saved finds", "Seller centre", "Messages", "Your account")[tab],
+                                style = MaterialTheme.typography.labelSmall,
+                                color = colors.onSurfaceVariant
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = { darkTheme = !darkTheme }) {
+                            Icon(
+                                imageVector = if (darkTheme) Icons.Filled.LightMode else Icons.Filled.DarkMode,
+                                contentDescription = if (darkTheme) "Switch to light theme" else "Switch to dark theme"
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = colors.surface,
+                        titleContentColor = colors.onSurface,
+                        actionIconContentColor = colors.onSurface
+                    )
+                )
+            },
             snackbarHost = { SnackbarHost(snackbarHost) },
             bottomBar = {
-                NavigationBar(containerColor = Color.White) {
+                NavigationBar(containerColor = colors.surface, contentColor = colors.onSurface) {
                     val labels = listOf("Explore", "Saved", "Sell", "Inbox", "Profile")
-                    val icons = listOf("⌂", "♡", "+", "✉", "☺")
+                    val icons = listOf(
+                        Icons.Filled.Home,
+                        Icons.Filled.FavoriteBorder,
+                        Icons.Filled.AddCircle,
+                        Icons.Filled.ChatBubbleOutline,
+                        Icons.Filled.PersonOutline
+                    )
                     labels.forEachIndexed { i, label ->
-                        NavigationBarItem(tab == i, { tab = i; if (i != 0 && !signedIn) { showAuth = true; authError = null } }, icon = { Text(icons[i], fontSize = 20.sp) }, label = { Text(label) })
+                        NavigationBarItem(
+                            selected = tab == i,
+                            onClick = { tab = i; if (i != 0 && !signedIn) { showAuth = true; authError = null } },
+                            icon = { Icon(icons[i], contentDescription = label) },
+                            label = { Text(label) },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = colors.primary,
+                                selectedTextColor = colors.primary,
+                                indicatorColor = colors.primaryContainer,
+                                unselectedIconColor = colors.onSurfaceVariant,
+                                unselectedTextColor = colors.onSurfaceVariant
+                            )
+                        )
                     }
                 }
             }
         ) { padding ->
             if (tab == 0) {
                 Column(Modifier.fillMaxSize().padding(padding)) {
-                    Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Column {
-                            Text("MarketPG", fontSize = 26.sp, fontWeight = FontWeight.Black, color = Ink)
-                            Text("Buy & sell across PNG", fontSize = 12.sp, color = Color.Gray)
-                        }
-                        Text("🇵🇬", fontSize = 26.sp)
-                    }
                     OutlinedTextField(search, { search = it }, Modifier.fillMaxWidth().padding(horizontal = 16.dp), placeholder = { Text("Search phones, cars, furniture...") }, leadingIcon = { Icon(Icons.Default.Search, null) }, singleLine = true, shape = RoundedCornerShape(16.dp))
                     Card(Modifier.fillMaxWidth().padding(16.dp), colors = CardDefaults.cardColors(containerColor = Ink), shape = RoundedCornerShape(22.dp)) {
                         Column(Modifier.padding(20.dp)) {
-                            Text("GREAT LOCAL FINDS", color = Lime, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                            Text("GREAT LOCAL FINDS", color = MarketLime, fontWeight = FontWeight.Bold, fontSize = 11.sp)
                             Text("Give good things\na second life.", color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold)
                             Text("Discover real listings from sellers across Papua New Guinea.", color = Color.LightGray)
                         }
@@ -228,12 +307,12 @@ fun MarketPGApp() {
                     Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Column {
                             Text("Fresh finds", fontSize = 19.sp, fontWeight = FontWeight.Bold)
-                            Text(listings.size.toString() + " listings", color = Color.Gray, fontSize = 12.sp)
+                            Text(listings.size.toString() + " listings", color = colors.onSurfaceVariant, fontSize = 12.sp)
                         }
-                        TextButton(onClick = { showFilters = true }) { Text("Filter & sort") }
+                        TextButton(onClick = { showFilters = true }) { Icon(Icons.Filled.Tune, contentDescription = null); Spacer(Modifier.width(6.dp)); Text("Filter & sort") }
                     }
                     when {
-                        loading -> Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Ink) }
+                        loading -> Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = colors.primary) }
                         error != null -> Column(Modifier.fillMaxWidth().padding(28.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                             Text("Couldn't load listings", fontWeight = FontWeight.Bold)
                             Text(error ?: "Network error", color = Color.Gray)
@@ -242,13 +321,13 @@ fun MarketPGApp() {
                         listings.isEmpty() -> Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { Text("No active listings found. Try another search.", color = Color.Gray) }
                         else -> LazyVerticalGrid(GridCells.Fixed(2), Modifier.weight(1f), contentPadding = PaddingValues(12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                             items(listings, key = { it.id }) { listing ->
-                                Card(Modifier.clickable { selected = listing }, shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                                Card(Modifier.clickable { selected = listing }, shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = colors.surface)) {
                                     Column {
                                         if (listing.imageUrl != null) AsyncImage(listing.imageUrl, listing.title, Modifier.fillMaxWidth().height(118.dp))
-                                        else Box(Modifier.fillMaxWidth().height(118.dp).background(Color(0xFFE9EDDF)), contentAlignment = Alignment.Center) { Text("📦", fontSize = 38.sp) }
+                                        else Box(Modifier.fillMaxWidth().height(118.dp).background(colors.surfaceVariant), contentAlignment = Alignment.Center) { Text("📦", fontSize = 38.sp) }
                                         Column(Modifier.padding(11.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                             Text(listing.title, fontWeight = FontWeight.SemiBold, maxLines = 2, minLines = 2, overflow = TextOverflow.Ellipsis)
-                                            Text("K " + listing.price, color = Color(0xFF547C1D), fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
+                                            Text("K " + listing.price, color = colors.primary, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
                                             Text("⌖ " + listing.location, color = Color.Gray, fontSize = 11.sp, maxLines = 1)
                                         }
                                     }
@@ -783,7 +862,7 @@ fun MarketPGApp() {
                 onDismissRequest = { selected = null },
                 title = { Text(listing.title, fontWeight = FontWeight.Bold) },
                 text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("K " + listing.price, color = Color(0xFF547C1D), fontWeight = FontWeight.ExtraBold, fontSize = 20.sp)
+                    Text("K " + listing.price, color = colors.primary, fontWeight = FontWeight.ExtraBold, fontSize = 20.sp)
                     Text(listing.description ?: "No description supplied.")
                     Text("Location: " + listing.location)
                     listing.condition?.let { Text("Condition: " + it) }
