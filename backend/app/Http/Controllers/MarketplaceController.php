@@ -6,6 +6,9 @@ use App\Models\Listing;
 use App\Models\User;
 use App\Models\PaymentReceipt;
 use App\Models\Order;
+use App\Notifications\FollowedSellerNewListing;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 
@@ -159,6 +162,10 @@ class MarketplaceController extends Controller
             'reason' => 'nullable|string|max:1000',
         ]);
         $listing->update(['status' => $data['decision'], 'moderation_note' => $data['reason'] ?? null]);
+        if ($data['decision'] === 'active') {
+            $followers = User::whereIn('id', DB::table('seller_follows')->where('seller_id', $listing->user_id)->pluck('buyer_id'))->get();
+            Notification::send($followers, new FollowedSellerNewListing($listing->load('user')));
+        }
         return response()->json(['message' => 'Listing moderation decision saved.', 'data' => $listing->fresh()]);
     }
 
