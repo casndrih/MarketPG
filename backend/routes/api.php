@@ -34,6 +34,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/listings/{listing}/orders', [OrderController::class, 'store']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
     Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel']);
+    Route::post('/orders/{order}/confirm-cash', [OrderController::class, 'confirmCash']);
     Route::post('/orders/{order}/complete', [OrderController::class, 'complete']);
     Route::post('/listings/{listing}/receipt', [MarketplaceController::class, 'uploadReceipt']);
     Route::get('/identity-verification', [IdentityVerificationController::class, 'status']);
