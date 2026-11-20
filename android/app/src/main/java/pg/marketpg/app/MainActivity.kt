@@ -199,7 +199,7 @@ fun MarketPGApp() {
         } finally { loading = false }
     }
 
-    MaterialTheme(colorScheme = if (darkTheme) DarkColors else LightColors, shapes = Shapes(extraSmall = RoundedCornerShape(8.dp), small = RoundedCornerShape(50), medium = RoundedCornerShape(12.dp), large = RoundedCornerShape(16.dp), extraLarge = RoundedCornerShape(20.dp))) {
+    MaterialTheme(colorScheme = if (darkTheme) DarkColors else LightColors, shapes = Shapes(extraSmall = RoundedCornerShape(8.dp), small = RoundedCornerShape(50), medium = RoundedCornerShape(12.dp), large = RoundedCornerShape(16.dp), extraLarge = RoundedCornerShape(16.dp))) {
         val colors = MaterialTheme.colorScheme
         Scaffold(
             containerColor = colors.background,
@@ -271,10 +271,10 @@ fun MarketPGApp() {
                     }
                     Text("Browse categories", Modifier.padding(start = 18.dp), fontWeight = FontWeight.Bold, fontSize = 18.sp)
                     LazyRow(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        item { FilterChip(categoryId == null, { categoryId = null }, label = { Text("All") }) }
+                        item { FilterChip(categoryId == null, { categoryId = null }, label = { Text("All") }, shape = RoundedCornerShape(50)) }
                         items(categories.size) { index ->
                             val category = categories[index]
-                            FilterChip(categoryId == category.id, { categoryId = category.id }, label = { Text(category.name) })
+                            FilterChip(categoryId == category.id, { categoryId = category.id }, label = { Text(category.name) }, shape = RoundedCornerShape(50))
                         }
                     }
                     Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -354,13 +354,13 @@ fun MarketPGApp() {
                     Text("Condition", fontWeight = FontWeight.SemiBold)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         listOf("new", "used", "refurbished").forEach { condition ->
-                            FilterChip(newCondition == condition, { newCondition = condition }, label = { Text(condition.replaceFirstChar(Char::uppercase)) })
+                            FilterChip(newCondition == condition, { newCondition = condition }, label = { Text(condition.replaceFirstChar(Char::uppercase)) }, shape = RoundedCornerShape(50))
                         }
                     }
                     Text("Category", fontWeight = FontWeight.SemiBold)
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(categories) { category ->
-                            FilterChip(newCategoryId == category.id, { newCategoryId = category.id }, label = { Text(category.name) })
+                            FilterChip(newCategoryId == category.id, { newCategoryId = category.id }, label = { Text(category.name) }, shape = RoundedCornerShape(50))
                         }
                     }
                     createError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
@@ -458,7 +458,7 @@ fun MarketPGApp() {
                         Text("Account type", fontWeight = FontWeight.SemiBold)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             listOf("buyer", "seller", "both").forEach { type ->
-                                FilterChip(profileAccountType == type, { profileAccountType = type }, label = { Text(type.replaceFirstChar(Char::uppercase)) })
+                                FilterChip(profileAccountType == type, { profileAccountType = type }, label = { Text(type.replaceFirstChar(Char::uppercase)) }, shape = RoundedCornerShape(50))
                             }
                         }
                         Button(enabled = !profileBusy && profileName.isNotBlank(), onClick = {
@@ -580,15 +580,15 @@ fun MarketPGApp() {
                         OutlinedTextField(locationFilter, { locationFilter = it }, placeholder = { Text("Town or province") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
                         Text("Condition", fontWeight = FontWeight.SemiBold)
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            FilterChip(conditionFilter == null, { conditionFilter = null }, label = { Text("Any") })
+                            FilterChip(conditionFilter == null, { conditionFilter = null }, label = { Text("Any") }, shape = RoundedCornerShape(50))
                             listOf("new", "used", "refurbished").forEach { value ->
-                                FilterChip(conditionFilter == value, { conditionFilter = value }, label = { Text(value.replaceFirstChar(Char::uppercase)) })
+                                FilterChip(conditionFilter == value, { conditionFilter = value }, label = { Text(value.replaceFirstChar(Char::uppercase)) }, shape = RoundedCornerShape(50))
                             }
                         }
                         Text("Sort by", fontWeight = FontWeight.SemiBold)
                         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             listOf("newest" to "Newest first", "oldest" to "Oldest first", "price_asc" to "Price: low to high", "price_desc" to "Price: high to low").forEach { (value, label) ->
-                                FilterChip(sortOrder == value, { sortOrder = value }, label = { Text(label) })
+                                FilterChip(sortOrder == value, { sortOrder = value }, label = { Text(label) }, shape = RoundedCornerShape(50))
                             }
                         }
                         if (minPrice.isNotBlank() && minPrice.toDoubleOrNull() == null || maxPrice.isNotBlank() && maxPrice.toDoubleOrNull() == null) {
@@ -632,13 +632,13 @@ fun MarketPGApp() {
                         Text("Condition", fontWeight = FontWeight.SemiBold)
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             listOf("new", "used", "refurbished").forEach { condition ->
-                                FilterChip(editCondition == condition, { editCondition = condition }, label = { Text(condition.replaceFirstChar(Char::uppercase)) })
+                                FilterChip(editCondition == condition, { editCondition = condition }, label = { Text(condition.replaceFirstChar(Char::uppercase)) }, shape = RoundedCornerShape(50))
                             }
                         }
                         Text("Category", fontWeight = FontWeight.SemiBold)
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             items(categories) { category ->
-                                FilterChip(editCategoryId == category.id, { editCategoryId = category.id }, label = { Text(category.name) })
+                                FilterChip(editCategoryId == category.id, { editCategoryId = category.id }, label = { Text(category.name) }, shape = RoundedCornerShape(50))
                             }
                         }
                         editError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
@@ -683,7 +683,7 @@ fun MarketPGApp() {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(order.order_number, color = colors.onSurfaceVariant)
                         listOf("item_not_received", "not_as_described", "damaged_item", "payment_issue", "other").forEach { reason ->
-                            FilterChip(disputeReason == reason, { disputeReason = reason }, label = { Text(reason.replace('_', ' ')) })
+                            FilterChip(disputeReason == reason, { disputeReason = reason }, label = { Text(reason.replace('_', ' ')) }, shape = RoundedCornerShape(50))
                         }
                         OutlinedTextField(disputeDetails, { disputeDetails = it }, label = { Text("Explain the issue (at least 20 characters)") }, minLines = 3, shape = RoundedCornerShape(14.dp))
                     }
