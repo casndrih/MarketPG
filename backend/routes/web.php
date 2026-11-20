@@ -14,6 +14,7 @@ Route::get('/', function () {
     return view('marketplace', compact('listings'));
 });
 
+Route::get('/login', [AdminWebController::class, 'loginForm'])->name('login');
 Route::get('/admin/login', [AdminWebController::class, 'loginForm'])->name('admin.login');
 Route::post('/admin/login', [AdminWebController::class, 'login'])->middleware('throttle:5,1')->name('admin.login.submit');
 
