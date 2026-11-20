@@ -52,6 +52,7 @@ fun MarketPGApp() {
     var selected by remember { mutableStateOf<ListingDto?>(null) }
     var tab by remember { mutableIntStateOf(0) }
     var retry by remember { mutableIntStateOf(0) }
+    val snackbarHost = remember { SnackbarHostState() }
     var signedIn by remember { mutableStateOf(MarketApi.hasSession()) }
     var showAuth by remember { mutableStateOf(false) }
     var registerMode by remember { mutableStateOf(false) }
@@ -83,6 +84,7 @@ fun MarketPGApp() {
     MaterialTheme(colorScheme = lightColorScheme(primary = Ink, secondary = Lime, background = Canvas)) {
         Scaffold(
             containerColor = Canvas,
+            snackbarHost = { SnackbarHost(snackbarHost) },
             bottomBar = {
                 NavigationBar(containerColor = Color.White) {
                     val labels = listOf("Explore", "Saved", "Sell", "Inbox", "Profile")
@@ -222,7 +224,39 @@ fun MarketPGApp() {
                     listing.condition?.let { Text("Condition: " + it) }
                     listing.user?.name?.let { Text("Seller: " + it) }
                 } },
-                confirmButton = { TextButton(onClick = { selected = null }) { Text("Close") } }
+                confirmButton = {
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        TextButton(onClick = {
+                            if (!signedIn) {
+                                showAuth = true
+                            } else {
+                                scope.launch {
+                                    try {
+                                        MarketApi.service.addToWishlist(listing.id)
+                                        snackbarHost.showSnackbar("Saved to your wishlist.")
+                                    } catch (e: Exception) {
+                                        snackbarHost.showSnackbar(e.localizedMessage ?: "Could not save listing.")
+                                    }
+                                }
+                            }
+                        }) { Text("Save") }
+                        Button(onClick = {
+                            if (!signedIn) {
+                                showAuth = true
+                            } else {
+                                scope.launch {
+                                    try {
+                                        val order = MarketApi.service.createOrder(listing.id, CreateOrderRequest())
+                                        selected = null
+                                        snackbarHost.showSnackbar(order.message ?: "Order reserved.")
+                                    } catch (e: Exception) {
+                                        snackbarHost.showSnackbar(e.localizedMessage ?: "Could not place order.")
+                                    }
+                                }
+                            }
+                        }) { Text("Buy") }
+                    }
+                }
             )
         }
     }
