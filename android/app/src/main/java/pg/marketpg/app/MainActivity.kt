@@ -200,7 +200,7 @@ fun MarketPGApp() {
 
     SideEffect {
         val window = (view.context as? android.app.Activity)?.window
-        val systemBarColor = colors.surface.toArgb()
+        val systemBarColor = (if (darkTheme) DarkColors.surface else LightColors.surface).toArgb()
         window?.statusBarColor = systemBarColor
         window?.navigationBarColor = systemBarColor
         window?.decorView?.systemUiVisibility = if (darkTheme) {
