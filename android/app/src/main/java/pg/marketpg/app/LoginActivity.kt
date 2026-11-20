@@ -1,6 +1,8 @@
 package pg.marketpg.app
 
 import android.content.res.Configuration
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -161,6 +163,13 @@ class LoginActivity : ComponentActivity() {
                             Text("Continue with Google", fontSize = 17.sp)
                         }
                         Spacer(Modifier.height(14.dp))
+                        if (!register) {
+                            TextButton(onClick = {
+                                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://marketpg.onrender.com/password/reset")))
+                            }) {
+                                Text("Forgot password?", fontSize = 14.sp, color = colors.primary)
+                            }
+                        }
                         TextButton(onClick = { register = !register; error = null }) {
                             Text(if (register) "Sign in" else "Create new account", fontSize = 16.sp, color = colors.primary)
                         }
