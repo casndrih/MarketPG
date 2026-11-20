@@ -223,8 +223,8 @@ fun MarketPGApp() {
                 identityStatus = MarketApi.service.identityStatus().data
                 profileName = currentUser?.name ?: ""
                 profilePhone = currentUser?.phone ?: ""
-                profileLocation = currentUser?.location?.substringBefore(",")?.trim() ?: ""
-                profileProvince = currentUser?.location?.substringAfter(",", "")?.trim().orEmpty()
+                profileLocation = currentUser?.town ?: currentUser?.location?.substringBefore(",")?.trim().orEmpty()
+                profileProvince = currentUser?.province ?: currentUser?.location?.substringAfter(",", "")?.trim().orEmpty()
                 profileAccountType = currentUser?.account_type ?: "both"
             } catch (_: Exception) { currentUser = null }
         }
@@ -565,7 +565,7 @@ fun MarketPGApp() {
                             scope.launch {
                                 profileBusy = true
                                 try {
-                                    currentUser = MarketApi.service.updateProfile(ProfileUpdateRequest(profileName.trim(), profilePhone.trim().ifBlank { null }, listOf(profileLocation.trim(), profileProvince).filter { it.isNotBlank() }.joinToString(", ").ifBlank { null }, profileAccountType)).user
+                                    currentUser = MarketApi.service.updateProfile(ProfileUpdateRequest(profileName.trim(), profilePhone.trim().ifBlank { null }, listOf(profileLocation.trim(), profileProvince).filter { it.isNotBlank() }.joinToString(", ").ifBlank { null }, profileAccountType, profileLocation.trim().ifBlank { null }, profileProvince.ifBlank { null })).user
                                     snackbarHost.showSnackbar("Profile updated.")
                                 } catch (e: Exception) {
                                     snackbarHost.showSnackbar(e.localizedMessage ?: "Could not update profile.")
