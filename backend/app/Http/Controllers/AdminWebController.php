@@ -83,6 +83,8 @@ class AdminWebController extends Controller
     public function releasePayout(Request $request, Order $order)
     {
         abort_unless($order->status === 'delivered' && $order->payout_status === 'pending', 409, 'Only delivered orders awaiting payout can be released.');
+        $payoutDetails = $order->seller?->payout_account_details ?? [];
+        abort_unless(!empty($payoutDetails['bank_name']) && !empty($payoutDetails['account_name']) && !empty($payoutDetails['account_number']), 409, 'Seller payout bank details are incomplete.');
         $data = $request->validate(['payout_reference' => ['required', 'string', 'max:120']]);
         $order->update(['payout_status' => 'released', 'released_at' => now(), 'payout_reference' => $data['payout_reference']]);
         return back()->with('status', 'Payout release recorded. Verify the actual bank transfer against the reference before closing the order.');
