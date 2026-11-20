@@ -172,7 +172,12 @@ fun MarketPGApp() {
             signedIn = true
             showAuth = false
             tab = 4
+        } else {
+            (context as? android.app.Activity)?.finish()
         }
+    }
+    LaunchedEffect(Unit) {
+        if (!signedIn) showAuth = true
     }
     LaunchedEffect(showAuth) {
         if (showAuth) {
