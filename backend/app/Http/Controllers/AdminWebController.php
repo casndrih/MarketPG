@@ -51,6 +51,7 @@ class AdminWebController extends Controller
             'disputes' => OrderDispute::with(['order.listing:id,title', 'order.buyer:id,name,email', 'order.seller:id,name,email', 'raiser:id,name,email'])->where('status', 'open')->latest()->get(),
             'pendingReceipts' => PaymentReceipt::with(['user:id,name,email', 'listing:id,title', 'order:id,order_number,amount,currency'])->where('status', 'pending')->latest()->get(),
             'pendingVerifications' => IdentityVerification::with('user:id,name,email')->where('status', 'pending')->latest()->get(),
+            'ads' => $this->adsSettings(),
             'counts' => [
                 'users' => \App\Models\User::count(),
                 'active_listings' => Listing::where('status', 'active')->count(),
@@ -58,6 +59,51 @@ class AdminWebController extends Controller
                 'orders' => Order::count(),
             ],
         ]);
+    }
+
+    private function adsSettings(): array
+    {
+        $raw = DB::table('marketpg_settings')->where('key', 'ads')->value('value');
+        $settings = is_string($raw) ? json_decode($raw, true) : [];
+        return array_merge([
+            'enabled' => false,
+            'web_publisher_id' => '',
+            'web_slot_id' => '',
+            'mobile_app_id' => '',
+            'mobile_banner_ad_unit_id' => '',
+        ], is_array($settings) ? $settings : []);
+    }
+
+    public function updateAds(Request $request)
+    {
+        $data = $request->validate([
+            'enabled' => ['nullable', 'boolean'],
+            'web_publisher_id' => ['nullable', 'string', 'regex:/^ca-pub-[0-9]{6,30}$/'],
+            'web_slot_id' => ['nullable', 'string', 'regex:/^[0-9]{6,30}$/'],
+            'mobile_app_id' => ['nullable', 'string', 'regex:/^ca-app-pub-[0-9]{6,30}~[0-9]{6,30}$/'],
+            'mobile_banner_ad_unit_id' => ['nullable', 'string', 'regex:/^ca-app-pub-[0-9]{6,30}\\/[0-9]{6,30}$/'],
+        ]);
+
+        $settings = [
+            'enabled' => (bool) ($data['enabled'] ?? false),
+            'web_publisher_id' => trim((string) ($data['web_publisher_id'] ?? '')),
+            'web_slot_id' => trim((string) ($data['web_slot_id'] ?? '')),
+            'mobile_app_id' => trim((string) ($data['mobile_app_id'] ?? '')),
+            'mobile_banner_ad_unit_id' => trim((string) ($data['mobile_banner_ad_unit_id'] ?? '')),
+        ];
+
+        if ($settings['enabled']) {
+            foreach (['web_publisher_id', 'web_slot_id', 'mobile_app_id', 'mobile_banner_ad_unit_id'] as $required) {
+                abort_if($settings[$required] === '', 422, 'Complete all AdSense and AdMob IDs before enabling ads.');
+            }
+        }
+
+        DB::table('marketpg_settings')->updateOrInsert(
+            ['key' => 'ads'],
+            ['value' => json_encode($settings, JSON_THROW_ON_ERROR), 'updated_at' => now(), 'created_at' => now()]
+        );
+
+        return back()->with('status', $settings['enabled'] ? 'Google advertising settings saved and enabled.' : 'Google advertising has been disabled.');
     }
 
     public function logout(Request $request)
