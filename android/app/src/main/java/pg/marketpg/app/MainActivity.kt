@@ -756,7 +756,7 @@ fun MarketPGApp() {
                                 try {
                                     MarketApi.service.sendMessage(
                                         listing.id,
-                                        MessageRequest(listing.user!!.id, messageDraft.trim())
+                                        MessageRequest(listing.user!!.id.toLong(), messageDraft.trim())
                                     )
                                     messageListing = null
                                     messageDraft = ""
@@ -791,7 +791,7 @@ fun MarketPGApp() {
                 } },
                 confirmButton = {
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        if (listing.user?.id != currentUser?.id) {
+                        if (listing.user?.id?.toLong() != currentUser?.id) {
                             TextButton(onClick = {
                                 if (!signedIn) {
                                     showAuth = true
