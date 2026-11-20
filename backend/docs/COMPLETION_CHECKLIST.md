@@ -2,6 +2,12 @@
 
 MarketPG is not production-complete until every item below is implemented and verified. Do not represent a scaffold, mock screen, or API stub as a finished feature.
 
+## Current implementation snapshot (not a completion claim)
+
+The current code now includes public listing/category search, seller listing create/edit/delete and moderation, Sanctum registration/login/logout, buyer/seller profiles, wishlist, cash-on-pickup orders, manual payment review endpoints, buyer/seller messaging, order disputes, an allowlisted web admin dashboard, and Android API-backed Explore, account, seller, inbox, wishlist and order screens. Public API, authentication-boundary, homepage and admin-login smoke checks pass on Render. The Android debug/release builds compile in GitHub Actions.
+
+The unchecked release gates below remain authoritative: private/persistent storage, payment receipt and identity upload enablement, production identity verification, external notification/payment providers, full user security controls, comprehensive automated transaction tests, and physical-device end-to-end acceptance are still outstanding.
+
 ## Core marketplace
 - [ ] Email/password registration, verification, password reset, Google OAuth, secure sessions and token revocation
 - [ ] Buyer and seller profiles, location, contact preferences and account controls
