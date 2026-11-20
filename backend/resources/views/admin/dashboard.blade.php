@@ -55,6 +55,19 @@
     </section>
 
     <section class="rounded-2xl bg-white p-5 shadow-sm">
+        <div class="mb-4 flex items-center justify-between"><h2 class="text-xl font-bold">Open disputes</h2><span class="text-sm text-slate-500">{{ $disputes->count() }} open</span></div>
+        @forelse ($disputes as $dispute)
+            <div class="grid gap-3 border-t py-4 lg:grid-cols-[1fr_360px]">
+                <div><h3 class="font-bold">{{ $dispute->order?->order_number }} · {{ $dispute->order?->listing?->title }}</h3><p class="mt-1 text-sm text-slate-500">{{ str_replace('_', ' ', $dispute->reason) }} · Raised by {{ $dispute->raiser?->name }}</p><p class="mt-2 text-sm">{{ $dispute->details }}</p><p class="mt-1 text-xs text-slate-500">Buyer: {{ $dispute->order?->buyer?->email }} · Seller: {{ $dispute->order?->seller?->email }}</p></div>
+                <form method="POST" action="{{ route('admin.disputes.resolve', $dispute) }}" class="space-y-2">@csrf
+                    <textarea name="resolution" required minlength="10" rows="3" placeholder="Record the resolution or reason for rejection" class="w-full rounded-lg border p-2 text-sm"></textarea>
+                    <div class="flex gap-2"><button name="decision" value="resolved" class="flex-1 rounded-lg bg-lime-500 px-3 py-2 text-sm font-bold">Resolve</button><button name="decision" value="rejected" class="flex-1 rounded-lg bg-red-100 px-3 py-2 text-sm font-bold text-red-800">Reject</button></div>
+                </form>
+            </div>
+        @empty <p class="border-t py-5 text-sm text-slate-500">No open disputes.</p> @endforelse
+    </section>
+
+    <section class="rounded-2xl bg-white p-5 shadow-sm">
         <div class="mb-4 flex items-center justify-between"><h2 class="text-xl font-bold">Payment receipts</h2><span class="text-sm text-slate-500">{{ $pendingReceipts->count() }} pending</span></div>
         @forelse ($pendingReceipts as $receipt)
             <div class="grid gap-3 border-t py-4 lg:grid-cols-[1fr_360px]">
