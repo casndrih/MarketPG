@@ -72,6 +72,8 @@ data class DisputeDto(
 )
 data class DisputePaginator(val data: List<DisputeDto> = emptyList())
 data class DisputePage(val data: DisputePaginator)
+data class DiagnosticLogRequest(val report: String, val app_version: String, val device: String)
+data class DiagnosticLogResponse(val message: String? = null, val path: String? = null, val url: String? = null)
 data class LoginRequest(val email: String, val password: String)
 data class RegisterRequest(val name: String, val email: String, val password: String, val password_confirmation: String, val account_type: String)
 data class AuthResponse(val message: String? = null, val user: AuthUser? = null, val token: String)
@@ -125,6 +127,7 @@ data class ListingPage(val data: List<ListingDto> = emptyList(), val current_pag
 data class ListingDetailResponse(val data: ListingDto)
 
 interface MarketService {
+    @POST("diagnostics/logs") suspend fun uploadDiagnostics(@Body request: DiagnosticLogRequest): DiagnosticLogResponse
     @GET("sellers/following") suspend fun followedSellers(): FollowedSellerPage
     @POST("sellers/{id}/follow") suspend fun followSeller(@Path("id") id: Long): Map<String, Any>
     @retrofit2.http.DELETE("sellers/{id}/follow") suspend fun unfollowSeller(@Path("id") id: Long): Map<String, Any>
@@ -253,7 +256,22 @@ object MarketApi {
                 header("Accept", "application/json")
                 token?.takeIf { it.isNotBlank() }?.let { header("Authorization", "Bearer " + it) }
             }.build()
-            chain.proceed(request)
+            val started = System.nanoTime()
+            try {
+                val response = chain.proceed(request)
+                MarketDiagnostics.record(
+                    if (response.isSuccessful) "INFO" else "WARN",
+                    "http",
+                    "${request.method} ${request.url.encodedPath} -> ${response.code} (${(System.nanoTime() - started) / 1_000_000}ms)"
+                )
+                response
+            } catch (error: Exception) {
+                MarketDiagnostics.record(
+                    "ERROR", "http",
+                    "${request.method} ${request.url.encodedPath} failed: ${error.javaClass.simpleName} after ${(System.nanoTime() - started) / 1_000_000}ms"
+                )
+                throw error
+            }
         }.build()
         Retrofit.Builder()
             .baseUrl(BASE_URL)
