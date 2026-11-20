@@ -13,6 +13,17 @@ use App\Http\Controllers\OrderDisputeController;
 use App\Http\Controllers\IdentityVerificationController;
 use App\Http\Middleware\EnsureMarketplaceAdmin;
 
+Route::get('/public-config', function () {
+    $raw = DB::table('marketpg_settings')->where('key', 'ads')->value('value');
+    $settings = is_string($raw) ? json_decode($raw, true) : [];
+    $settings = is_array($settings) ? $settings : [];
+    return response()->json(['ads' => [
+        'enabled' => (bool) ($settings['enabled'] ?? false),
+        'mobile_app_id' => $settings['mobile_app_id'] ?? null,
+        'mobile_banner_ad_unit_id' => $settings['mobile_banner_ad_unit_id'] ?? null,
+    ]]);
+});
+
 Route::get('/health', function () {
     DB::select('select 1');
     return response()->json(['status' => 'ok', 'app' => 'MarketPG', 'database' => 'connected']);
