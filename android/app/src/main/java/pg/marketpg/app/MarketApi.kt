@@ -24,6 +24,8 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
+data class PublicAdsDto(val enabled: Boolean = false, val mobile_app_id: String? = null, val mobile_banner_ad_unit_id: String? = null)
+data class PublicConfigDto(val ads: PublicAdsDto = PublicAdsDto())
 data class CategoryDto(val id: Int, val name: String, val slug: String)
 data class CategoryPage(val data: List<CategoryDto> = emptyList())
 data class SellerDto(val id: Int, val name: String, val seller_rank: String? = null, val profile_photo_url: String? = null, val cover_photo_url: String? = null)
@@ -97,6 +99,7 @@ data class ListingPage(val data: List<ListingDto> = emptyList(), val current_pag
 data class ListingDetailResponse(val data: ListingDto)
 
 interface MarketService {
+    @GET("public-config") suspend fun publicConfig(): PublicConfigDto
     @POST("auth/login") suspend fun login(@Body request: LoginRequest): AuthResponse
     @POST("auth/register") suspend fun register(@Body request: RegisterRequest): AuthResponse
     @GET("auth/me") suspend fun me(): MeResponse
