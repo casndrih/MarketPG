@@ -25,7 +25,12 @@ class OrderController extends Controller
     {
         $data = $request->validate([
             'buyer_note' => ['nullable', 'string', 'max:1000'],
+            'payment_method' => ['required', Rule::in(['cash_on_pickup', 'bank_transfer'])],
         ]);
+
+        if ($data['payment_method'] === 'bank_transfer') {
+            abort_if(trim((string) config('marketpg.bank_transfer_details')) === '', 503, 'Bank transfer is not configured yet. Choose cash on pickup or contact MarketPG support.');
+        }
 
         $order = DB::transaction(function () use ($request, $listing, $data) {
             $locked = Listing::whereKey($listing->id)->lockForUpdate()->firstOrFail();
@@ -39,6 +44,7 @@ class OrderController extends Controller
                 'seller_id' => $locked->user_id,
                 'amount' => $locked->price,
                 'currency' => 'PGK',
+                'payment_method' => $data['payment_method'],
                 'status' => 'awaiting_payment',
                 'buyer_note' => $data['buyer_note'] ?? null,
             ]);
@@ -48,7 +54,8 @@ class OrderController extends Controller
         });
 
         return response()->json([
-            'message' => 'Order created. Complete payment using the instructions provided by the seller or MarketPG support.',
+            'message' => $data['payment_method'] === 'cash_on_pickup' ? 'Order reserved. Contact the seller to arrange collection and cash payment.' : 'Order reserved. Transfer payment using the details below, then upload your receipt.',
+            'payment_instructions' => $data['payment_method'] === 'bank_transfer' ? config('marketpg.bank_transfer_details') : null,
             'data' => $order->load(['listing:id,title,price,image_path', 'seller:id,name']),
         ], 201);
     }
@@ -76,6 +83,18 @@ class OrderController extends Controller
         });
 
         return response()->json(['message' => 'Order cancelled.', 'data' => $order->fresh()]);
+    }
+
+
+    public function confirmCash(Request $request, Order $order)
+    {
+        $this->authorizeParticipant($request, $order);
+        abort_unless($order->seller_id === $request->user()->id, 403);
+        abort_unless($order->payment_method === 'cash_on_pickup', 409, 'This order is not a cash-on-pickup order.');
+        abort_unless($order->status === 'awaiting_payment', 409, 'Only unpaid orders can be confirmed.');
+
+        $order->update(['status' => 'paid', 'paid_at' => now()]);
+        return response()->json(['message' => 'Cash payment confirmed by seller.', 'data' => $order->fresh()]);
     }
 
     public function complete(Request $request, Order $order)
