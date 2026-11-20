@@ -416,6 +416,7 @@ fun MarketPGApp() {
                     OutlinedTextField(newLocation, { newLocation = it }, label = { Text("Town / City") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
                     PngProvinceDropdown(newProvince, { newProvince = it })
                     OutlinedButton(onClick = { listingImagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth()) { Text(if (newImages.isEmpty()) "Add item photos (up to 10)" else "${newImages.size} item photos selected") }
+                    Text("Listing photo uploads activate after persistent image storage is configured.", color = colors.onSurfaceVariant, fontSize = 11.sp)
                     Text("Condition", fontWeight = FontWeight.SemiBold)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         listOf("new", "used", "refurbished").forEach { condition ->
@@ -539,6 +540,7 @@ fun MarketPGApp() {
                             else Box(Modifier.size(76.dp).background(colors.surfaceVariant, RoundedCornerShape(50)), contentAlignment = Alignment.Center) { Text("Photo", color = colors.onSurfaceVariant, fontSize = 11.sp) }
                             Column(Modifier.weight(1f)) {
                                 Text("Profile and cover photos are required", fontWeight = FontWeight.SemiBold)
+                                Text("Secure image storage is not configured yet, so uploads are temporarily paused.", color = colors.onSurfaceVariant, fontSize = 11.sp)
                                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                     TextButton(enabled = !profileBusy, onClick = { profilePhotoPicker.launch("image/*") }) { Text("Profile photo") }
                                     TextButton(enabled = !profileBusy, onClick = { coverPhotoPicker.launch("image/*") }) { Text("Cover photo") }
@@ -556,6 +558,7 @@ fun MarketPGApp() {
                         Text("Identity verification", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                         Text("Status: " + (identityStatus?.status?.replaceFirstChar(Char::uppercase) ?: "Not submitted"), color = when(identityStatus?.status) { "approved" -> Color(0xFF16A34A); "rejected" -> MaterialTheme.colorScheme.error; else -> colors.onSurfaceVariant })
                         Text("Upload a PNG National ID, passport or driver's licence. Buyer purchases require approval.", color = colors.onSurfaceVariant, fontSize = 12.sp)
+                        Text("Encrypted document storage is not configured yet; ID submissions are temporarily paused.", color = MaterialTheme.colorScheme.error, fontSize = 11.sp)
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             listOf("png_nid" to "PNG National ID", "passport" to "Passport", "drivers_licence" to "Driver licence").forEach { (value, label) ->
                                 FilterChip(identityDocType == value, { identityDocType = value }, label = { Text(label) }, shape = RoundedCornerShape(50))
