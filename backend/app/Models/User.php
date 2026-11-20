@@ -43,7 +43,7 @@ class User extends Authenticatable
 
     public function completedSales()
     {
-        return $this->hasMany(Order::class, 'seller_id')->where('status', 'completed');
+        return $this->hasMany(Order::class, 'seller_id')->whereIn('status', ['delivered', 'completed']);
     }
 
     public function getSellerRankAttribute(): string
