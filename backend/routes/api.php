@@ -1,21 +1,25 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MarketplaceController;
 use App\Http\Controllers\IdentityVerificationController;
 use App\Http\Middleware\EnsureMarketplaceAdmin;
 
 Route::get('/health', fn () => response()->json(['status' => 'ok', 'app' => 'MarketPG']));
+Route::post('/auth/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
+Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
 Route::get('/categories', [MarketplaceController::class, 'categories']);
 Route::get('/listings', [MarketplaceController::class, 'listings']);
 Route::get('/listings/{listing}', [MarketplaceController::class, 'show']);
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/auth/me', [AuthController::class, 'me']);
+    Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::post('/listings', [MarketplaceController::class, 'store']);
     Route::post('/listings/{listing}/receipt', [MarketplaceController::class, 'uploadReceipt']);
     Route::get('/identity-verification', [IdentityVerificationController::class, 'status']);
-    Route::post('/identity-verification', [IdentityVerificationController::class, 'submit'])
-        ->middleware('throttle:3,60');
+    Route::post('/identity-verification', [IdentityVerificationController::class, 'submit'])->middleware('throttle:3,60');
 
     Route::prefix('admin')->middleware(EnsureMarketplaceAdmin::class)->group(function () {
         Route::get('/identity-verifications', [IdentityVerificationController::class, 'queue']);
