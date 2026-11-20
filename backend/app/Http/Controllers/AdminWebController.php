@@ -7,6 +7,7 @@ use App\Models\Listing;
 use App\Models\Order;
 use App\Models\OrderDispute;
 use App\Models\PaymentReceipt;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
