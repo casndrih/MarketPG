@@ -5,7 +5,10 @@ on:
     paths: ['android/**', '.github/workflows/android-apk.yml']
   workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
+concurrency:
+  group: marketpg-android-apk
+  cancel-in-progress: true
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -21,11 +24,10 @@ jobs:
       - name: Build release APK
         run: gradle --no-daemon :app:assembleRelease
         working-directory: android
-      - name: Publish APK at repository root
-        run: |
-          cp android/app/build/outputs/apk/release/app-release-unsigned.apk app-release.apk
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add app-release.apk
-          git commit -m "Build MarketPG Android APK" || echo "No APK changes"
-          git push
+      - name: Publish APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MarketPG-Android-APK
+          path: android/app/build/outputs/apk/release/app-release-unsigned.apk
+          if-no-files-found: error
+          retention-days: 30
