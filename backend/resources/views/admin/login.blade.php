@@ -1,7 +1,16 @@
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MarketPG Admin Sign In</title><script>tailwind={config:{darkMode:'class',theme:{extend:{colors:{brand:{400:'#60a5fa',500:'#3b82f6'}}}}}};</script><script src="https://cdn.tailwindcss.com"></script><link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet"><script>(function(){try{if(localStorage.getItem('marketpg_theme')==='dark')document.documentElement.classList.add('dark');}catch(e){}})();</script>
-<style>.admin-theme-toggle{display:inline-flex;align-items:center;justify-content:center;min-width:42px;height:38px;padding:0 .8rem;border:0;border-radius:9999px;background:#f3f4f6;color:#374151;font-size:13px;font-weight:600}.dark .admin-theme-toggle{background:#292f3b;color:#facc15}</style></head>
+<style>
+.admin-theme-toggle{display:inline-flex;align-items:center;justify-content:center;min-width:42px;height:38px;padding:0 .8rem;border:0;border-radius:9999px;background:#f3f4f6;color:#374151;font-size:13px;font-weight:600}
+.dark .admin-theme-toggle{background:#292f3b;color:#facc15}
+html.dark,html.dark body{background:#000!important;color:#f3f4f6!important}
+html.dark main{background:#171a22!important;border:0!important;box-shadow:0 8px 32px rgba(0,0,0,.28)!important}
+html.dark input:not([type=checkbox]):not([type=radio]):not([type=file]),html.dark textarea,html.dark select{background:#222631!important;color:#f3f4f6!important;border:0!important;border-radius:9999px!important;box-shadow:none!important;outline:none}
+html.dark input::placeholder,html.dark textarea::placeholder{color:#929baa!important}
+html.dark button[type=submit]{border:0!important;border-radius:9999px!important}
+html.dark a:focus-visible,html.dark button:focus-visible,html.dark input:focus-visible{outline:2px solid #60a5fa;outline-offset:2px}
+</style></head>
 <body class="flex min-h-screen items-center justify-center bg-gray-50 p-5 dark:bg-gray-950">
 <button type="button" data-admin-theme-toggle onclick="marketpgToggleAdminTheme()" class="admin-theme-toggle fixed right-4 top-4">☾ Dark</button><main class="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-800 dark:bg-gray-900">
     <a href="/" class="flex items-center gap-3"><span class="grid h-11 w-11 place-items-center rounded-xl bg-blue-400 text-xl font-black text-gray-950">M</span><span class="text-2xl font-extrabold text-gray-900 dark:text-white">Market<span class="text-blue-600 dark:text-blue-400">PG</span></span></a>
