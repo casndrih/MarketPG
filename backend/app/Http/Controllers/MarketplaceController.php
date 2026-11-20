@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Listing;
+use App\Models\User;
 use App\Models\PaymentReceipt;
 use App\Models\Order;
 use Illuminate\Http\Request;
