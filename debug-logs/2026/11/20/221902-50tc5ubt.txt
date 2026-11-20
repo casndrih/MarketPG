@@ -1,0 +1,14 @@
+MarketPG Android diagnostic report
+Received UTC: 2026-11-20T22:19:02+00:00
+App version: 1.0.0
+Device: Android 13; SDK 33
+
+2026-11-21T08:17:47.724Z INFO/diagnostics: Logger initialized; Android 13; Appetize.io sdk_gphone_x86_64
+2026-11-21T08:17:49.546Z INFO/http: GET /api/categories -> 200 (1205ms)
+2026-11-21T08:17:49.651Z INFO/http: GET /api/listings -> 200 (951ms)
+2026-11-21T08:17:49.817Z INFO/http: GET /api/home-carousel -> 200 (266ms)
+2026-11-21T08:17:50.111Z INFO/http: GET /api/public-config -> 200 (286ms)
+2026-11-21T08:19:01.565Z INFO/auth-submit: mode=login email_chars=13 email_has_at=true password_present=true
+2026-11-21T08:19:01.957Z WARN/http: POST /api/auth/login -> 422 (388ms)
+2026-11-21T08:19:01.961Z ERROR/api-error: HttpException: HTTP 422 
+2026-11-21T08:19:01.962Z ERROR/auth-submit: mode=login exception=HttpException cause=- frames=KotlinExtensions$await$2$2.onResponse:53 <- OkHttpCall$1.onResponse:164 <- RealCall$AsyncCall.run:519 <- ThreadPoolExecutor.runWorker:1137 <- ThreadPoolExecutor$Worker.run:637 <- Thread.run:1012
