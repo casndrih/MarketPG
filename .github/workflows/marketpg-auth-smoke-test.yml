@@ -1,0 +1,78 @@
+name: MarketPG Backend Auth Smoke Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  auth-smoke-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      API_BASE_URL: https://marketpg.onrender.com
+      TEST_EMAIL: test@test.com
+      TEST_PASSWORD: ${{ secrets.MARKETPG_TEST_PASSWORD }}
+    steps:
+      - name: Check required secret
+        shell: bash
+        run: |
+          if [ -z "$TEST_PASSWORD" ]; then
+            echo "::error::Missing repository secret MARKETPG_TEST_PASSWORD."
+            exit 1
+          fi
+          echo "::add-mask::$TEST_PASSWORD"
+
+      - name: Check live API and database
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(mktemp)"
+          trap 'rm -f "$body"' EXIT
+          code="$(curl -sS -o "$body" -w '%{http_code}' "$API_BASE_URL/api/health")"
+          if [ "$code" != "200" ] || ! jq -e '.status == "ok" and .database == "connected"' "$body" >/dev/null; then
+            echo "::error::Health/database check failed (HTTP $code)."
+            exit 1
+          fi
+          echo "PASS: live API reachable and database connected (HTTP 200)."
+
+      - name: Verify valid login and authenticated profile
+        shell: bash
+        run: |
+          set -euo pipefail
+          login_body="$(mktemp)"
+          me_body="$(mktemp)"
+          trap 'rm -f "$login_body" "$me_body"' EXIT
+          payload="$(jq -n --arg email "$TEST_EMAIL" --arg password "$TEST_PASSWORD" '{email:$email,password:$password}')"
+          code="$(curl -sS -o "$login_body" -w '%{http_code}' -H 'Accept: application/json' -H 'Content-Type: application/json' --data "$payload" "$API_BASE_URL/api/auth/login")"
+          if [ "$code" != "200" ]; then
+            echo "::error::Valid login failed (HTTP $code). Response body withheld."
+            exit 1
+          fi
+          token="$(jq -r '.token // empty' "$login_body")"
+          if [ -z "$token" ]; then
+            echo "::error::Login returned HTTP 200 but no token."
+            exit 1
+          fi
+          echo "::add-mask::$token"
+          me_code="$(curl -sS -o "$me_body" -w '%{http_code}' -H 'Accept: application/json' -H "Authorization: Bearer $token" "$API_BASE_URL/api/auth/me")"
+          if [ "$me_code" != "200" ] || ! jq -e '.user.email == "test@test.com"' "$me_body" >/dev/null; then
+            echo "::error::Token validation failed (HTTP $me_code). Response body withheld."
+            exit 1
+          fi
+          echo "PASS: test account authenticated (HTTP 200); bearer token accepted by /api/auth/me."
+
+      - name: Verify incorrect password is rejected
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(mktemp)"
+          trap 'rm -f "$body"' EXIT
+          payload="$(jq -n --arg email "$TEST_EMAIL" '{email:$email,password:"Definitely-Wrong-Password-123!"}')"
+          code="$(curl -sS -o "$body" -w '%{http_code}' -H 'Accept: application/json' -H 'Content-Type: application/json' --data "$payload" "$API_BASE_URL/api/auth/login")"
+          if [ "$code" != "422" ]; then
+            echo "::error::Incorrect password was not rejected as expected (HTTP $code)."
+            exit 1
+          fi
+          echo "PASS: incorrect password rejected (HTTP 422)."
