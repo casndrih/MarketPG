@@ -14,7 +14,8 @@ import retrofit2.http.Query
 data class CategoryDto(val id: Int, val name: String, val slug: String)
 data class CategoryPage(val data: List<CategoryDto> = emptyList())
 data class SellerDto(val id: Int, val name: String)
-data class AuthUser(val id: Long, val name: String, val email: String)
+data class AuthUser(val id: Long, val name: String, val email: String, val phone: String? = null, val location: String? = null, val account_type: String? = null)
+data class ProfileUpdateRequest(val name: String, val phone: String?, val location: String?, val account_type: String)
 data class LoginRequest(val email: String, val password: String)
 data class RegisterRequest(val name: String, val email: String, val password: String, val password_confirmation: String)
 data class AuthResponse(val message: String? = null, val user: AuthUser? = null, val token: String)
@@ -65,6 +66,7 @@ interface MarketService {
     @POST("auth/login") suspend fun login(@Body request: LoginRequest): AuthResponse
     @POST("auth/register") suspend fun register(@Body request: RegisterRequest): AuthResponse
     @GET("auth/me") suspend fun me(): MeResponse
+    @retrofit2.http.PATCH("profile") suspend fun updateProfile(@Body request: ProfileUpdateRequest): MeResponse
     @POST("auth/logout") suspend fun logout(): Map<String, Any>
     @GET("wishlist") suspend fun wishlist(): WishlistPage
     @GET("messages") suspend fun messages(): MessagePage
