@@ -12,9 +12,9 @@ class MarketPGDemoSeeder extends Seeder
     public function run(): void
     {
         $accounts = [
-            ['name' => 'MarketPG Test Buyer', 'email' => 'buyer.test@marketpg.test', 'password' => env('MARKETPG_DEMO_BUYER_PASSWORD'), 'location' => 'Port Moresby', 'account_type' => 'buyer'],
-            ['name' => 'MarketPG Test Seller', 'email' => 'seller.test@marketpg.test', 'password' => env('MARKETPG_DEMO_SELLER_PASSWORD'), 'location' => 'Lae', 'account_type' => 'seller'],
-            ['name' => 'MarketPG Test Admin', 'email' => env('MARKETPG_DEMO_ADMIN_EMAIL'), 'password' => env('MARKETPG_DEMO_ADMIN_PASSWORD'), 'location' => 'Port Moresby', 'account_type' => 'both'],
+            ['name' => 'MarketPG Test Buyer', 'email' => 'buyer.test@marketpg.test', 'password' => env('MARKETPG_DEMO_BUYER_PASSWORD', 'Buyer-MPG-Test-2026!'), 'location' => 'Port Moresby', 'account_type' => 'buyer'],
+            ['name' => 'MarketPG Test Seller', 'email' => 'seller.test@marketpg.test', 'password' => env('MARKETPG_DEMO_SELLER_PASSWORD', 'Seller-MPG-Test-2026!'), 'location' => 'Lae', 'account_type' => 'seller'],
+            ['name' => 'MarketPG Test Admin', 'email' => env('MARKETPG_DEMO_ADMIN_EMAIL', 'admin.test@marketpg.test'), 'password' => env('MARKETPG_DEMO_ADMIN_PASSWORD', 'Admin-MPG-Test-2026!'), 'location' => 'Port Moresby', 'account_type' => 'both'],
         ];
 
         foreach ($accounts as $account) {
