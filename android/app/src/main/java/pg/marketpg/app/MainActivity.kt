@@ -73,6 +73,9 @@ fun MarketPGApp() {
     var inboxLoading by remember { mutableStateOf(false) }
     var inboxError by remember { mutableStateOf<String?>(null) }
     var replyingTo by remember { mutableStateOf<MessageDto?>(null) }
+    var disputeOrder by remember { mutableStateOf<OrderDto?>(null) }
+    var disputeReason by remember { mutableStateOf("not_as_described") }
+    var disputeDetails by remember { mutableStateOf("") }
     var replyText by remember { mutableStateOf("") }
     var newTitle by remember { mutableStateOf("") }
     var newDescription by remember { mutableStateOf("") }
@@ -406,6 +409,9 @@ fun MarketPGApp() {
                                                 }
                                             }) { Text("Mark completed") }
                                         }
+                                        if (order.status == "paid" || order.status == "completed") {
+                                            TextButton(onClick = { disputeOrder = order; disputeReason = "not_as_described"; disputeDetails = "" }) { Text("Report an issue") }
+                                        }
                                         if (order.buyer_id == currentUser?.id && order.status == "awaiting_payment") {
                                             TextButton(onClick = {
                                                 scope.launch {
@@ -429,6 +435,36 @@ fun MarketPGApp() {
             }
         }
 
+        disputeOrder?.let { order ->
+            AlertDialog(
+                onDismissRequest = { disputeOrder = null },
+                title = { Text("Report an order issue") },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(order.order_number, color = Color.Gray)
+                        listOf("item_not_received", "not_as_described", "damaged_item", "payment_issue", "other").forEach { reason ->
+                            FilterChip(disputeReason == reason, { disputeReason = reason }, label = { Text(reason.replace('_', ' ')) })
+                        }
+                        OutlinedTextField(disputeDetails, { disputeDetails = it }, label = { Text("Explain the issue (at least 20 characters)") }, minLines = 3)
+                    }
+                },
+                confirmButton = {
+                    Button(enabled = disputeDetails.trim().length >= 20, onClick = {
+                        scope.launch {
+                            try {
+                                MarketApi.service.raiseDispute(order.id, DisputeRequest(disputeReason, disputeDetails.trim()))
+                                disputeOrder = null
+                                savedRefresh++
+                                snackbarHost.showSnackbar("Dispute submitted for review.")
+                            } catch (e: Exception) {
+                                snackbarHost.showSnackbar(e.localizedMessage ?: "Could not submit dispute.")
+                            }
+                        }
+                    }) { Text("Submit dispute") }
+                },
+                dismissButton = { TextButton(onClick = { disputeOrder = null }) { Text("Cancel") } }
+            )
+        }
         replyingTo?.let { message ->
             AlertDialog(
                 onDismissRequest = { replyingTo = null },
