@@ -32,7 +32,7 @@ class MarketplaceController extends Controller
             'condition' => 'nullable|in:new,used,refurbished',
             'sort' => 'nullable|in:price_asc,price_desc,oldest,newest',
         ]);
-        $query = Listing::query()->where('status', 'active')->latest();
+        $query = Listing::query()->with('user:id,name')->where('status', 'active')->latest();
         if ($request->filled('q')) $query->where('title', 'ilike', '%'.$request->string('q').'%');
         if ($request->filled('category_id')) $query->where('category_id', $request->integer('category_id'));
         if ($request->filled('location')) $query->where('location', 'ilike', '%'.$request->string('location').'%');
