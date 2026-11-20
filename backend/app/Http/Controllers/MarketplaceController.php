@@ -32,7 +32,7 @@ class MarketplaceController extends Controller
             'condition' => 'nullable|in:new,used,refurbished',
             'sort' => 'nullable|in:price_asc,price_desc,oldest,newest',
         ]);
-        $query = Listing::query()->with('user:id,name')->where('status', 'active')->latest();
+        $query = Listing::query()->with(['images', 'user' => fn ($user) => $user->withCount('completedSales')])->where('status', 'active')->latest();
         if ($request->filled('q')) $query->where('title', 'ilike', '%'.$request->string('q').'%');
         if ($request->filled('category_id')) $query->where('category_id', $request->integer('category_id'));
         if ($request->filled('location')) $query->where('location', 'ilike', '%'.$request->string('location').'%');
@@ -52,31 +52,38 @@ class MarketplaceController extends Controller
     public function show(Listing $listing)
     {
         abort_unless($listing->status === 'active', 404);
-        return response()->json(['data' => $listing->load('user:id,name')]);
+        return response()->json(['data' => $listing->load(['images', 'user' => fn ($user) => $user->withCount('completedSales')])]);
     }
 
     public function store(Request $request)
     {
+        abort_unless($request->user()->profile_photo_path && $request->user()->cover_photo_path, 403, 'Complete your profile photo and cover photo before publishing listings.');
         $data = $request->validate([
             'title' => 'required|string|max:120', 'description' => 'required|string|max:5000',
             'price' => 'required|numeric|min:0', 'condition' => 'required|in:new,used,refurbished',
             'location' => 'required|string|max:120', 'category_id' => 'nullable|integer',
             'image' => 'nullable|image|max:5120',
+            'images' => 'sometimes|array|max:10',
+            'images.*' => 'image|mimes:jpg,jpeg,png,webp|max:5120',
         ]);
-        if ($request->hasFile('image')) {
+        if ($request->hasFile('image') || $request->hasFile('images')) {
             abort_unless(config('marketpg.private_uploads_enabled'), 503, 'Listing image uploads are temporarily unavailable while persistent storage is being configured.');
-            $data['image_path'] = $request->file('image')->store('listings', 'public');
+            $data['image_path'] = $request->file('image')?->store('listings', config('marketpg.public_disk'));
         }
-        unset($data['image']);
+        unset($data['image'], $data['images']);
         $data['user_id'] = $request->user()->id;
         $data['status'] = 'pending';
-        return response()->json(['data' => Listing::create($data)], 201);
+        $listing = Listing::create($data);
+        foreach ($request->file('images', []) as $position => $image) {
+            $listing->images()->create(['image_path' => $image->store('listing-gallery', config('marketpg.public_disk')), 'position' => $position]);
+        }
+        return response()->json(['data' => $listing->load('images')], 201);
     }
 
 
     public function mine(Request $request)
     {
-        return response()->json(Listing::where('user_id', $request->user()->id)->latest()->paginate(20));
+        return response()->json(Listing::with('images')->where('user_id', $request->user()->id)->latest()->paginate(20));
     }
 
     public function update(Request $request, Listing $listing)
@@ -92,12 +99,17 @@ class MarketplaceController extends Controller
             'location' => 'sometimes|required|string|max:120',
             'category_id' => 'nullable|integer',
             'image' => 'nullable|image|max:5120',
+            'images' => 'sometimes|array|max:10',
+            'images.*' => 'image|mimes:jpg,jpeg,png,webp|max:5120',
         ]);
 
-        if ($request->hasFile('image')) {
+        if ($request->hasFile('image') || $request->hasFile('images')) {
             abort_unless(config('marketpg.private_uploads_enabled'), 503, 'Listing image uploads are temporarily unavailable while persistent storage is being configured.');
-            $data['image_path'] = $request->file('image')->store('listings', 'public');
-            unset($data['image']);
+            if ($request->hasFile('image')) $data['image_path'] = $request->file('image')->store('listings', config('marketpg.public_disk'));
+            unset($data['image'], $data['images']);
+            foreach ($request->file('images', []) as $position => $image) {
+                $listing->images()->create(['image_path' => $image->store('listing-gallery', config('marketpg.public_disk')), 'position' => $position]);
+            }
         }
 
         if ($listing->status === 'active') $data['status'] = 'pending';
