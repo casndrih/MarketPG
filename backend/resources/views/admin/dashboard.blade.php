@@ -85,7 +85,17 @@
         <p class="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">New identity uploads are disabled until persistent encrypted storage and the privacy review are completed.</p>
         @forelse ($pendingVerifications as $verification)
             <div class="grid gap-3 border-t py-4 lg:grid-cols-[1fr_360px]">
-                <div><h3 class="font-bold">{{ $verification->user?->name }}</h3><p class="mt-1 text-sm text-slate-500">{{ $verification->user?->email }} · {{ $verification->document_type }}</p><p class="mt-1 text-xs text-slate-500">Document ending {{ $verification->document_last_four ?: '—' }}</p></div>
+                <div><h3 class="font-bold">{{ $verification->user?->name }}</h3><p class="mt-1 text-sm text-slate-500">{{ $verification->user?->email }} · {{ $verification->document_type }}</p><p class="mt-1 text-xs text-slate-500">Document ending {{ $verification->document_last_four ?: '—' }}</p>
+                    <div class="mt-3 flex flex-wrap gap-3 text-sm font-semibold">
+                        @foreach (['front' => 'View ID front', 'back' => 'View ID back', 'selfie' => 'View selfie'] as $kind => $label)
+                            @if ($kind !== 'back' || $verification->back_path)
+                                @if (($kind === 'front' && $verification->front_path) || ($kind === 'back' && $verification->back_path) || ($kind === 'selfie' && $verification->selfie_path))
+                                    <a class="text-lime-700 underline" href="{{ route('admin.identity.document', [$verification, $kind]) }}" target="_blank" rel="noopener noreferrer">{{ $label }}</a>
+                                @endif
+                            @endif
+                        @endforeach
+                    </div>
+                </div>
                 <form method="POST" action="{{ route('admin.identity.review', $verification) }}" class="space-y-2">@csrf
                     <input name="reason" placeholder="Required if rejecting" class="w-full rounded-lg border p-2 text-sm">
                     <div class="flex gap-2"><button name="decision" value="approved" class="flex-1 rounded-lg bg-lime-500 px-3 py-2 text-sm font-bold">Approve</button><button name="decision" value="rejected" class="flex-1 rounded-lg bg-red-100 px-3 py-2 text-sm font-bold text-red-800">Reject</button></div>
