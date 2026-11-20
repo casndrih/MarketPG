@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -53,6 +54,11 @@ fun MarketPGApp() {
     var tab by remember { mutableIntStateOf(0) }
     var retry by remember { mutableIntStateOf(0) }
     val snackbarHost = remember { SnackbarHostState() }
+    var savedListings by remember { mutableStateOf<List<ListingDto>>(emptyList()) }
+    var savedLoading by remember { mutableStateOf(false) }
+    var savedError by remember { mutableStateOf<String?>(null) }
+    var currentUser by remember { mutableStateOf<AuthUser?>(null) }
+    var savedRefresh by remember { mutableIntStateOf(0) }
     var signedIn by remember { mutableStateOf(MarketApi.hasSession()) }
     var showAuth by remember { mutableStateOf(false) }
     var registerMode by remember { mutableStateOf(false) }
@@ -66,6 +72,22 @@ fun MarketPGApp() {
 
     LaunchedEffect(Unit) {
         try { categories = MarketApi.service.categories().data } catch (_: Exception) { }
+    }
+    LaunchedEffect(tab, signedIn, savedRefresh) {
+        if (tab == 1 && signedIn) {
+            savedLoading = true
+            savedError = null
+            try {
+                savedListings = MarketApi.service.wishlist().data.mapNotNull { it.listing }
+            } catch (e: Exception) {
+                savedError = e.localizedMessage ?: "Could not load saved listings."
+            } finally {
+                savedLoading = false
+            }
+        }
+        if (tab == 4 && signedIn) {
+            try { currentUser = MarketApi.service.me().user } catch (_: Exception) { currentUser = null }
+        }
     }
     LaunchedEffect(search, categoryId, retry) {
         delay(300)
@@ -149,15 +171,51 @@ fun MarketPGApp() {
                         }
                     }
                 }
+            } else if (tab == 1 && signedIn) {
+                Column(Modifier.fillMaxSize().padding(padding)) {
+                    Text("Saved listings", Modifier.padding(20.dp), fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Ink)
+                    when {
+                        savedLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                        savedError != null -> Text(savedError ?: "Error", Modifier.padding(20.dp), color = MaterialTheme.colorScheme.error)
+                        savedListings.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("You haven't saved any listings yet.", color = Color.Gray) }
+                        else -> LazyColumn(contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            items(savedListings, key = { it.id }) { item ->
+                                Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                                    Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                        Column(Modifier.weight(1f)) {
+                                            Text(item.title, fontWeight = FontWeight.SemiBold)
+                                            Text("K " + item.price + " • " + item.location, color = Color.Gray)
+                                        }
+                                        TextButton(onClick = {
+                                            scope.launch {
+                                                try {
+                                                    MarketApi.service.removeFromWishlist(item.id)
+                                                    savedRefresh++
+                                                } catch (e: Exception) {
+                                                    snackbarHost.showSnackbar(e.localizedMessage ?: "Could not remove item.")
+                                                }
+                                            }
+                                        }) { Text("Remove") }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } else if (tab == 4 && signedIn) {
+                Column(Modifier.fillMaxSize().padding(padding).padding(28.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Your profile", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Ink)
+                    Spacer(Modifier.height(8.dp))
+                    Text(currentUser?.name ?: "Loading profile...", fontWeight = FontWeight.SemiBold)
+                    Text(currentUser?.email ?: "", color = Color.Gray)
+                    Spacer(Modifier.height(16.dp))
+                    Button(onClick = { MarketApi.clearToken(); signedIn = false; tab = 0 }) { Text("Sign out") }
+                }
             } else {
                 Column(Modifier.fillMaxSize().padding(padding).padding(28.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(listOf("Explore", "Saved items", "Sell on MarketPG", "Messages", "Your profile")[tab], fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Ink)
                     Spacer(Modifier.height(8.dp))
-                    Text(listOf("", "Your saved listings will appear here.", "Seller tools are being connected to your account.", "Buyer and seller conversations will appear here.", "Manage your MarketPG account.")[tab], color = Color.Gray)
-                    if (tab == 4 && signedIn) {
-                        Spacer(Modifier.height(16.dp))
-                        Button(onClick = { MarketApi.clearToken(); signedIn = false; tab = 0 }) { Text("Sign out") }
-                    }
+                    Text(listOf("", "Sign in to see your saved listings.", "Seller tools are being connected to your account.", "Buyer and seller conversations will appear here.", "Sign in to manage your account.")[tab], color = Color.Gray)
                 }
             }
         }
