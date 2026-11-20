@@ -1,18 +1,55 @@
 # MarketPG
 
-A Papua New Guinea local marketplace for buying and selling new and pre-loved goods.
+A Papua New Guinea marketplace for buying and selling new and pre-loved goods, priced in PGK (K).
 
-## Architecture
-- Laravel 12 backend, web storefront and admin foundation
-- REST API with Sanctum-protected seller and receipt endpoints
+## Current architecture
+
+- Laravel 12 backend with REST API and web storefront/admin foundation
+- Laravel Sanctum token authentication for Android clients
+- PostgreSQL on Render, using a dedicated `marketpg_` table prefix when sharing the Growgreen database
 - Native Android client (Kotlin / Jetpack Compose)
-- Render deployment (Singapore region)
+- Render Blueprint in `render.yaml`
 
-## Backend
-The Render Docker build bootstraps Laravel 12 and overlays the application code in `backend/`. Configure production APP settings and PostgreSQL credentials before production use.
+## Identity verification foundation
+
+MarketPG accepts these verification document types:
+- PNG National Identification Card (NID)
+- Passport
+- Driver's licence
+- Other government-issued photo ID (manual admin review)
+
+A submission requires the document front and a selfie; the reverse side is optional. The API records pending, approved or rejected status, requires user consent, limits submission attempts, and provides admin-only review/document endpoints. Only the final four characters of a supplied document number are retained. Uploaded identity documents are stored on Laravel's non-public local disk and are never returned as public URLs.
+
+**Production release blocker:** Render's local filesystem is ephemeral. Before collecting real identity documents, configure encrypted private object storage with short-lived authorized access, retention/deletion controls and backups. Add a liveness/face-match provider or a documented manual identity comparison procedure. Obtain PNG legal/privacy review and publish a privacy notice before collecting real ID data.
+
+Set `MARKETPG_ADMIN_EMAILS` in Render to a comma-separated allowlist of administrator email addresses. Do not commit this value or any credentials to Git.
+
+## API foundation
+
+- `GET /api/health`
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/me` (Sanctum)
+- `POST /api/auth/logout` (Sanctum)
+- `GET /api/categories`
+- `GET /api/listings`
+- `GET /api/listings/{listing}`
+- `POST /api/listings` (Sanctum)
+- `POST /api/listings/{listing}/receipt` (Sanctum)
+- `GET /api/identity-verification` (Sanctum)
+- `POST /api/identity-verification` (Sanctum)
+- `GET /api/admin/identity-verifications` (Sanctum + admin allowlist)
+- `POST /api/admin/identity-verifications/{verification}/review` (Sanctum + admin allowlist)
+- `GET /api/admin/identity-verifications/{verification}/documents/{kind}` (Sanctum + admin allowlist)
+
+## Shared database safety
+
+The Render Blueprint expects the existing Growgreen PostgreSQL **internal** connection URL to be supplied as the secret `DB_URL`. `DB_PREFIX=marketpg_` isolates MarketPG's tables, including Laravel's migrations table. Verify the prefix is active in the deployed Laravel database connection before running migrations. Do not remove the prefix or run migrations against the shared database until that check passes.
+
+## Completion and release gates
+
+See [backend/docs/COMPLETION_CHECKLIST.md](backend/docs/COMPLETION_CHECKLIST.md). The project is not production-complete merely because the Android APK compiles or the Laravel container deploys. Release requires working buyer/seller/order/payment/admin flows, private persistent file storage, secure identity review, Google OAuth credentials, notification delivery, automated tests, Android-to-API integration and end-to-end verification.
 
 ## Android
-Open `android/` in Android Studio. CI builds a release APK and publishes it as a GitHub Actions artifact.
 
-## Production requirements
-Configure persistent object storage for listing images and private payment receipts, Google OAuth credentials, SMTP, database credentials, and admin accounts. Receipt uploads must remain private and be reviewed by authorized administrators; never trust a client-side payment confirmation.
+Open `android/` in Android Studio. GitHub Actions builds a release APK. The current Compose screen is a UI foundation; it must be connected to the authenticated API and all buyer, seller, identity, order and account workflows before it can be called a finished app.
