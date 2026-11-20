@@ -48,7 +48,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders/{order}/receipt', [PaymentReceiptController::class, 'upload'])->middleware('throttle:5,10');
     Route::post('/orders/{order}/ship', [OrderController::class, 'ship']);
     Route::post('/orders/{order}/confirm-received', [OrderController::class, 'confirmReceived']);
-    Route::post('/listings/{listing}/receipt', [MarketplaceController::class, 'uploadReceipt']);
     Route::get('/identity-verification', [IdentityVerificationController::class, 'status']);
     Route::post('/identity-verification', [IdentityVerificationController::class, 'submit'])->middleware('throttle:3,60');
 
