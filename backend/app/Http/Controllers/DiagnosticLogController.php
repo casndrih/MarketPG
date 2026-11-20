@@ -16,8 +16,8 @@ class DiagnosticLogController extends Controller
             'device' => ['nullable', 'string', 'max:120'],
         ]);
 
-        $token = (string) config('services.github.diagnostics_token', env('MARKETPG_DIAGNOSTICS_GITHUB_TOKEN', ''));
-        $repository = (string) env('MARKETPG_DIAGNOSTICS_GITHUB_REPO', 'casndrih/MarketPG');
+        $token = (string) config('marketpg.diagnostics_github_token', '');
+        $repository = (string) config('marketpg.diagnostics_github_repo', 'casndrih/MarketPG');
         if ($token === '' || !preg_match('/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/', $repository)) {
             return response()->json(['message' => 'Diagnostic uploads are not configured on the server yet.'], 503);
         }
