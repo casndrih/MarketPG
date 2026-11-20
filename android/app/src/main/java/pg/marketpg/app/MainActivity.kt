@@ -41,8 +41,6 @@ import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-private val MarketLime = Color(0xFFB7F34A)
-private val MarketBlue = Color(0xFF3B82F6)
 private val LightColors = lightColorScheme(primary = Color(0xFF2563EB), onPrimary = Color.White, primaryContainer = Color(0xFFDBEAFE), onPrimaryContainer = Color(0xFF102A56), secondary = Color(0xFF475569), onSecondary = Color.White, tertiary = Color(0xFF60A5FA), background = Color(0xFFF7F8FA), onBackground = Color(0xFF111827), surface = Color.White, onSurface = Color(0xFF111827), surfaceVariant = Color(0xFFF1F5F9), onSurfaceVariant = Color(0xFF64748B), outline = Color(0xFFCBD5E1))
 private val DarkColors = darkColorScheme(primary = Color(0xFF60A5FA), onPrimary = Color(0xFF071A33), primaryContainer = Color(0xFF172B46), onPrimaryContainer = Color(0xFFDBEAFE), secondary = Color(0xFF94A3B8), onSecondary = Color(0xFF111827), tertiary = Color(0xFF93C5FD), background = Color.Black, onBackground = Color(0xFFF9FAFB), surface = Color(0xFF171717), onSurface = Color(0xFFF3F4F6), surfaceVariant = Color(0xFF262626), onSurfaceVariant = Color(0xFFA3A3A3), outline = Color(0xFF525252))
 
