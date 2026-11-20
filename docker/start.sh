@@ -11,11 +11,6 @@ chown -R www-data:www-data storage bootstrap/cache
 php artisan config:cache
 php artisan view:cache
 php artisan migrate --force
-if [ "${MARKETPG_SEED_DEMO:-false}" = "true" ]; then
-    echo "MarketPG: starting demo account and listing seed."
-    php artisan db:seed --class="Database\\Seeders\\MarketPGDemoSeeder" --force
-    echo "MarketPG: demo seed completed."
-fi
 php artisan storage:link || true
 
 exec apache2-foreground
