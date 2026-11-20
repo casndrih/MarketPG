@@ -14,6 +14,7 @@ import retrofit2.HttpException
 object MarketApiErrors {
     fun userMessage(error: Throwable, action: String = "complete this request"): String {
         if (error is kotlinx.coroutines.CancellationException) throw error
+        MarketDiagnostics.record("ERROR", "api-error", "${error.javaClass.simpleName}: ${error.message ?: "no detail"}")
 
         return when (error) {
             is HttpException -> httpMessage(error)
@@ -54,7 +55,7 @@ object MarketApiErrors {
             404 -> serverMessage ?: "The requested MarketPG resource could not be found."
             408 -> "The request timed out. Please try again."
             409 -> serverMessage ?: "This request conflicts with the current account or listing state."
-            422 -> validationMessage ?: serverMessage ?: "Some details are missing or invalid. Please check and try again."
+            422 -> if (serverMessage.orEmpty().contains("credentials", ignoreCase = true)) "Incorrect email or password. Please check your details and try again." else validationMessage ?: serverMessage ?: "Some details are missing or invalid. Please check and try again."
             429 -> "Too many attempts. Please wait a moment before trying again."
             in 500..599 -> "MarketPG is temporarily unavailable (server error $code). Please try again shortly."
             else -> serverMessage ?: "MarketPG couldn't complete the request (HTTP $code). Please try again."
