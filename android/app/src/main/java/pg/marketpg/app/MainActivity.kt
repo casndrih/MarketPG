@@ -379,7 +379,19 @@ fun MarketPGApp() {
                         loading -> ListingShimmer(Modifier.fillMaxSize())
                         listings.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("No matching listings found.", color = colors.onSurfaceVariant) }
                         else -> LazyVerticalGrid(GridCells.Fixed(2), Modifier.fillMaxSize(), contentPadding = PaddingValues(12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            items(listings, key = { it.id }) { listing -> ListingCard(listing, colors) { selected = listing } }
+                            items(listings, key = { it.id }) { listing ->
+                                Card(Modifier.clickable { selected = listing }, shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = colors.surface)) {
+                                    Column {
+                                        if (listing.imageUrl != null) AsyncImage(listing.imageUrl, listing.title, Modifier.fillMaxWidth().height(118.dp))
+                                        else Box(Modifier.fillMaxWidth().height(118.dp).background(colors.surfaceVariant), contentAlignment = Alignment.Center) { Text("📦", fontSize = 38.sp) }
+                                        Column(Modifier.padding(11.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                            Text(listing.title, fontWeight = FontWeight.SemiBold, maxLines = 2, minLines = 2, overflow = TextOverflow.Ellipsis)
+                                            Text("K " + listing.price, color = colors.primary, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
+                                            Text("⌖ " + listing.location, color = colors.onSurfaceVariant, fontSize = 11.sp, maxLines = 1)
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
