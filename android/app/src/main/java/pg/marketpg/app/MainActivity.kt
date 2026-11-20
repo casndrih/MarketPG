@@ -1,6 +1,9 @@
 package pg.marketpg.app
 
 import android.os.Bundle
+import android.content.Intent
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -17,6 +20,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.AddCircle
@@ -41,6 +45,8 @@ import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+private val PngProvinces = listOf("Central", "Gulf", "Milne Bay", "Northern (Oro)", "Southern Highlands", "Western Highlands", "Enga", "Simbu", "Eastern Highlands", "Morobe", "Madang", "East Sepik", "West Sepik (Sandaun)", "West New Britain", "East New Britain", "New Ireland", "Manus", "Hela", "Jiwaka", "Western", "National Capital District", "Autonomous Region of Bougainville")
+
 private val LightColors = lightColorScheme(primary = Color(0xFF2563EB), onPrimary = Color.White, primaryContainer = Color(0xFFDBEAFE), onPrimaryContainer = Color(0xFF102A56), secondary = Color(0xFF475569), onSecondary = Color.White, tertiary = Color(0xFF60A5FA), background = Color(0xFFF7F8FA), onBackground = Color(0xFF111827), surface = Color.White, onSurface = Color(0xFF111827), surfaceVariant = Color(0xFFF1F5F9), onSurfaceVariant = Color(0xFF64748B), outline = Color(0xFFCBD5E1))
 private val DarkColors = darkColorScheme(primary = Color(0xFF60A5FA), onPrimary = Color(0xFF071A33), primaryContainer = Color(0xFF172B46), onPrimaryContainer = Color(0xFFDBEAFE), secondary = Color(0xFF94A3B8), onSecondary = Color(0xFF111827), tertiary = Color(0xFF93C5FD), background = Color.Black, onBackground = Color(0xFFF9FAFB), surface = Color(0xFF171717), onSurface = Color(0xFFF3F4F6), surfaceVariant = Color(0xFF262626), onSurfaceVariant = Color(0xFFA3A3A3), outline = Color(0xFF525252))
 
@@ -63,6 +69,10 @@ fun MarketPGApp() {
     var minPrice by remember { mutableStateOf("") }
     var maxPrice by remember { mutableStateOf("") }
     var locationFilter by remember { mutableStateOf("") }
+    var filterProvince by remember { mutableStateOf("") }
+    var newProvince by remember { mutableStateOf("") }
+    var editProvince by remember { mutableStateOf("") }
+    var profileProvince by remember { mutableStateOf("") }
     var conditionFilter by remember { mutableStateOf<String?>(null) }
     var sortOrder by remember { mutableStateOf("newest") }
     var categories by remember { mutableStateOf<List<CategoryDto>>(emptyList()) }
@@ -128,6 +138,13 @@ fun MarketPGApp() {
     var authError by remember { mutableStateOf<String?>(null) }
     var authBusy by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val view = LocalView.current
+    SideEffect {
+        val window = (view.context as? android.app.Activity)?.window
+        window?.navigationBarColor = if (darkTheme) android.graphics.Color.BLACK else android.graphics.Color.WHITE
+        window?.decorView?.systemUiVisibility = if (darkTheme) 0 else android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+    }
 
     LaunchedEffect(Unit) {
         try { categories = MarketApi.service.categories().data } catch (_: Exception) { }
@@ -159,7 +176,8 @@ fun MarketPGApp() {
                 currentUser = MarketApi.service.me().user
                 profileName = currentUser?.name ?: ""
                 profilePhone = currentUser?.phone ?: ""
-                profileLocation = currentUser?.location ?: ""
+                profileLocation = currentUser?.location?.substringBefore(",")?.trim() ?: ""
+                profileProvince = currentUser?.location?.substringAfter(",", "")?.trim().orEmpty()
                 profileAccountType = currentUser?.account_type ?: "both"
             } catch (_: Exception) { currentUser = null }
         }
@@ -187,7 +205,7 @@ fun MarketPGApp() {
             listings = MarketApi.service.listings(
                 query = search.trim().takeIf { it.isNotEmpty() },
                 categoryId = categoryId,
-                location = locationFilter.trim().takeIf { it.isNotEmpty() },
+                location = listOf(locationFilter.trim(), filterProvince).filter { it.isNotBlank() }.joinToString(", ").takeIf { it.isNotEmpty() },
                 sort = sortOrder,
                 minPrice = minPrice.toDoubleOrNull(),
                 maxPrice = maxPrice.toDoubleOrNull(),
@@ -204,6 +222,7 @@ fun MarketPGApp() {
         Scaffold(
             containerColor = colors.background,
             topBar = {
+                Surface(shadowElevation = 1.dp, color = colors.background) {
                 TopAppBar(
                     title = { Text("MarketPG", fontWeight = FontWeight.SemiBold, color = colors.onSurface) },
                     actions = {
@@ -220,10 +239,12 @@ fun MarketPGApp() {
                         actionIconContentColor = colors.onSurface
                     )
                 )
+                }
             },
             snackbarHost = { SnackbarHost(snackbarHost) },
             bottomBar = {
-                NavigationBar(containerColor = colors.surface, contentColor = colors.onSurface) {
+                Surface(shadowElevation = 1.dp, color = colors.surface) {
+                NavigationBar(containerColor = colors.surface, contentColor = colors.onSurface, tonalElevation = 0.dp) {
                     val labels = listOf("Explore", "Saved", "Sell", "Inbox", "Profile")
                     val icons = listOf(
                         Icons.Filled.Home,
@@ -247,6 +268,7 @@ fun MarketPGApp() {
                             )
                         )
                     }
+                }
                 }
             }
         ) { padding ->
@@ -341,7 +363,8 @@ fun MarketPGApp() {
                     OutlinedTextField(newTitle, { newTitle = it }, label = { Text("Item title") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
                     OutlinedTextField(newDescription, { newDescription = it }, label = { Text("Description") }, modifier = Modifier.fillMaxWidth(), minLines = 3, shape = RoundedCornerShape(14.dp))
                     OutlinedTextField(newPrice, { newPrice = it }, label = { Text("Price (PGK)") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
-                    OutlinedTextField(newLocation, { newLocation = it }, label = { Text("Town / Province") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
+                    OutlinedTextField(newLocation, { newLocation = it }, label = { Text("Town / City") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
+                    PngProvinceDropdown(newProvince, { newProvince = it })
                     Text("Condition", fontWeight = FontWeight.SemiBold)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         listOf("new", "used", "refurbished").forEach { condition ->
@@ -362,9 +385,9 @@ fun MarketPGApp() {
                                 createBusy = true
                                 createError = null
                                 try {
-                                    MarketApi.service.createListing(CreateListingRequest(newTitle.trim(), newDescription.trim(), newPrice.trim(), newCondition, newLocation.trim(), newCategoryId))
+                                    MarketApi.service.createListing(CreateListingRequest(newTitle.trim(), newDescription.trim(), newPrice.trim(), newCondition, listOf(newLocation.trim(), newProvince).filter { it.isNotBlank() }.joinToString(", "), newCategoryId))
                                     myListings = MarketApi.service.myListings().data
-                                    newTitle = ""; newDescription = ""; newPrice = ""; newLocation = ""
+                                    newTitle = ""; newDescription = ""; newPrice = ""; newLocation = ""; newProvince = ""
                                     tab = 0
                                     retry++
                                     snackbarHost.showSnackbar("Listing submitted for review.")
@@ -445,7 +468,8 @@ fun MarketPGApp() {
                         Text(currentUser?.email ?: "", color = colors.onSurfaceVariant)
                         OutlinedTextField(profileName, { profileName = it }, label = { Text("Full name") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
                         OutlinedTextField(profilePhone, { profilePhone = it }, label = { Text("Phone number") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
-                        OutlinedTextField(profileLocation, { profileLocation = it }, label = { Text("Town / Province") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
+                        OutlinedTextField(profileLocation, { profileLocation = it }, label = { Text("Town / City") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
+                        PngProvinceDropdown(profileProvince, { profileProvince = it })
                         Text("Account type", fontWeight = FontWeight.SemiBold)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             listOf("buyer", "seller", "both").forEach { type ->
@@ -456,7 +480,7 @@ fun MarketPGApp() {
                             scope.launch {
                                 profileBusy = true
                                 try {
-                                    currentUser = MarketApi.service.updateProfile(ProfileUpdateRequest(profileName.trim(), profilePhone.trim().ifBlank { null }, profileLocation.trim().ifBlank { null }, profileAccountType)).user
+                                    currentUser = MarketApi.service.updateProfile(ProfileUpdateRequest(profileName.trim(), profilePhone.trim().ifBlank { null }, listOf(profileLocation.trim(), profileProvince).filter { it.isNotBlank() }.joinToString(", ").ifBlank { null }, profileAccountType)).user
                                     snackbarHost.showSnackbar("Profile updated.")
                                 } catch (e: Exception) {
                                     snackbarHost.showSnackbar(e.localizedMessage ?: "Could not update profile.")
@@ -568,7 +592,8 @@ fun MarketPGApp() {
                             OutlinedTextField(maxPrice, { maxPrice = it.filter { c -> c.isDigit() || c == '.' } }, label = { Text("Maximum") }, modifier = Modifier.weight(1f), singleLine = true, shape = RoundedCornerShape(14.dp))
                         }
                         Text("Location", fontWeight = FontWeight.SemiBold)
-                        OutlinedTextField(locationFilter, { locationFilter = it }, placeholder = { Text("Town or province") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
+                        OutlinedTextField(locationFilter, { locationFilter = it }, placeholder = { Text("Town / city") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
+                        PngProvinceDropdown(filterProvince, { filterProvince = it }, label = "Province")
                         Text("Condition", fontWeight = FontWeight.SemiBold)
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             FilterChip(conditionFilter == null, { conditionFilter = null }, label = { Text("Any") }, shape = RoundedCornerShape(50))
@@ -619,7 +644,8 @@ fun MarketPGApp() {
                         OutlinedTextField(editTitle, { editTitle = it }, label = { Text("Item title") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
                         OutlinedTextField(editDescription, { editDescription = it }, label = { Text("Description") }, modifier = Modifier.fillMaxWidth(), minLines = 3, shape = RoundedCornerShape(14.dp))
                         OutlinedTextField(editPrice, { editPrice = it }, label = { Text("Price (PGK)") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
-                        OutlinedTextField(editLocation, { editLocation = it }, label = { Text("Town / Province") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
+                        OutlinedTextField(editLocation, { editLocation = it }, label = { Text("Town / City") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
+                        PngProvinceDropdown(editProvince, { editProvince = it })
                         Text("Condition", fontWeight = FontWeight.SemiBold)
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             listOf("new", "used", "refurbished").forEach { condition ->
@@ -646,7 +672,7 @@ fun MarketPGApp() {
                                 try {
                                     MarketApi.service.updateListing(
                                         listing.id,
-                                        CreateListingRequest(editTitle.trim(), editDescription.trim(), editPrice.trim(), editCondition, editLocation.trim(), editCategoryId)
+                                        CreateListingRequest(editTitle.trim(), editDescription.trim(), editPrice.trim(), editCondition, listOf(editLocation.trim(), editProvince).filter { it.isNotBlank() }.joinToString(", "), editCategoryId)
                                     )
                                     myListings = MarketApi.service.myListings().data
                                     editingListing = null
@@ -824,63 +850,19 @@ fun MarketPGApp() {
         }
 
         selected?.let { listing ->
-            AlertDialog(
-                onDismissRequest = { selected = null },
-                title = { Text(listing.title, fontWeight = FontWeight.Bold) },
-                text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("K " + listing.price, color = colors.primary, fontWeight = FontWeight.ExtraBold, fontSize = 20.sp)
-                    Text(listing.description ?: "No description supplied.")
-                    Text("Location: " + listing.location)
-                    listing.condition?.let { Text("Condition: " + it) }
-                    listing.user?.name?.let { Text("Seller: " + it) }
-                } },
-                confirmButton = {
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        if (listing.user?.id?.toLong() != currentUser?.id) {
-                            TextButton(onClick = {
-                                if (!signedIn) {
-                                    showAuth = true
-                                } else {
-                                    messageDraft = ""
-                                    messageError = null
-                                    messageListing = listing
-                                    selected = null
-                                }
-                            }) { Text("Message seller") }
-                        }
-                        TextButton(onClick = {
-                            if (!signedIn) {
-                                showAuth = true
-                            } else {
-                                scope.launch {
-                                    try {
-                                        MarketApi.service.addToWishlist(listing.id)
-                                        savedRefresh++
-                                        snackbarHost.showSnackbar("Saved to your wishlist.")
-                                    } catch (e: Exception) {
-                                        snackbarHost.showSnackbar(e.localizedMessage ?: "Could not save listing.")
-                                    }
-                                }
-                            }
-                        }) { Text("Save") }
-                        Button(onClick = {
-                            if (!signedIn) {
-                                showAuth = true
-                            } else {
-                                scope.launch {
-                                    try {
-                                        val order = MarketApi.service.createOrder(listing.id, CreateOrderRequest())
-                                        selected = null
-                                        snackbarHost.showSnackbar(order.message ?: "Order reserved.")
-                                    } catch (e: Exception) {
-                                        snackbarHost.showSnackbar(e.localizedMessage ?: "Could not place order.")
-                                    }
-                                }
-                            }
-                        }) { Text("Buy") }
-                    }
-                }
-            )
+            LaunchedEffect(listing.id) {
+                context.startActivity(Intent(context, ListingDetailActivity::class.java).apply {
+                    putExtra("listing_id", listing.id)
+                    putExtra("title", listing.title)
+                    putExtra("description", listing.description ?: "No description supplied.")
+                    putExtra("price", listing.price)
+                    putExtra("location", listing.location)
+                    putExtra("condition", listing.condition ?: "")
+                    putExtra("seller", listing.user?.name ?: "MarketPG seller")
+                    putExtra("image_url", listing.imageUrl ?: "")
+                })
+                selected = null
+            }
         }
     }
 }
@@ -892,5 +874,72 @@ private fun ListingShimmer(modifier: Modifier = Modifier) {
     val placeholder = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = alpha)
     LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = modifier, contentPadding = PaddingValues(12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         items(6) { Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) { Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) { Box(Modifier.fillMaxWidth().height(112.dp).background(placeholder, RoundedCornerShape(8.dp))); Box(Modifier.fillMaxWidth(0.82f).height(13.dp).background(placeholder, RoundedCornerShape(8.dp))); Box(Modifier.fillMaxWidth(0.52f).height(17.dp).background(placeholder, RoundedCornerShape(8.dp))); Box(Modifier.fillMaxWidth(0.66f).height(10.dp).background(placeholder, RoundedCornerShape(8.dp))) } } }
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PngProvinceDropdown(value: String, onValueChange: (String) -> Unit, label: String = "Province") {
+    var expanded by remember { mutableStateOf(false) }
+    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
+        OutlinedTextField(
+            value = value, onValueChange = {}, readOnly = true,
+            label = { Text(label) }, placeholder = { Text("Select province") },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier.menuAnchor().fillMaxWidth(), singleLine = true,
+            shape = RoundedCornerShape(14.dp)
+        )
+        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            PngProvinces.forEach { province ->
+                DropdownMenuItem(text = { Text(province) }, onClick = { onValueChange(province); expanded = false })
+            }
+        }
+    }
+}
+
+class ListingDetailActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val title = intent.getStringExtra("title").orEmpty()
+        val description = intent.getStringExtra("description").orEmpty()
+        val price = intent.getStringExtra("price").orEmpty()
+        val location = intent.getStringExtra("location").orEmpty()
+        val condition = intent.getStringExtra("condition").orEmpty()
+        val seller = intent.getStringExtra("seller").orEmpty()
+        val imageUrl = intent.getStringExtra("image_url").orEmpty()
+        setContent {
+            val dark = isSystemInDarkTheme()
+            MaterialTheme(colorScheme = if (dark) DarkColors else LightColors) {
+                Scaffold(containerColor = MaterialTheme.colorScheme.background, topBar = {
+                    Surface(shadowElevation = 1.dp) {
+                        TopAppBar(title = { Text("Item details") }, navigationIcon = {
+                            IconButton(onClick = { finish() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") }
+                        })
+                    }
+                }) { padding ->
+                    Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        if (imageUrl.isNotBlank()) {
+                            AsyncImage(model = imageUrl, contentDescription = title, modifier = Modifier.fillMaxWidth().height(280.dp))
+                            Text("Item gallery", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                items(listOf(imageUrl)) { url -> AsyncImage(model = url, contentDescription = "Item screenshot", modifier = Modifier.size(88.dp)) }
+                            }
+                        } else {
+                            Box(Modifier.fillMaxWidth().height(220.dp).background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
+                                Text("No item photos uploaded yet", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                        Text(title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                        Text("K $price", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.ExtraBold)
+                        Text(description, style = MaterialTheme.typography.bodyLarge)
+                        HorizontalDivider()
+                        Text("Location: $location")
+                        if (condition.isNotBlank()) Text("Condition: $condition")
+                        Text("Seller: $seller")
+                    }
+                }
+            }
+        }
     }
 }
