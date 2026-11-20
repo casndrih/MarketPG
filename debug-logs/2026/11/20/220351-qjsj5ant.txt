@@ -1,0 +1,20 @@
+MarketPG Android diagnostic report
+Received UTC: 2026-11-20T22:03:51+00:00
+App version: 1.0.0
+Device: Android 13; SDK 33
+
+2026-11-21T07:51:54.303Z INFO/diagnostics: Logger initialized; Android 13; Xiaomi 21121119SG
+2026-11-21T07:51:55.691Z INFO/http: GET /api/categories -> 200 (703ms)
+2026-11-21T07:51:56.269Z INFO/http: GET /api/listings -> 200 (954ms)
+2026-11-21T07:51:56.288Z INFO/http: GET /api/home-carousel -> 200 (575ms)
+2026-11-21T07:51:57.030Z INFO/http: GET /api/public-config -> 200 (688ms)
+2026-11-21T07:56:58.130Z INFO/auth-submit: mode=login email_chars=24 email_has_at=true password_present=true
+2026-11-21T07:57:00.133Z INFO/http: POST /api/auth/login -> 200 (1995ms)
+2026-11-21T07:57:00.142Z ERROR/api-error: ClassCastException: no detail
+2026-11-21T07:57:00.146Z ERROR/auth-submit: mode=login exception=ClassCastException cause=- frames=l1.invokeSuspend:371 <- a.resumeWith:9 <- C.run:112 <- Y.E:24 <- X.run:3 <- Handler.handleCallback:942 <- Handler.dispatchMessage:99 <- Looper.loopOnce:211 <- Looper.loop:300 <- ActivityThread.main:8294 <- Method.invoke:-2 <- RuntimeInit$MethodAndArgsCaller.run:580
+2026-11-21T07:57:02.386Z INFO/http: POST /api/diagnostics/logs -> 201 (2230ms)
+2026-11-21T07:57:02.392Z ERROR/diagnostics-upload: automatic auth-failure upload exception=ClassCastException cause=- frames=l1.invokeSuspend:503 <- a.resumeWith:9 <- C.run:112 <- Y.E:24 <- X.run:3 <- Handler.handleCallback:942 <- Handler.dispatchMessage:99 <- Looper.loopOnce:211 <- Looper.loop:300 <- ActivityThread.main:8294 <- Method.invoke:-2 <- RuntimeInit$MethodAndArgsCaller.run:580
+2026-11-21T08:03:48.706Z INFO/auth-submit: mode=login email_chars=24 email_has_at=true password_present=true
+2026-11-21T08:03:50.990Z WARN/http: POST /api/auth/login -> 422 (2280ms)
+2026-11-21T08:03:50.996Z ERROR/api-error: q: HTTP 422 
+2026-11-21T08:03:51.000Z ERROR/auth-submit: mode=login exception=q cause=- frames=w.b:154 <- x.j:13 <- f.run:49 <- ThreadPoolExecutor.runWorker:1100 <- ThreadPoolExecutor$Worker.run:624 <- Thread.run:1571
