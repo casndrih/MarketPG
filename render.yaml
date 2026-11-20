@@ -1,4 +1,13 @@
-# MarketPG is deployed independently and uses its own PostgreSQL database.
+# MarketPG production stack. The database is dedicated to MarketPG only.
+databases:
+  - name: marketpg-db
+    databaseName: marketpg_db
+    user: marketpg_db_user
+    plan: free
+    region: singapore
+    postgresMajorVersion: 18
+    ipAllowList: []
+
 services:
   - type: web
     name: marketpg
@@ -26,7 +35,9 @@ services:
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_URL
-        sync: false
+        fromDatabase:
+          name: marketpg-db
+          property: connectionString
       - key: MARKETPG_ADMIN_EMAILS
         sync: false
       - key: SESSION_DRIVER
