@@ -57,3 +57,6 @@ jobs:
             -H "Accept: application/json" \
             "https://marketpg.onrender.com/api/listings" -o /tmp/listings.json
           jq -e '.data | type == "array"' /tmp/listings.json
+      - name: Verify demo catalog seed
+        run: |
+          jq -e '[.data[] | select(.user.name == "MarketPG Test Seller")] | length >= 20' /tmp/listings.json
