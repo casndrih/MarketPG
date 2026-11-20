@@ -1,0 +1,144 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\IdentityVerification;
+use App\Models\Listing;
+use App\Models\Order;
+use App\Models\PaymentReceipt;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+
+class AdminWebController extends Controller
+{
+    public function loginForm()
+    {
+        return view('admin.login');
+    }
+
+    public function login(Request $request)
+    {
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required', 'string'],
+        ]);
+
+        if (!Auth::attempt(['email' => strtolower($credentials['email']), 'password' => $credentials['password']])) {
+            return back()->withErrors(['email' => 'The supplied credentials are incorrect.'])->onlyInput('email');
+        }
+
+        $request->session()->regenerate();
+        $admins = config('marketpg.admin_emails', []);
+        if (!in_array(strtolower((string) Auth::user()->email), $admins, true)) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            return back()->withErrors(['email' => 'This account is not on the MarketPG administrator allowlist.'])->onlyInput('email');
+        }
+
+        return redirect()->route('admin.dashboard');
+    }
+
+    public function dashboard()
+    {
+        return view('admin.dashboard', [
+            'pendingListings' => Listing::with('user:id,name,email')->where('status', 'pending')->latest()->get(),
+            'orders' => Order::with(['listing:id,title', 'buyer:id,name,email', 'seller:id,name,email'])->latest()->take(40)->get(),
+            'pendingReceipts' => PaymentReceipt::with(['user:id,name,email', 'listing:id,title', 'order:id,order_number,amount,currency'])->where('status', 'pending')->latest()->get(),
+            'pendingVerifications' => IdentityVerification::with('user:id,name,email')->where('status', 'pending')->latest()->get(),
+            'counts' => [
+                'users' => \App\Models\User::count(),
+                'active_listings' => Listing::where('status', 'active')->count(),
+                'pending_listings' => Listing::where('status', 'pending')->count(),
+                'orders' => Order::count(),
+            ],
+        ]);
+    }
+
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect()->route('admin.login');
+    }
+
+    public function reviewListing(Request $request, Listing $listing)
+    {
+        abort_unless($listing->status === 'pending', 409);
+        $data = $request->validate([
+            'decision' => ['required', Rule::in(['active', 'rejected'])],
+            'reason' => ['nullable', 'string', 'max:1000'],
+        ]);
+        $listing->update(['status' => $data['decision'], 'moderation_note' => $data['reason'] ?? null]);
+        return back()->with('status', 'Listing moderation decision saved.');
+    }
+
+    public function reviewOrder(Request $request, Order $order)
+    {
+        $data = $request->validate([
+            'status' => ['required', Rule::in(['paid', 'cancelled', 'disputed'])],
+            'admin_note' => ['nullable', 'string', 'max:1000'],
+        ]);
+        abort_unless(in_array($order->status, ['awaiting_payment', 'paid'], true), 409);
+
+        DB::transaction(function () use ($order, $data) {
+            $locked = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
+            $updates = ['status' => $data['status'], 'admin_note' => $data['admin_note'] ?? null];
+            if ($data['status'] === 'paid') $updates['paid_at'] = $locked->paid_at ?? now();
+            if ($data['status'] === 'cancelled') {
+                $updates['cancelled_at'] = now();
+                Listing::whereKey($locked->listing_id)->where('status', 'reserved')->update(['status' => 'active']);
+            }
+            $locked->update($updates);
+        });
+
+        return back()->with('status', 'Order status updated.');
+    }
+
+    public function reviewReceipt(Request $request, PaymentReceipt $receipt)
+    {
+        abort_unless($receipt->status === 'pending', 409);
+        $data = $request->validate([
+            'decision' => ['required', Rule::in(['approved', 'rejected'])],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+        if ($data['decision'] === 'rejected') {
+            abort_if(trim((string) ($data['notes'] ?? '')) === '', 422, 'A rejection reason is required.');
+        }
+
+        DB::transaction(function () use ($receipt, $data) {
+            $locked = PaymentReceipt::whereKey($receipt->id)->lockForUpdate()->firstOrFail();
+            $locked->update(['status' => $data['decision'], 'notes' => $data['notes'] ?? null]);
+            if ($locked->order_id && $data['decision'] === 'approved') {
+                $order = Order::whereKey($locked->order_id)->lockForUpdate()->first();
+                if ($order && $order->status === 'awaiting_payment') $order->update(['status' => 'paid', 'paid_at' => now()]);
+            }
+        });
+
+        return back()->with('status', 'Payment receipt review saved.');
+    }
+
+    public function reviewIdentity(Request $request, IdentityVerification $verification)
+    {
+        abort_unless($verification->status === 'pending', 409);
+        $data = $request->validate([
+            'decision' => ['required', Rule::in(['approved', 'rejected'])],
+            'reason' => ['nullable', 'string', 'max:1000'],
+        ]);
+        if ($data['decision'] === 'rejected') {
+            abort_if(trim((string) ($data['reason'] ?? '')) === '', 422, 'A rejection reason is required.');
+        }
+
+        $verification->update([
+            'status' => $data['decision'],
+            'reviewed_by' => Auth::id(),
+            'reviewed_at' => now(),
+            'rejection_reason' => $data['reason'] ?? null,
+        ]);
+
+        return back()->with('status', 'Identity verification decision saved.');
+    }
+}
