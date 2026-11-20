@@ -65,4 +65,4 @@ See [backend/docs/COMPLETION_CHECKLIST.md](backend/docs/COMPLETION_CHECKLIST.md)
 
 ## Android
 
-Open `android/` in Android Studio. GitHub Actions builds a release APK. The current Compose screen is a UI foundation; it must be connected to the authenticated API and all buyer, seller, identity, order and account workflows before it can be called a finished app.
+Open `android/` in Android Studio. The Compose client now connects to the REST API for live listing/category search, account registration/sign-in with persisted Sanctum tokens, wishlist, listing creation and seller listing removal, inbox/replies, cash-on-pickup order placement, and buyer/seller order actions. GitHub Actions compiles the release APK and publishes it as a workflow artifact. Remaining Android work includes listing image upload, richer edit/detail flows, identity verification UI after secure storage is configured, push notifications, and end-to-end device testing. The client is not yet production-complete.
