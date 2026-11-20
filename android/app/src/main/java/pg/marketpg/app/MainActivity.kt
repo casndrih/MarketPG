@@ -6,12 +6,12 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -19,65 +19,141 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import kotlinx.coroutines.delay
 
 private val Lime = Color(0xFFB7F34A)
-private data class Product(val title:String,val price:String,val location:String,val category:String)
-private val demo = listOf(
- Product("iPhone 13 • 128GB","K 1,650","Lae","Phones"),
- Product("Samsung Smart TV 43”","K 1,200","Port Moresby","Electronics"),
- Product("Office study desk","K 350","Goroka","Furniture"),
- Product("Mountain bike","K 480","Lae","Sports"),
- Product("PlayStation 5","K 2,100","Port Moresby","Gaming"),
- Product("Dining set • 6 chairs","K 900","Madang","Home")
-)
+private val Ink = Color(0xFF26321B)
+private val Canvas = Color(0xFFF7F8F4)
 
 class MainActivity : ComponentActivity() {
- override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState); setContent { MarketPGApp() } }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent { MarketPGApp() }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MarketPGApp() {
- var search by remember { mutableStateOf("") }
- var selected by remember { mutableStateOf("All") }
- var tab by remember { mutableIntStateOf(0) }
- val categories = listOf("All","Phones","Electronics","Furniture","Vehicles","Fashion")
- val products = demo.filter { (selected=="All" || it.category==selected) && it.title.contains(search,true) }
- MaterialTheme(colorScheme = lightColorScheme(primary=Color(0xFF26321B), secondary=Lime, background=Color(0xFFF7F8F4))) {
-  Scaffold(containerColor=Color(0xFFF7F8F4), bottomBar={
-   NavigationBar(containerColor=Color.White) {
-    listOf("Explore","Saved","Sell","Inbox","Profile").forEachIndexed { i,label ->
-     NavigationBarItem(selected=tab==i,onClick={tab=i},icon={Text(listOf("⌂","♡","+","✉","☺")[i],fontSize=20.sp)},label={Text(label)})
+    var search by remember { mutableStateOf("") }
+    var categoryId by remember { mutableStateOf<Int?>(null) }
+    var categories by remember { mutableStateOf<List<CategoryDto>>(emptyList()) }
+    var listings by remember { mutableStateOf<List<ListingDto>>(emptyList()) }
+    var loading by remember { mutableStateOf(true) }
+    var error by remember { mutableStateOf<String?>(null) }
+    var selected by remember { mutableStateOf<ListingDto?>(null) }
+    var tab by remember { mutableIntStateOf(0) }
+    var retry by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(Unit) {
+        try { categories = MarketApi.service.categories().data } catch (_: Exception) { }
     }
-   }
-  }, floatingActionButton={ if(tab==2) ExtendedFloatingActionButton(onClick={},containerColor=Lime,contentColor=Color.Black,icon={Icon(Icons.Default.Add,null)},text={Text("Create listing")}) }) { padding ->
-   Column(Modifier.fillMaxSize().padding(padding)) {
-    Row(Modifier.fillMaxWidth().padding(horizontal=20.dp, vertical=16.dp),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
-     Column { Text("MarketPG",fontSize=26.sp,fontWeight=FontWeight.Black,color=Color(0xFF26321B)); Text("Buy & sell across PNG",fontSize=12.sp,color=Color.Gray) }
-     Text("🇵🇬",fontSize=26.sp)
+    LaunchedEffect(search, categoryId, retry) {
+        delay(300)
+        loading = true
+        error = null
+        try {
+            listings = MarketApi.service.listings(
+                query = search.trim().takeIf { it.isNotEmpty() },
+                categoryId = categoryId
+            ).data
+        } catch (e: Exception) {
+            error = e.localizedMessage ?: "Unable to connect to MarketPG."
+        } finally { loading = false }
     }
-    OutlinedTextField(value=search,onValueChange={search=it},modifier=Modifier.fillMaxWidth().padding(horizontal=16.dp),placeholder={Text("Search phones, cars, furniture...")},leadingIcon={Icon(Icons.Default.Search,null)},singleLine=true,shape=RoundedCornerShape(16.dp))
-    Card(Modifier.fillMaxWidth().padding(16.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF26321B)),shape=RoundedCornerShape(22.dp)) {
-     Column(Modifier.padding(20.dp)) { Text("GREAT LOCAL FINDS",color=Lime,fontWeight=FontWeight.Bold,fontSize=11.sp); Text("Give good things\na second life.",color=Color.White,fontSize=27.sp,fontWeight=FontWeight.ExtraBold); Text("Discover deals from sellers near you.",color=Color.LightGray); Spacer(Modifier.height(10.dp)); Button(onClick={tab=2},colors=ButtonDefaults.buttonColors(containerColor=Lime,contentColor=Color.Black)){Text("Start selling")}}
+
+    MaterialTheme(colorScheme = lightColorScheme(primary = Ink, secondary = Lime, background = Canvas)) {
+        Scaffold(
+            containerColor = Canvas,
+            bottomBar = {
+                NavigationBar(containerColor = Color.White) {
+                    val labels = listOf("Explore", "Saved", "Sell", "Inbox", "Profile")
+                    val icons = listOf("⌂", "♡", "+", "✉", "☺")
+                    labels.forEachIndexed { i, label ->
+                        NavigationBarItem(tab == i, { tab = i }, icon = { Text(icons[i], fontSize = 20.sp) }, label = { Text(label) })
+                    }
+                }
+            }
+        ) { padding ->
+            if (tab == 0) {
+                Column(Modifier.fillMaxSize().padding(padding)) {
+                    Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Column {
+                            Text("MarketPG", fontSize = 26.sp, fontWeight = FontWeight.Black, color = Ink)
+                            Text("Buy & sell across PNG", fontSize = 12.sp, color = Color.Gray)
+                        }
+                        Text("🇵🇬", fontSize = 26.sp)
+                    }
+                    OutlinedTextField(search, { search = it }, Modifier.fillMaxWidth().padding(horizontal = 16.dp), placeholder = { Text("Search phones, cars, furniture...") }, leadingIcon = { Icon(Icons.Default.Search, null) }, singleLine = true, shape = RoundedCornerShape(16.dp))
+                    Card(Modifier.fillMaxWidth().padding(16.dp), colors = CardDefaults.cardColors(containerColor = Ink), shape = RoundedCornerShape(22.dp)) {
+                        Column(Modifier.padding(20.dp)) {
+                            Text("GREAT LOCAL FINDS", color = Lime, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                            Text("Give good things\na second life.", color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold)
+                            Text("Discover real listings from sellers across Papua New Guinea.", color = Color.LightGray)
+                        }
+                    }
+                    Text("Browse categories", Modifier.padding(start = 18.dp), fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    LazyRow(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        item { FilterChip(categoryId == null, { categoryId = null }, label = { Text("All") }) }
+                        items(categories.size) { index ->
+                            val category = categories[index]
+                            FilterChip(categoryId == category.id, { categoryId = category.id }, label = { Text(category.name) })
+                        }
+                    }
+                    Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Fresh finds", fontSize = 19.sp, fontWeight = FontWeight.Bold)
+                        Text(listings.size.toString() + " listings", color = Color.Gray, fontSize = 12.sp)
+                    }
+                    when {
+                        loading -> Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Ink) }
+                        error != null -> Column(Modifier.fillMaxWidth().padding(28.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("Couldn't load listings", fontWeight = FontWeight.Bold)
+                            Text(error ?: "Network error", color = Color.Gray)
+                            Button(onClick = { retry++ }) { Text("Try again") }
+                        }
+                        listings.isEmpty() -> Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { Text("No active listings found. Try another search.", color = Color.Gray) }
+                        else -> LazyVerticalGrid(GridCells.Fixed(2), Modifier.weight(1f), contentPadding = PaddingValues(12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            items(listings, key = { it.id }) { listing ->
+                                Card(Modifier.clickable { selected = listing }, shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                                    Column {
+                                        if (listing.imageUrl != null) AsyncImage(listing.imageUrl, listing.title, Modifier.fillMaxWidth().height(118.dp))
+                                        else Box(Modifier.fillMaxWidth().height(118.dp).background(Color(0xFFE9EDDF)), contentAlignment = Alignment.Center) { Text("📦", fontSize = 38.sp) }
+                                        Column(Modifier.padding(11.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                            Text(listing.title, fontWeight = FontWeight.SemiBold, maxLines = 2, minLines = 2, overflow = TextOverflow.Ellipsis)
+                                            Text("K " + listing.price, color = Color(0xFF547C1D), fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
+                                            Text("⌖ " + listing.location, color = Color.Gray, fontSize = 11.sp, maxLines = 1)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                Column(Modifier.fillMaxSize().padding(padding).padding(28.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(listOf("Explore", "Saved items", "Sell on MarketPG", "Messages", "Your profile")[tab], fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Ink)
+                    Spacer(Modifier.height(8.dp))
+                    Text(listOf("", "Sign in and save listings to build your wishlist.", "Seller tools are being connected to your account.", "Buyer and seller conversations will appear here.", "Sign in to manage your account and verification status.")[tab], color = Color.Gray)
+                }
+            }
+        }
+        selected?.let { listing ->
+            AlertDialog(
+                onDismissRequest = { selected = null },
+                title = { Text(listing.title, fontWeight = FontWeight.Bold) },
+                text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("K " + listing.price, color = Color(0xFF547C1D), fontWeight = FontWeight.ExtraBold, fontSize = 20.sp)
+                    Text(listing.description ?: "No description supplied.")
+                    Text("Location: " + listing.location)
+                    listing.condition?.let { Text("Condition: " + it) }
+                    listing.user?.name?.let { Text("Seller: " + it) }
+                } },
+                confirmButton = { TextButton(onClick = { selected = null }) { Text("Close") } }
+            )
+        }
     }
-    Text("Browse categories",Modifier.padding(start=18.dp),fontWeight=FontWeight.Bold,fontSize=18.sp)
-    Row(Modifier.fillMaxWidth().padding(12.dp),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-     categories.take(4).forEach { c -> FilterChip(selected=selected==c,onClick={selected=c},label={Text(c)}) }
-    }
-    Row(Modifier.fillMaxWidth().padding(horizontal=18.dp),horizontalArrangement=Arrangement.SpaceBetween){Text("Fresh finds",fontSize=19.sp,fontWeight=FontWeight.Bold); Text("See all",color=Color(0xFF557A20))}
-    LazyVerticalGrid(columns=GridCells.Fixed(2),contentPadding=PaddingValues(12.dp),horizontalArrangement=Arrangement.spacedBy(10.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
-     items(products) { p ->
-      Card(shape=RoundedCornerShape(16.dp),colors=CardDefaults.cardColors(containerColor=Color.White),modifier=Modifier.clickable { }) {
-       Column {
-        Box(Modifier.fillMaxWidth().height(112.dp).background(Color(0xFFE9EDDF)),contentAlignment=Alignment.Center){Text("📦",fontSize=38.sp)}
-        Column(Modifier.padding(11.dp)) { Text(p.title,fontWeight=FontWeight.SemiBold,maxLines=2,minLines=2); Text(p.price,color=Color(0xFF547C1D),fontWeight=FontWeight.ExtraBold,fontSize=17.sp); Text("⌖ ${p.location}",color=Color.Gray,fontSize=11.sp) }
-       }
-      }
-     }
-    }
-   }
-  }
- }
 }
