@@ -82,13 +82,14 @@ data class ListingDto(
     val condition: String? = null,
     val location: String,
     @SerializedName("image_path") val imagePath: String? = null,
+    @SerializedName("image_url") val serverImageUrl: String? = null,
     val status: String? = null,
     val user: SellerDto? = null,
     @SerializedName("category_id") val categoryId: Int? = null,
     val images: List<ListingImageDto> = emptyList()
 ) {
     val imageUrl: String?
-        get() = imagePath?.takeIf { it.isNotBlank() }?.let {
+        get() = serverImageUrl?.takeIf { it.isNotBlank() } ?: imagePath?.takeIf { it.isNotBlank() }?.let {
             "https://marketpg.onrender.com/storage/" + it.trimStart('/')
         }
 }
