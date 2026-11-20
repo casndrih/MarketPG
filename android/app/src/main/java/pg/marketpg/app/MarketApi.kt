@@ -50,6 +50,7 @@ data class ListingDto(
     val condition: String? = null,
     val location: String,
     @SerializedName("image_path") val imagePath: String? = null,
+    val status: String? = null,
     val user: SellerDto? = null
 ) {
     val imageUrl: String?
@@ -76,6 +77,8 @@ interface MarketService {
     @POST("orders/{id}/cancel") suspend fun cancelOrder(@Path("id") id: Long): Map<String, Any>
     @GET("categories") suspend fun categories(): CategoryPage
     @POST("listings") suspend fun createListing(@Body request: CreateListingRequest): ListingDetailResponse
+    @GET("my/listings") suspend fun myListings(): ListingPage
+    @retrofit2.http.DELETE("listings/{id}") suspend fun deleteListing(@Path("id") id: Long): Map<String, Any>
     @GET("listings") suspend fun listings(
         @Query("q") query: String? = null,
         @Query("category_id") categoryId: Int? = null,
