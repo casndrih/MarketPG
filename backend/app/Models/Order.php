@@ -19,7 +19,10 @@ class Order extends Model
         'amount' => 'decimal:2',
         'paid_at' => 'datetime',
         'completed_at' => 'datetime',
-        'cancelled_at' => 'datetime',\n        'shipped_at' => 'datetime',\n        'delivered_at' => 'datetime',\n        'released_at' => 'datetime',
+        'cancelled_at' => 'datetime',
+        'shipped_at' => 'datetime',
+        'delivered_at' => 'datetime',
+        'released_at' => 'datetime',
     ];
 
     public function listing(): BelongsTo { return $this->belongsTo(Listing::class); }
