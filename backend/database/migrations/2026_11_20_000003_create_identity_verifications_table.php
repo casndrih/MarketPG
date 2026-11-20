@@ -16,6 +16,7 @@ return new class extends Migration {
             $table->string('back_path')->nullable();
             $table->string('selfie_path');
             $table->string('status', 20)->default('pending')->index();
+            $table->timestamp('consented_at');
             $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('reviewed_at')->nullable();
             $table->text('rejection_reason')->nullable();
