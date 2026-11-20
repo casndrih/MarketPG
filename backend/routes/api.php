@@ -43,7 +43,7 @@ Route::get('/listings/{listing}', [MarketplaceController::class, 'show']);
 Route::get('/sellers/{seller}/listings', [MarketplaceController::class, 'sellerListings']);
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/auth/me', [AuthController::class, 'me']);
+    Route::get('/auth/me', [AuthController::class, 'me']);\n    Route::get('/notifications', fn (\\Illuminate\\Http\\Request $request) => response()->json($request->user()->notifications()->latest()->paginate(30)));\n    Route::post('/notifications/{notification}/read', function (\\Illuminate\\Http\\Request $request, string $notification) { $item = $request->user()->notifications()->whereKey($notification)->firstOrFail(); $item->markAsRead(); return response()->json(['message' => 'Notification marked as read.']); });\n    Route::get('/sellers/following', [CommunityController::class, 'following']);\n    Route::post('/sellers/{seller}/follow', [CommunityController::class, 'follow']);\n    Route::delete('/sellers/{seller}/follow', [CommunityController::class, 'unfollow']);\n    Route::get('/seller-block-reasons', [CommunityController::class, 'blockReasons']);\n    Route::post('/buyers/{buyer}/block', [CommunityController::class, 'blockBuyer']);\n    Route::delete('/buyers/{buyer}/block', [CommunityController::class, 'unblockBuyer']);\n    Route::get('/support/tickets', [CommunityController::class, 'tickets']);\n    Route::post('/support/tickets', [CommunityController::class, 'createTicket'])->middleware('throttle:10,1');\n    Route::get('/support/tickets/{ticket}', [CommunityController::class, 'showTicket']);\n    Route::post('/support/tickets/{ticket}/replies', [CommunityController::class, 'replyTicket'])->middleware('throttle:20,1');
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::patch('/profile', [ProfileController::class, 'update']);
     Route::post('/profile/media', [ProfileController::class, 'uploadMedia']);
@@ -70,7 +70,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/identity-verification', [IdentityVerificationController::class, 'status']);
     Route::post('/identity-verification', [IdentityVerificationController::class, 'submit'])->middleware('throttle:3,60');
 
-    Route::prefix('admin')->middleware(EnsureMarketplaceAdmin::class)->group(function () {
+    Route::prefix('admin')->middleware(EnsureMarketplaceAdmin::class)->group(function () {\n        Route::get('/support/tickets', [CommunityController::class, 'adminTickets']);\n        Route::patch('/support/tickets/{ticket}', [CommunityController::class, 'adminUpdateTicket']);
         Route::get('/listings', [MarketplaceController::class, 'adminQueue']);
         Route::post('/listings/{listing}/review', [MarketplaceController::class, 'adminReview']);
         Route::get('/orders', [OrderController::class, 'adminIndex']);
