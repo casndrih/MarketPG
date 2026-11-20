@@ -44,7 +44,19 @@ Route::get('/listings/{listing}', [MarketplaceController::class, 'show']);
 Route::get('/sellers/{seller}/listings', [MarketplaceController::class, 'sellerListings']);
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/auth/me', [AuthController::class, 'me']);\n    Route::get('/notifications', fn (\\Illuminate\\Http\\Request $request) => response()->json($request->user()->notifications()->latest()->paginate(30)));\n    Route::post('/notifications/{notification}/read', function (\\Illuminate\\Http\\Request $request, string $notification) { $item = $request->user()->notifications()->whereKey($notification)->firstOrFail(); $item->markAsRead(); return response()->json(['message' => 'Notification marked as read.']); });\n    Route::get('/sellers/following', [CommunityController::class, 'following']);\n    Route::post('/sellers/{seller}/follow', [CommunityController::class, 'follow']);\n    Route::delete('/sellers/{seller}/follow', [CommunityController::class, 'unfollow']);\n    Route::get('/seller-block-reasons', [CommunityController::class, 'blockReasons']);\n    Route::post('/buyers/{buyer}/block', [CommunityController::class, 'blockBuyer']);\n    Route::delete('/buyers/{buyer}/block', [CommunityController::class, 'unblockBuyer']);\n    Route::get('/support/tickets', [CommunityController::class, 'tickets']);\n    Route::post('/support/tickets', [CommunityController::class, 'createTicket'])->middleware('throttle:10,1');\n    Route::get('/support/tickets/{ticket}', [CommunityController::class, 'showTicket']);\n    Route::post('/support/tickets/{ticket}/replies', [CommunityController::class, 'replyTicket'])->middleware('throttle:20,1');
+    Route::get('/auth/me', [AuthController::class, 'me']);
+    Route::get('/notifications', fn (\Illuminate\Http\Request $request) => response()->json($request->user()->notifications()->latest()->paginate(30)));
+    Route::post('/notifications/{notification}/read', function (\Illuminate\Http\Request $request, string $notification) { $item = $request->user()->notifications()->whereKey($notification)->firstOrFail(); $item->markAsRead(); return response()->json(['message' => 'Notification marked as read.']); });
+    Route::get('/sellers/following', [CommunityController::class, 'following']);
+    Route::post('/sellers/{seller}/follow', [CommunityController::class, 'follow']);
+    Route::delete('/sellers/{seller}/follow', [CommunityController::class, 'unfollow']);
+    Route::get('/seller-block-reasons', [CommunityController::class, 'blockReasons']);
+    Route::post('/buyers/{buyer}/block', [CommunityController::class, 'blockBuyer']);
+    Route::delete('/buyers/{buyer}/block', [CommunityController::class, 'unblockBuyer']);
+    Route::get('/support/tickets', [CommunityController::class, 'tickets']);
+    Route::post('/support/tickets', [CommunityController::class, 'createTicket'])->middleware('throttle:10,1');
+    Route::get('/support/tickets/{ticket}', [CommunityController::class, 'showTicket']);
+    Route::post('/support/tickets/{ticket}/replies', [CommunityController::class, 'replyTicket'])->middleware('throttle:20,1');
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::patch('/profile', [ProfileController::class, 'update']);
     Route::post('/profile/media', [ProfileController::class, 'uploadMedia']);
