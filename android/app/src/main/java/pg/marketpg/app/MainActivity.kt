@@ -1101,6 +1101,8 @@ class ListingDetailActivity : ComponentActivity() {
         val imageUrl = intent.getStringExtra("image_url").orEmpty()
         val galleryUrls = intent.getStringArrayListExtra("gallery_urls").orEmpty().let { urls -> (listOf(imageUrl) + urls).filter { it.isNotBlank() }.distinct() }
         val sellerRank = intent.getStringExtra("seller_rank").orEmpty()
+        val sellerId = intent.getLongExtra("seller_id", 0L)
+        val sellerAvatar = intent.getStringExtra("seller_avatar").orEmpty()
         val listingId = intent.getLongExtra("listing_id", 0L)
         setContent {
             val scope = rememberCoroutineScope()
@@ -1108,6 +1110,10 @@ class ListingDetailActivity : ComponentActivity() {
             var paymentInstructions by remember { mutableStateOf("") }
             var checkoutBusy by remember { mutableStateOf(false) }
             var checkoutError by remember { mutableStateOf<String?>(null) }
+            var sellerSheetOpen by remember { mutableStateOf(false) }
+            var sellerItems by remember { mutableStateOf<List<ListingDto>>(emptyList()) }
+            var sellerItemsLoading by remember { mutableStateOf(false) }
+            var sellerItemsError by remember { mutableStateOf<String?>(null) }
             val receiptPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
                 val order = createdOrder
                 if (uri != null && order != null) scope.launch {
@@ -1144,8 +1150,36 @@ class ListingDetailActivity : ComponentActivity() {
                         HorizontalDivider()
                         Text("Location: $location")
                         if (condition.isNotBlank()) Text("Condition: $condition")
-                        Text("Seller: $seller")
-                        Text("Seller level: $sellerRank", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                        Surface(
+                            modifier = Modifier.fillMaxWidth().clickable {
+                                sellerSheetOpen = true
+                                if (sellerItems.isEmpty() && sellerId > 0) scope.launch {
+                                    sellerItemsLoading = true
+                                    sellerItemsError = null
+                                    try { sellerItems = MarketApi.service.sellerListings(sellerId).data }
+                                    catch (e: Exception) { sellerItemsError = e.localizedMessage ?: "Could not load this seller's items." }
+                                    finally { sellerItemsLoading = false }
+                                }
+                            },
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant
+                        ) {
+                            Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                if (sellerAvatar.isNotBlank()) {
+                                    AsyncImage(model = secureMarketPgUrl(sellerAvatar), contentDescription = "Seller avatar", modifier = Modifier.size(52.dp))
+                                } else {
+                                    Surface(shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier.size(52.dp)) {
+                                        Box(contentAlignment = Alignment.Center) { Text(seller.take(1).uppercase(), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer) }
+                                    }
+                                }
+                                Column(Modifier.weight(1f)) {
+                                    Text(seller, fontWeight = FontWeight.SemiBold)
+                                    Text("Seller level: $sellerRank", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall)
+                                    Text("Tap to see this seller's other items", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
+                                }
+                                Text("›", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.headlineMedium)
+                            }
+                        }
                         if (MarketApi.hasSession()) {
                             if (createdOrder == null) {
                                 Button(enabled = !checkoutBusy && listingId > 0, onClick = {
@@ -1171,6 +1205,43 @@ class ListingDetailActivity : ComponentActivity() {
                         }
                         checkoutError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
 
+                    }
+                }
+                if (sellerSheetOpen) {
+                    ModalBottomSheet(
+                        onDismissRequest = { sellerSheetOpen = false },
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ) {
+                        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 24.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                if (sellerAvatar.isNotBlank()) AsyncImage(model = secureMarketPgUrl(sellerAvatar), contentDescription = "Seller avatar", modifier = Modifier.size(48.dp))
+                                Column {
+                                    Text(seller, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                                    Text(sellerRank, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall)
+                                }
+                            }
+                            Spacer(Modifier.height(16.dp))
+                            Text("More items from this seller", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                            when {
+                                sellerItemsLoading -> Box(Modifier.fillMaxWidth().padding(28.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                                sellerItemsError != null -> Text(sellerItemsError!!, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(vertical = 18.dp))
+                                sellerItems.isEmpty() -> Text("This seller has no other active items yet.", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 18.dp))
+                                else -> LazyColumn(Modifier.fillMaxWidth().heightIn(max = 420.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                    items(sellerItems.filter { it.id != listingId }, key = { it.id }) { item ->
+                                        Surface(shape = RoundedCornerShape(14.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
+                                            Row(Modifier.fillMaxWidth().padding(10.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                                if (!item.imageUrl.isNullOrBlank()) AsyncImage(model = item.imageUrl, contentDescription = item.title, modifier = Modifier.size(72.dp))
+                                                Column(Modifier.weight(1f)) {
+                                                    Text(item.title, maxLines = 2, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.Medium)
+                                                    Text("K \${item.price}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                                                    Text(item.location, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
