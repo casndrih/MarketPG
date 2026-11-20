@@ -24,14 +24,14 @@ class User extends Authenticatable
         'cover_photo_path',
     ];
 
-    protected $appends = ['seller_rank'];
+    protected $appends = ['seller_rank', 'profile_photo_url', 'cover_photo_url'];
 
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    public function completedSales()
+    public function getProfilePhotoUrlAttribute(): ?string\n    {\n        return $this->profile_photo_path ? \\Illuminate\\Support\\Facades\\Storage::disk(config('marketpg.public_disk'))->url($this->profile_photo_path) : null;\n    }\n\n    public function getCoverPhotoUrlAttribute(): ?string\n    {\n        return $this->cover_photo_path ? \\Illuminate\\Support\\Facades\\Storage::disk(config('marketpg.public_disk'))->url($this->cover_photo_path) : null;\n    }\n\n    public function completedSales()
     {
         return $this->hasMany(Order::class, 'seller_id')->where('status', 'completed');
     }
