@@ -43,7 +43,9 @@ Set `MARKETPG_ADMIN_EMAILS` in Render to a comma-separated allowlist of administ
 - `POST /api/orders/{order}/cancel` (buyer only)
 - `POST /api/orders/{order}/confirm-cash` (seller confirms cash-on-pickup payment)
 - Checkout supports cash on pickup; bank transfer remains unavailable until `MARKETPG_BANK_TRANSFER_DETAILS` is configured.
-- `POST /api/orders/{order}/complete` (seller after admin payment confirmation)
+- `POST /api/orders/{order}/complete` (seller after payment confirmation)
+- `GET /api/disputes` and `POST /api/orders/{order}/disputes` (order participants)
+- `GET /api/admin/disputes` and `POST /api/admin/disputes/{dispute}/resolve` (admin allowlist)
 - `GET /api/messages` and listing-scoped message thread/send endpoints (Sanctum)
 - `POST /api/listings` (Sanctum)
 - `POST /api/listings/{listing}/receipt` (Sanctum)
