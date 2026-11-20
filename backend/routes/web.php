@@ -1,10 +1,27 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AdminWebController;
+use App\Http\Middleware\EnsureMarketplaceAdmin;
 use App\Models\Listing;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    $listings = Listing::query()->where('status', 'active')->latest()->take(12)->get();
+    $query = Listing::query()->where('status', 'active')->latest();
+    if (request()->filled('q')) {
+        $query->where('title', 'ilike', '%' . request('q') . '%');
+    }
+    $listings = $query->take(24)->get();
     return view('marketplace', compact('listings'));
 });
-Route::view('/admin', 'admin.dashboard')->middleware(['web', 'auth']);
+
+Route::get('/admin/login', [AdminWebController::class, 'loginForm'])->name('admin.login');
+Route::post('/admin/login', [AdminWebController::class, 'login'])->name('admin.login.submit');
+
+Route::prefix('admin')->name('admin.')->middleware(['web', 'auth', EnsureMarketplaceAdmin::class])->group(function () {
+    Route::get('/', [AdminWebController::class, 'dashboard'])->name('dashboard');
+    Route::post('/logout', [AdminWebController::class, 'logout'])->name('logout');
+    Route::post('/listings/{listing}/review', [AdminWebController::class, 'reviewListing'])->name('listings.review');
+    Route::post('/orders/{order}/review', [AdminWebController::class, 'reviewOrder'])->name('orders.review');
+    Route::post('/receipts/{receipt}/review', [AdminWebController::class, 'reviewReceipt'])->name('receipts.review');
+    Route::post('/identity/{verification}/review', [AdminWebController::class, 'reviewIdentity'])->name('identity.review');
+});
