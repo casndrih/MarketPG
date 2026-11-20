@@ -40,6 +40,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -199,8 +200,15 @@ fun MarketPGApp() {
 
     SideEffect {
         val window = (view.context as? android.app.Activity)?.window
-        window?.navigationBarColor = if (darkTheme) android.graphics.Color.BLACK else android.graphics.Color.WHITE
-        window?.decorView?.systemUiVisibility = if (darkTheme) 0 else android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+        val systemBarColor = colors.surface.toArgb()
+        window?.statusBarColor = systemBarColor
+        window?.navigationBarColor = systemBarColor
+        window?.decorView?.systemUiVisibility = if (darkTheme) {
+            0
+        } else {
+            android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or
+                android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -291,7 +299,7 @@ fun MarketPGApp() {
         Scaffold(
             containerColor = colors.background,
             topBar = {
-                Surface(shadowElevation = 1.dp, color = colors.background) {
+                Surface(shadowElevation = 1.dp, color = colors.surface) {
                 TopAppBar(
                     title = { Text("MarketPG", fontWeight = FontWeight.SemiBold, color = colors.onSurface) },
                     actions = {
@@ -303,7 +311,7 @@ fun MarketPGApp() {
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = colors.background,
+                        containerColor = colors.surface,
                         titleContentColor = colors.onSurface,
                         actionIconContentColor = colors.onSurface
                     )
