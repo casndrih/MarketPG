@@ -33,6 +33,7 @@ Route::post('/auth/login', [AuthController::class, 'login'])->middleware('thrott
 Route::get('/categories', [MarketplaceController::class, 'categories']);
 Route::get('/listings', [MarketplaceController::class, 'listings']);
 Route::get('/listings/{listing}', [MarketplaceController::class, 'show']);
+Route::get('/sellers/{seller}/listings', [MarketplaceController::class, 'sellerListings']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/auth/me', [AuthController::class, 'me']);
