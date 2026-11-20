@@ -26,6 +26,20 @@ data class OrderResponse(val message: String? = null, val payment_instructions: 
 data class OrderPage(val data: List<OrderDto> = emptyList())
 data class WishlistItemDto(val id: Long, val listing: ListingDto?)
 data class WishlistPage(val data: List<WishlistItemDto> = emptyList())
+data class MessageUserDto(val id: Long, val name: String)
+data class MessageListingDto(val id: Long, val title: String)
+data class MessageDto(
+    val id: Long,
+    val listing_id: Long,
+    val sender_id: Long,
+    val recipient_id: Long,
+    val body: String,
+    val sender: MessageUserDto? = null,
+    val recipient: MessageUserDto? = null,
+    val listing: MessageListingDto? = null
+)
+data class MessagePage(val data: List<MessageDto> = emptyList())
+data class MessageRequest(val recipient_id: Long, val body: String)
 
 data class ListingDto(
     val id: Long,
@@ -50,6 +64,8 @@ interface MarketService {
     @POST("auth/register") suspend fun register(@Body request: RegisterRequest): AuthResponse
     @GET("auth/me") suspend fun me(): MeResponse
     @GET("wishlist") suspend fun wishlist(): WishlistPage
+    @GET("messages") suspend fun messages(): MessagePage
+    @POST("listings/{id}/messages") suspend fun sendMessage(@Path("id") id: Long, @Body request: MessageRequest): Map<String, Any>
     @POST("listings/{id}/wishlist") suspend fun addToWishlist(@Path("id") id: Long): Map<String, Any>
     @retrofit2.http.DELETE("listings/{id}/wishlist") suspend fun removeFromWishlist(@Path("id") id: Long): Map<String, Any>
     @POST("listings/{id}/orders") suspend fun createOrder(@Path("id") id: Long, @Body request: CreateOrderRequest): OrderResponse
