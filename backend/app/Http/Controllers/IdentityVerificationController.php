@@ -61,6 +61,7 @@ class IdentityVerificationController extends Controller
 
     public function review(Request $request, IdentityVerification $verification)
     {
+        abort_unless($verification->status === 'pending', 409, 'Only pending verifications can be reviewed.');
         $data = $request->validate([
             'decision' => ['required', Rule::in(['approved', 'rejected'])],
             'reason' => ['nullable', 'string', 'max:1000'],
