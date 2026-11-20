@@ -27,11 +27,15 @@ import retrofit2.http.Query
 /** Enforce HTTPS for MarketPG media URLs returned by older API/storage records. */
 internal fun secureMarketPgUrl(url: String?): String? {
     val value = url?.trim()?.takeIf { it.isNotEmpty() } ?: return null
-    // Normalize every legacy MarketPG URL, including the bare host and URLs with ports/query strings.
-    val marketHost = Regex("^(https?:)?//marketpg\\.onrender\\.com(?=[:/?#]|$)", RegexOption.IGNORE_CASE)
-    return if (marketHost.containsMatchIn(value)) {
-        value.replaceFirst(marketHost, "https://marketpg.onrender.com")
-    } else value
+    // Upgrade legacy URLs for our Render host. Never pass an HTTP image URL to OkHttp/Coil.
+    val marketHost = Regex("^(?:https?:)?//marketpg\\.onrender\\.com(?=[:/?#]|$)", RegexOption.IGNORE_CASE)
+    val normalized = when {
+        marketHost.containsMatchIn(value) -> value.replaceFirst(marketHost, "https://marketpg.onrender.com")
+        value.startsWith("//") -> "https:$value"
+        value.startsWith("https://", ignoreCase = true) -> value
+        else -> return null
+    }
+    return normalized.takeIf { it.startsWith("https://", ignoreCase = true) }
 }
 data class FollowedSellerDto(val id: Long, val name: String, val seller_rank: String? = null, val profile_photo_url: String? = null)
 data class FollowedSellerPage(val data: List<FollowedSellerDto> = emptyList())
@@ -53,7 +57,7 @@ data class CategoryDto(val id: Int, val name: String, val slug: String)
 data class CategoryPage(val data: List<CategoryDto> = emptyList())
 data class SellerDto(val id: Int, val name: String, val seller_rank: String? = null, val profile_photo_url: String? = null, val cover_photo_url: String? = null, val seller_bio: String? = null, val seller_website: String? = null, val seller_facebook_url: String? = null, val seller_x_url: String? = null, val seller_linkedin_url: String? = null, val sme_status: String? = null)
 data class ListingImageDto(val id: Long, @SerializedName("url") val serverUrl: String) {
-    val url: String get() = secureMarketPgUrl(serverUrl) ?: serverUrl
+    val url: String? get() = secureMarketPgUrl(serverUrl)
 }
 data class AuthUser(val id: Long, val name: String, val email: String, val phone: String? = null, val location: String? = null, val account_type: String? = null, val profile_photo_url: String? = null, val cover_photo_url: String? = null, val seller_rank: String? = null, val town: String? = null, val province: String? = null, val seller_bio: String? = null, val seller_website: String? = null, val seller_facebook_url: String? = null, val seller_x_url: String? = null, val seller_linkedin_url: String? = null, val sme_status: String? = null, val sme_review_note: String? = null)
 data class ProfileUpdateRequest(val name: String, val phone: String?, val location: String?, val account_type: String, val town: String? = null, val province: String? = null, val bank_name: String? = null, val account_name: String? = null, val account_number: String? = null, val seller_bio: String? = null, val seller_website: String? = null, val seller_facebook_url: String? = null, val seller_x_url: String? = null, val seller_linkedin_url: String? = null, val sme_tin: String? = null)
