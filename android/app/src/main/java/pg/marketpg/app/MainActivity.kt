@@ -120,6 +120,13 @@ fun MarketPGApp() {
     LaunchedEffect(Unit) {
         try { categories = MarketApi.service.categories().data } catch (_: Exception) { }
     }
+    LaunchedEffect(signedIn) {
+        if (signedIn) {
+            try { currentUser = MarketApi.service.me().user } catch (_: Exception) { currentUser = null }
+        } else {
+            currentUser = null
+        }
+    }
     LaunchedEffect(tab, signedIn, savedRefresh) {
         if (tab == 2 && signedIn) {
             try { myListings = MarketApi.service.myListings().data } catch (_: Exception) { myListings = emptyList() }
