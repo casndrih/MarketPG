@@ -6,7 +6,7 @@ A Papua New Guinea marketplace for buying and selling new and pre-loved goods, p
 
 - Laravel 12 backend with REST API and web storefront/admin foundation
 - Laravel Sanctum token authentication for Android clients
-- PostgreSQL on Render, using a dedicated `marketpg_` table prefix when sharing the Growgreen database
+- PostgreSQL on Render, using the dedicated `marketpg-db` database exclusively for MarketPG
 - Native Android client (Kotlin / Jetpack Compose)
 - Render Blueprint in `render.yaml`
 
@@ -44,7 +44,7 @@ Set `MARKETPG_ADMIN_EMAILS` in Render to a comma-separated allowlist of administ
 
 ## Shared database safety
 
-The Render Blueprint expects the existing Growgreen PostgreSQL **internal** connection URL to be supplied as the secret `DB_URL`. `DB_PREFIX=marketpg_` isolates MarketPG's tables, including Laravel's migrations table. Verify the prefix is active in the deployed Laravel database connection before running migrations. Do not remove the prefix or run migrations against the shared database until that check passes.
+The Render Blueprint provisions/adopts the dedicated `marketpg-db` PostgreSQL database and injects its internal connection string as `DB_URL`. MarketPG does not share its database with Growgreen or Casper CV. Laravel migrations run against this dedicated database only.
 
 ## Completion and release gates
 
