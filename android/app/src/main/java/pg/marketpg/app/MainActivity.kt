@@ -85,8 +85,9 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MarketPGApp() {
+    val systemDarkTheme = isSystemInDarkTheme()
     var search by remember { mutableStateOf("") }
-    var darkTheme by remember { mutableStateOf(isSystemInDarkTheme()) }
+    var darkTheme by remember { mutableStateOf(systemDarkTheme) }
     var categoryId by remember { mutableStateOf<Int?>(null) }
     var showFilters by remember { mutableStateOf(false) }
     var minPrice by remember { mutableStateOf("") }
