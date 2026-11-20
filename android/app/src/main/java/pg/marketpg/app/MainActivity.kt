@@ -97,6 +97,13 @@ fun MarketPGApp() {
     var retry by remember { mutableIntStateOf(0) }
     var showNetworkDialog by remember { mutableStateOf(false) }
     var mobileBannerAdUnitId by remember { mutableStateOf<String?>(null) }
+    var homeBanners by remember { mutableStateOf<List<HomeBannerDto>>(emptyList()) }
+    var sellerBio by remember { mutableStateOf("") }
+    var sellerWebsite by remember { mutableStateOf("") }
+    var sellerFacebook by remember { mutableStateOf("") }
+    var sellerX by remember { mutableStateOf("") }
+    var sellerLinkedIn by remember { mutableStateOf("") }
+    var smeTin by remember { mutableStateOf("") }
     val snackbarHost = remember { SnackbarHostState() }
     var savedListings by remember { mutableStateOf<List<ListingDto>>(emptyList()) }
     var myListings by remember { mutableStateOf<List<ListingDto>>(emptyList()) }
@@ -233,6 +240,7 @@ fun MarketPGApp() {
 
     LaunchedEffect(Unit) {
         try { categories = MarketApi.service.categories().data } catch (_: Exception) { }
+        try { homeBanners = MarketApi.service.homeCarousel().data } catch (_: Exception) { homeBanners = emptyList() }
         try {
             val ads = withContext(Dispatchers.IO) { MarketApi.service.publicConfig().ads }
             val appId = ads.mobile_app_id?.takeIf { it.startsWith("ca-app-pub-") && it.contains("~") }
@@ -276,6 +284,11 @@ fun MarketPGApp() {
                 profileLocation = currentUser?.town ?: currentUser?.location?.substringBefore(",")?.trim().orEmpty()
                 profileProvince = currentUser?.province ?: currentUser?.location?.substringAfter(",", "")?.trim().orEmpty()
                 profileAccountType = currentUser?.account_type ?: "both"
+                sellerBio = currentUser?.seller_bio.orEmpty()
+                sellerWebsite = currentUser?.seller_website.orEmpty()
+                sellerFacebook = currentUser?.seller_facebook_url.orEmpty()
+                sellerX = currentUser?.seller_x_url.orEmpty()
+                sellerLinkedIn = currentUser?.seller_linkedin_url.orEmpty()
             } catch (_: Exception) { currentUser = null }
         }
         if (tab == 4 && signedIn) {
@@ -402,6 +415,26 @@ fun MarketPGApp() {
                 }
             } else if (tab == 0) {
                 Column(Modifier.fillMaxSize().padding(padding)) {
+                    if (homeBanners.isNotEmpty()) {
+                        LazyRow(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            items(homeBanners, key = { it.id }) { banner ->
+                                Card(
+                                    Modifier.width(330.dp).height(156.dp).clickable {
+                                        banner.link_url?.takeIf { it.startsWith("https://") || it.startsWith("http://") }?.let {
+                                            try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(it))) } catch (_: Exception) { }
+                                        }
+                                    },
+                                    shape = RoundedCornerShape(18.dp),
+                                    colors = CardDefaults.cardColors(containerColor = colors.surfaceVariant)
+                                ) {
+                                    Box(Modifier.fillMaxSize()) {
+                                        AsyncImage(model = secureMarketPgUrl(banner.image_url), contentDescription = banner.alt_text ?: "MarketPG promotion", modifier = Modifier.fillMaxSize())
+                                        if (!banner.alt_text.isNullOrBlank()) Text(banner.alt_text, Modifier.align(Alignment.BottomStart).fillMaxWidth().background(Color.Black.copy(alpha = 0.55f)).padding(10.dp), color = Color.White, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                    }
+                                }
+                            }
+                        }
+                    }
                     if (listings.isNotEmpty()) {
                         Text("Featured finds", Modifier.padding(start = 18.dp, top = 10.dp), fontWeight = FontWeight.Bold, fontSize = 18.sp)
                         LazyRow(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -643,6 +676,20 @@ fun MarketPGApp() {
                             }
                         }
                         Text("Seller level: " + (currentUser?.seller_rank ?: "New Seller"), color = colors.primary, fontWeight = FontWeight.SemiBold)
+                        if (profileAccountType != "buyer") {
+                            HorizontalDivider()
+                            Text("Seller profile", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            Text("Tell buyers about your business and add your public social links.", color = colors.onSurfaceVariant, fontSize = 12.sp)
+                            OutlinedTextField(sellerBio, { sellerBio = it }, label = { Text("Seller bio / description") }, modifier = Modifier.fillMaxWidth(), minLines = 3, maxLines = 6, shape = RoundedCornerShape(14.dp))
+                            OutlinedTextField(sellerWebsite, { sellerWebsite = it }, label = { Text("Website URL") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
+                            OutlinedTextField(sellerFacebook, { sellerFacebook = it }, label = { Text("Facebook page URL") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
+                            OutlinedTextField(sellerX, { sellerX = it }, label = { Text("X page URL") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
+                            OutlinedTextField(sellerLinkedIn, { sellerLinkedIn = it }, label = { Text("LinkedIn page URL") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
+                            Text("Registered SME verification", fontWeight = FontWeight.SemiBold)
+                            Text("Provide your business TIN for admin review. Your TIN is encrypted and never shown publicly.", color = colors.onSurfaceVariant, fontSize = 12.sp)
+                            Text("Status: " + (currentUser?.sme_status?.replace('_', ' ')?.replaceFirstChar(Char::uppercase) ?: "Not submitted"), color = when(currentUser?.sme_status) { "verified" -> Color(0xFF16A34A); "rejected" -> MaterialTheme.colorScheme.error; "pending" -> Color(0xFFD97706); else -> colors.onSurfaceVariant })
+                            OutlinedTextField(smeTin, { smeTin = it }, label = { Text("Business TIN") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
+                        }
 
                         OutlinedTextField(profileName, { profileName = it }, label = { Text("Full name") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
                         OutlinedTextField(profilePhone, { profilePhone = it }, label = { Text("Phone number") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
@@ -695,7 +742,7 @@ fun MarketPGApp() {
                             scope.launch {
                                 profileBusy = true
                                 try {
-                                    currentUser = MarketApi.service.updateProfile(ProfileUpdateRequest(profileName.trim(), profilePhone.trim().ifBlank { null }, listOf(profileLocation.trim(), profileProvince).filter { it.isNotBlank() }.joinToString(", ").ifBlank { null }, profileAccountType, profileLocation.trim().ifBlank { null }, profileProvince.ifBlank { null }, payoutBankName.trim().ifBlank { null }, payoutAccountName.trim().ifBlank { null }, payoutAccountNumber.trim().ifBlank { null })).user
+                                    currentUser = MarketApi.service.updateProfile(ProfileUpdateRequest(profileName.trim(), profilePhone.trim().ifBlank { null }, listOf(profileLocation.trim(), profileProvince).filter { it.isNotBlank() }.joinToString(", ").ifBlank { null }, profileAccountType, profileLocation.trim().ifBlank { null }, profileProvince.ifBlank { null }, payoutBankName.trim().ifBlank { null }, payoutAccountName.trim().ifBlank { null }, payoutAccountNumber.trim().ifBlank { null }, sellerBio.trim().ifBlank { null }, sellerWebsite.trim().ifBlank { null }, sellerFacebook.trim().ifBlank { null }, sellerX.trim().ifBlank { null }, sellerLinkedIn.trim().ifBlank { null }, smeTin.trim().ifBlank { null })).user
                                     snackbarHost.showSnackbar("Profile updated.")
                                 } catch (e: Exception) {
                                     snackbarHost.showSnackbar(e.localizedMessage ?: "Could not update profile.")
