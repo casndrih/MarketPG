@@ -22,10 +22,24 @@ class PaymentReceiptController extends Controller
         ]);
     }
 
+    public function upload(Request $request, Order $order)
+    {
+        abort_unless(config('marketpg.private_uploads_enabled'), 503, 'Receipt uploads are temporarily unavailable until secure persistent storage is configured.');
+        abort_unless($order->buyer_id === $request->user()->id, 403);
+        abort_unless($order->payment_method === 'bank_transfer' && $order->status === 'awaiting_payment', 409, 'This order is not awaiting payment.');
+        abort_if($order->receipts()->whereIn('status', ['pending', 'approved'])->exists(), 409, 'A payment receipt has already been submitted.');
+        $data = $request->validate(['receipt' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240']]);
+        $disk = config('marketpg.private_disk');
+        $path = $request->file('receipt')->store('payment-receipts', $disk);
+        $receipt = PaymentReceipt::create(['user_id' => $request->user()->id, 'listing_id' => $order->listing_id, 'order_id' => $order->id, 'order_reference' => $order->order_number, 'file_path' => $path, 'status' => 'pending']);
+        return response()->json(['message' => 'Receipt submitted for MarketPG payment verification.', 'data' => $receipt], 201);
+    }
+
     public function document(PaymentReceipt $receipt)
     {
-        abort_unless(Storage::disk('local')->exists($receipt->file_path), 404);
-        return Storage::disk('local')->download($receipt->file_path);
+        $disk = config('marketpg.private_disk');
+        abort_unless(Storage::disk($disk)->exists($receipt->file_path), 404);
+        return Storage::disk($disk)->download($receipt->file_path);
     }
 
     public function review(Request $request, PaymentReceipt $receipt)
