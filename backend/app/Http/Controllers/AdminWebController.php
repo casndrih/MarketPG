@@ -8,6 +8,8 @@ use App\Models\Order;
 use App\Models\OrderDispute;
 use App\Models\PaymentReceipt;
 use App\Models\User;
+use App\Notifications\FollowedSellerNewListing;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -184,6 +186,10 @@ class AdminWebController extends Controller
             'reason' => ['nullable', 'string', 'max:1000'],
         ]);
         $listing->update(['status' => $data['decision'], 'moderation_note' => $data['reason'] ?? null]);
+        if ($data['decision'] === 'active') {
+            $followers = User::whereIn('id', DB::table('seller_follows')->where('seller_id', $listing->user_id)->pluck('buyer_id'))->get();
+            Notification::send($followers, new FollowedSellerNewListing($listing->load('user')));
+        }
         return back()->with('status', 'Listing moderation decision saved.');
     }
 
