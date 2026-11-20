@@ -10,6 +10,7 @@ return [
     'identity_uploads_enabled' => (bool) env('IDENTITY_UPLOADS_ENABLED', false),
     'private_uploads_enabled' => (bool) env('PRIVATE_UPLOADS_ENABLED', false),
     'profile_uploads_enabled' => (bool) env('PROFILE_UPLOADS_ENABLED', false),
+    'banner_uploads_enabled' => (bool) env('BANNER_UPLOADS_ENABLED', false),
     'private_disk' => (string) env('MARKETPG_PRIVATE_DISK', 'local'),
     'public_disk' => (string) env('MARKETPG_PUBLIC_DISK', 'public'),
     // Replace these clearly marked values in Render before enabling real bank transfers.
