@@ -18,6 +18,19 @@ Route::get('/', function () {
     return view('marketplace', compact('listings', 'ads'));
 });
 
+Route::get('/ads.txt', function () {
+    $raw = DB::table('marketpg_settings')->where('key', 'ads')->value('value');
+    $settings = is_string($raw) ? json_decode($raw, true) : [];
+    $publisherId = is_array($settings) && ($settings['enabled'] ?? false)
+        ? (string) ($settings['web_publisher_id'] ?? '')
+        : '';
+    abort_unless(preg_match('/^ca-pub-[0-9]{6,30}$/', $publisherId), 404);
+    return response("google.com, " . substr($publisherId, 7) . ", DIRECT, f08c47fec0942fa0\\n", 200, [
+        'Content-Type' => 'text/plain; charset=UTF-8',
+        'Cache-Control' => 'public, max-age=3600',
+    ]);
+});
+
 Route::get('/login', [AdminWebController::class, 'loginForm'])->name('login');
 Route::get('/admin/login', [AdminWebController::class, 'loginForm'])->name('admin.login');
 Route::post('/admin/login', [AdminWebController::class, 'login'])->middleware('throttle:5,1')->name('admin.login.submit');
