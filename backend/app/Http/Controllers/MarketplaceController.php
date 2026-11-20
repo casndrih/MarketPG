@@ -92,6 +92,7 @@ class MarketplaceController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
+            abort_unless(config('marketpg.private_uploads_enabled'), 503, 'Listing image uploads are temporarily unavailable while persistent storage is being configured.');
             $data['image_path'] = $request->file('image')->store('listings', 'public');
             unset($data['image']);
         }
