@@ -6,7 +6,7 @@ $adminEmails = array_values(array_filter(array_map(
     )));
 
 return [
-    'admin_emails' => array_values(array_unique(array_merge($adminEmails ?? [], array_filter([strtolower(trim((string) env('MARKETPG_DEMO_ADMIN_EMAIL', '')))]))),
+    'admin_emails' => array_values(array_unique(array_merge($adminEmails ?? [], array_filter([strtolower(trim((string) env('MARKETPG_DEMO_ADMIN_EMAIL', '')))])))),
     'identity_uploads_enabled' => (bool) env('IDENTITY_UPLOADS_ENABLED', false),
     'private_uploads_enabled' => (bool) env('PRIVATE_UPLOADS_ENABLED', false),
     'profile_uploads_enabled' => (bool) env('PROFILE_UPLOADS_ENABLED', false),
