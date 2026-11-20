@@ -79,6 +79,15 @@ class AdminWebController extends Controller
         return back()->with('status', 'Listing moderation decision saved.');
     }
 
+
+    public function releasePayout(Request $request, Order $order)
+    {
+        abort_unless($order->status === 'delivered' && $order->payout_status === 'pending', 409, 'Only delivered orders awaiting payout can be released.');
+        $data = $request->validate(['payout_reference' => ['required', 'string', 'max:120']]);
+        $order->update(['payout_status' => 'released', 'released_at' => now(), 'payout_reference' => $data['payout_reference']]);
+        return back()->with('status', 'Payout release recorded. Verify the actual bank transfer against the reference before closing the order.');
+    }
+
     public function reviewOrder(Request $request, Order $order)
     {
         $data = $request->validate([
