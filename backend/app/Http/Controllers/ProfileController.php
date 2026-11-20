@@ -40,10 +40,13 @@ class ProfileController extends Controller
             'phone' => ['nullable', 'string', 'max:40'],
             'location' => ['nullable', 'string', 'max:120'],
             'town' => ['nullable', 'string', 'max:100'],
-            'province' => ['nullable', 'string', 'max:100'],
+            'province' => ['nullable', Rule::in(config('marketpg.png_provinces'))],
             'account_type' => ['required', Rule::in(['buyer', 'seller', 'both'])],
         ]);
 
+        if (!empty($data['province'])) {
+            $data['location'] = trim(implode(', ', array_filter([$data['town'] ?? null, $data['province']])));
+        }
         $request->user()->update($data);
 
         return response()->json(['message' => 'Profile updated.', 'user' => $request->user()->fresh()]);
