@@ -22,6 +22,7 @@ data class MeResponse(val user: AuthUser)
 data class CreateOrderRequest(val payment_method: String = "cash_on_pickup", val buyer_note: String? = null)
 data class OrderDto(val id: Long, val order_number: String, val amount: String, val currency: String, val payment_method: String, val status: String, val listing: ListingDto? = null)
 data class OrderResponse(val message: String? = null, val payment_instructions: String? = null, val data: OrderDto)
+data class OrderPage(val data: List<OrderDto> = emptyList())
 data class WishlistItemDto(val id: Long, val listing: ListingDto?)
 data class WishlistPage(val data: List<WishlistItemDto> = emptyList())
 
@@ -51,7 +52,7 @@ interface MarketService {
     @POST("listings/{id}/wishlist") suspend fun addToWishlist(@Path("id") id: Long): Map<String, Any>
     @retrofit2.http.DELETE("listings/{id}/wishlist") suspend fun removeFromWishlist(@Path("id") id: Long): Map<String, Any>
     @POST("listings/{id}/orders") suspend fun createOrder(@Path("id") id: Long, @Body request: CreateOrderRequest): OrderResponse
-    @GET("orders") suspend fun orders(): ListingPage
+    @GET("orders") suspend fun orders(): OrderPage
     @GET("categories") suspend fun categories(): CategoryPage
     @GET("listings") suspend fun listings(
         @Query("q") query: String? = null,
