@@ -24,6 +24,15 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
+/** Enforce HTTPS for MarketPG media URLs returned by older API/storage records. */
+internal fun secureMarketPgUrl(url: String?): String? {
+    val value = url?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+    return when {
+        value.startsWith("http://marketpg.onrender.com/", ignoreCase = true) -> value.replaceFirst("http://", "https://", ignoreCase = true)
+        value.startsWith("//marketpg.onrender.com/", ignoreCase = true) -> "https:$value"
+        else -> value
+    }
+}
 data class PublicAdsDto(val enabled: Boolean = false, val mobile_app_id: String? = null, val mobile_banner_ad_unit_id: String? = null)
 data class PublicConfigDto(val ads: PublicAdsDto = PublicAdsDto())
 data class CategoryDto(val id: Int, val name: String, val slug: String)
@@ -91,8 +100,8 @@ data class ListingDto(
     val images: List<ListingImageDto> = emptyList()
 ) {
     val imageUrl: String?
-        get() = serverImageUrl?.takeIf { it.isNotBlank() } ?: imagePath?.takeIf { it.isNotBlank() }?.let {
-            "https://marketpg.onrender.com/storage/" + it.trimStart('/')
+        get() = secureMarketPgUrl(serverImageUrl) ?: imagePath?.takeIf { it.isNotBlank() }?.let {
+            secureMarketPgUrl("https://marketpg.onrender.com/storage/" + it.trimStart('/'))
         }
 }
 data class ListingPage(val data: List<ListingDto> = emptyList(), val current_page: Int? = null, val last_page: Int? = null)
