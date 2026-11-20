@@ -87,6 +87,15 @@ fun MarketPGApp() {
     var newCategoryId by remember { mutableIntStateOf(1) }
     var createBusy by remember { mutableStateOf(false) }
     var createError by remember { mutableStateOf<String?>(null) }
+    var editingListing by remember { mutableStateOf<ListingDto?>(null) }
+    var editTitle by remember { mutableStateOf("") }
+    var editDescription by remember { mutableStateOf("") }
+    var editPrice by remember { mutableStateOf("") }
+    var editLocation by remember { mutableStateOf("") }
+    var editCondition by remember { mutableStateOf("used") }
+    var editCategoryId by remember { mutableIntStateOf(1) }
+    var editBusy by remember { mutableStateOf(false) }
+    var editError by remember { mutableStateOf<String?>(null) }
     var signedIn by remember { mutableStateOf(MarketApi.hasSession()) }
     var showAuth by remember { mutableStateOf(false) }
     var registerMode by remember { mutableStateOf(false) }
@@ -314,6 +323,16 @@ fun MarketPGApp() {
                                     }
                                     if (own.status != "reserved" && own.status != "sold") {
                                         TextButton(onClick = {
+                                            editingListing = own
+                                            editTitle = own.title
+                                            editDescription = own.description.orEmpty()
+                                            editPrice = own.price
+                                            editLocation = own.location
+                                            editCondition = own.condition ?: "used"
+                                            editCategoryId = categories.firstOrNull { it.id == own.categoryId }?.id ?: categories.firstOrNull()?.id ?: 1
+                                            editError = null
+                                        }) { Text("Edit") }
+                                        TextButton(onClick = {
                                             scope.launch {
                                                 try {
                                                     MarketApi.service.deleteListing(own.id)
@@ -466,6 +485,66 @@ fun MarketPGApp() {
             }
         }
 
+        editingListing?.let { listing ->
+            AlertDialog(
+                onDismissRequest = { if (!editBusy) editingListing = null },
+                title = { Text("Edit listing") },
+                text = {
+                    Column(
+                        Modifier.heightIn(max = 440.dp).verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text("Saving changes to an active listing sends it back for moderation.", color = Color.Gray, fontSize = 12.sp)
+                        OutlinedTextField(editTitle, { editTitle = it }, label = { Text("Item title") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                        OutlinedTextField(editDescription, { editDescription = it }, label = { Text("Description") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
+                        OutlinedTextField(editPrice, { editPrice = it }, label = { Text("Price (PGK)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                        OutlinedTextField(editLocation, { editLocation = it }, label = { Text("Town / Province") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                        Text("Condition", fontWeight = FontWeight.SemiBold)
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            listOf("new", "used", "refurbished").forEach { condition ->
+                                FilterChip(editCondition == condition, { editCondition = condition }, label = { Text(condition.replaceFirstChar(Char::uppercase)) })
+                            }
+                        }
+                        Text("Category", fontWeight = FontWeight.SemiBold)
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            items(categories) { category ->
+                                FilterChip(editCategoryId == category.id, { editCategoryId = category.id }, label = { Text(category.name) })
+                            }
+                        }
+                        editError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        enabled = !editBusy && editTitle.isNotBlank() && editDescription.isNotBlank() &&
+                            editPrice.toBigDecimalOrNull()?.signum()?.let { it >= 0 } == true && editLocation.isNotBlank(),
+                        onClick = {
+                            scope.launch {
+                                editBusy = true
+                                editError = null
+                                try {
+                                    MarketApi.service.updateListing(
+                                        listing.id,
+                                        CreateListingRequest(editTitle.trim(), editDescription.trim(), editPrice.trim(), editCondition, editLocation.trim(), editCategoryId)
+                                    )
+                                    myListings = MarketApi.service.myListings().data
+                                    editingListing = null
+                                    retry++
+                                    snackbarHost.showSnackbar("Listing updated and submitted for review.")
+                                } catch (e: Exception) {
+                                    editError = e.localizedMessage ?: "Could not update listing."
+                                } finally {
+                                    editBusy = false
+                                }
+                            }
+                        }
+                    ) { Text(if (editBusy) "Saving..." else "Save changes") }
+                },
+                dismissButton = {
+                    TextButton(enabled = !editBusy, onClick = { editingListing = null }) { Text("Cancel") }
+                }
+            )
+        }
         disputeOrder?.let { order ->
             AlertDialog(
                 onDismissRequest = { disputeOrder = null },
