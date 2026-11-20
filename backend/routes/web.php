@@ -1,11 +1,11 @@
 <?php
 
-use App\\Http\\Controllers\\AdminWebController;
-use App\\Http\\Middleware\\EnsureMarketplaceAdmin;
-use App\\Models\\Listing;
-use App\\Models\\User;
-use Illuminate\\Support\\Facades\\DB;
-use Illuminate\\Support\\Facades\\Route;
+use App\Http\Controllers\AdminWebController;
+use App\Http\Middleware\EnsureMarketplaceAdmin;
+use App\Models\Listing;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     $query = Listing::query()->with(['images', 'user'])->where('status', 'active');
@@ -22,7 +22,7 @@ Route::get('/', function () {
 Route::get('/listing/{listing}', function (Listing $listing) {
     abort_unless($listing->status === 'active', 404);
     $listing->load(['images', 'user']);
-    $sellerListings = Listing::where('user_id', $listing->user_id)->where('status', 'active')->whereKeyNot($listing->id)->latest()->take(4)->get();
+    $sellerListings = Listing::where('user_id', $listing->user_id)->where('status', 'active')->where('id', '!=', $listing->id)->latest()->take(4)->get();
     $sellerSales = $listing->user->completedSales()->count();
     return view('listing-detail', compact('listing', 'sellerListings', 'sellerSales'));
 })->name('listing.show');
@@ -43,13 +43,13 @@ Route::get('/ads.txt', function () {
     $settings = is_string($raw) ? json_decode($raw, true) : [];
     $publisherId = is_array($settings) && ($settings['enabled'] ?? false) ? (string) ($settings['web_publisher_id'] ?? '') : '';
     abort_unless(preg_match('/^ca-pub-[0-9]{6,30}$/', $publisherId), 404);
-    return response("google.com, " . substr($publisherId, 7) . ", DIRECT, f08c47fec0942fa0\\n", 200, [
+    return response("google.com, " . substr($publisherId, 7) . ", DIRECT, f08c47fec0942fa0\n", 200, [
         'Content-Type' => 'text/plain; charset=UTF-8', 'Cache-Control' => 'public, max-age=3600',
     ]);
 });
 
-// Admin URLs are intentionally omitted from public navigation. Access remains restricted
-// by the authenticated admin middleware and the configured administrator allowlist.
+// Admin URLs are not linked from public pages. The login and dashboard remain protected
+// by the authenticated admin middleware and configured administrator allowlist.
 Route::get('/admin/login', [AdminWebController::class, 'loginForm'])->name('admin.login');
 Route::post('/admin/login', [AdminWebController::class, 'login'])->middleware('throttle:5,1')->name('admin.login.submit');
 Route::prefix('admin')->name('admin.')->middleware(['auth', EnsureMarketplaceAdmin::class])->group(function () {
