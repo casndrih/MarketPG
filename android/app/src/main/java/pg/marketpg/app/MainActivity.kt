@@ -1018,7 +1018,22 @@ class ListingDetailActivity : ComponentActivity() {
         val imageUrl = intent.getStringExtra("image_url").orEmpty()
         val galleryUrls = intent.getStringArrayListExtra("gallery_urls").orEmpty().let { urls -> (listOf(imageUrl) + urls).filter { it.isNotBlank() }.distinct() }
         val sellerRank = intent.getStringExtra("seller_rank").orEmpty()
+        val listingId = intent.getLongExtra("listing_id", 0L)
         setContent {
+            val scope = rememberCoroutineScope()
+            var createdOrder by remember { mutableStateOf<OrderDto?>(null) }
+            var paymentInstructions by remember { mutableStateOf("") }
+            var checkoutBusy by remember { mutableStateOf(false) }
+            var checkoutError by remember { mutableStateOf<String?>(null) }
+            val receiptPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+                val order = createdOrder
+                if (uri != null && order != null) scope.launch {
+                    try {
+                        MarketApi.service.uploadReceipt(order.id, uri.toUploadPart(this@ListingDetailActivity, "receipt"))
+                        checkoutError = "Receipt uploaded. MarketPG will verify your payment."
+                    } catch (e: Exception) { checkoutError = e.localizedMessage ?: "Receipt upload unavailable." }
+                }
+            }
             val dark = isSystemInDarkTheme()
             MaterialTheme(colorScheme = if (dark) DarkColors else LightColors) {
                 Scaffold(containerColor = MaterialTheme.colorScheme.background, topBar = {
@@ -1048,6 +1063,31 @@ class ListingDetailActivity : ComponentActivity() {
                         if (condition.isNotBlank()) Text("Condition: $condition")
                         Text("Seller: $seller")
                         Text("Seller level: $sellerRank", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                        if (MarketApi.hasSession()) {
+                            if (createdOrder == null) {
+                                Button(enabled = !checkoutBusy && listingId > 0, onClick = {
+                                    scope.launch {
+                                        checkoutBusy = true
+                                        checkoutError = null
+                                        try {
+                                            val response = MarketApi.service.createOrder(listingId, CreateOrderRequest())
+                                            createdOrder = response.data
+                                            paymentInstructions = response.payment_instructions ?: ""
+                                        } catch (e: Exception) { checkoutError = e.localizedMessage ?: "Unable to create order." }
+                                        finally { checkoutBusy = false }
+                                    }
+                                }, modifier = Modifier.fillMaxWidth()) { Text(if (checkoutBusy) "Preparing order..." else "Buy securely through MarketPG") }
+                            } else {
+                                Text("Order " + createdOrder?.order_number, fontWeight = FontWeight.Bold)
+                                Text("Payment instructions", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                                Text(paymentInstructions.ifBlank { "Platform bank transfer instructions are not configured yet. Please contact MarketPG support." })
+                                Button(onClick = { receiptPicker.launch("*/*") }, modifier = Modifier.fillMaxWidth()) { Text("Upload payment receipt") }
+                            }
+                        } else {
+                            Text("Sign in to place an order.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        checkoutError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+
                     }
                 }
             }
