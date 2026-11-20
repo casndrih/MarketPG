@@ -15,6 +15,7 @@ RUN composer create-project laravel/laravel . "^12.0" --no-interaction \
 
 COPY backend/ /tmp/marketpg-backend/
 RUN cp -a /tmp/marketpg-backend/. /var/www/html/ \
+    && mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs storage/app/private storage/app/public \
     && chown -R www-data:www-data storage bootstrap/cache
 
 COPY docker/apache-vhost.conf /etc/apache2/sites-available/000-default.conf
