@@ -13,4 +13,5 @@ return [
     'private_disk' => (string) env('MARKETPG_PRIVATE_DISK', 'local'),
     'public_disk' => (string) env('MARKETPG_PUBLIC_DISK', 'public'),
     'bank_transfer_details' => (string) env('MARKETPG_BANK_TRANSFER_DETAILS', ''),
+    'png_provinces' => ['Central', 'Gulf', 'Milne Bay', 'Northern (Oro)', 'Southern Highlands', 'Western Highlands', 'Enga', 'Simbu', 'Eastern Highlands', 'Morobe', 'Madang', 'East Sepik', 'West Sepik (Sandaun)', 'West New Britain', 'East New Britain', 'New Ireland', 'Manus', 'Hela', 'Jiwaka', 'Western', 'National Capital District', 'Autonomous Region of Bougainville'],
 ];
