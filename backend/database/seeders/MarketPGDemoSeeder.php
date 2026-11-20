@@ -1,10 +1,10 @@
 <?php
 
-namespace Database\\Seeders;
+namespace Database\Seeders;
 
-use App\\Models\\Listing;
-use App\\Models\\User;
-use Illuminate\\Database\\Seeder;
+use App\Models\Listing;
+use App\Models\User;
+use Illuminate\Database\Seeder;
 use RuntimeException;
 
 class MarketPGDemoSeeder extends Seeder
