@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
 class AdminWebController extends Controller
@@ -195,6 +196,30 @@ class AdminWebController extends Controller
         abort_unless(DB::table('support_tickets')->where('id', $ticket)->exists(), 404);
         DB::table('support_tickets')->where('id', $ticket)->update(['status' => $data['status'], 'updated_at' => now()]);
         return back()->with('status', 'Support ticket status updated.');
+    }
+
+
+    public function updateDemoPasswords(Request $request)
+    {
+        $data = $request->validate([
+            'buyer_password' => ['nullable', 'string', 'min:12', 'max:128', 'confirmed'],
+            'seller_password' => ['nullable', 'string', 'min:12', 'max:128', 'confirmed'],
+            'admin_password' => ['nullable', 'string', 'min:12', 'max:128', 'confirmed'],
+        ]);
+        $emails = [
+            'buyer_password' => 'buyer.test@marketpg.test',
+            'seller_password' => 'seller.test@marketpg.test',
+            'admin_password' => (string) env('MARKETPG_DEMO_ADMIN_EMAIL', 'admin.test@marketpg.test'),
+        ];
+        $updated = [];
+        foreach ($emails as $field => $email) {
+            if (!empty($data[$field])) {
+                $user = User::where('email', strtolower($email))->firstOrFail();
+                $user->forceFill(['password' => Hash::make($data[$field])])->save();
+                $updated[] = $email;
+            }
+        }
+        return back()->with('status', $updated ? 'Updated demo passwords for: ' . implode(', ', $updated) : 'No passwords were changed.');
     }
 
     public function logout(Request $request)
