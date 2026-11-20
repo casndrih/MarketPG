@@ -10,7 +10,7 @@ class Order extends Model
 {
     protected $fillable = [
         'order_number', 'listing_id', 'buyer_id', 'seller_id', 'amount',
-        'currency', 'status', 'buyer_note', 'admin_note', 'paid_at',
+        'currency', 'payment_method', 'status', 'buyer_note', 'admin_note', 'paid_at',
         'completed_at', 'cancelled_at',
     ];
 
