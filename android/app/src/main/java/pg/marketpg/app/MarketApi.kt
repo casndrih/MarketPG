@@ -24,18 +24,15 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-/** Enforce HTTPS for MarketPG media URLs returned by older API/storage records. */
+/** Accept HTTP and HTTPS media URLs while Android cleartext traffic is enabled for testing. */
 internal fun secureMarketPgUrl(url: String?): String? {
     val value = url?.trim()?.takeIf { it.isNotEmpty() } ?: return null
-    // Upgrade legacy URLs for our Render host. Never pass an HTTP image URL to OkHttp/Coil.
-    val marketHost = Regex("^(?:https?:)?//marketpg\\.onrender\\.com(?=[:/?#]|$)", RegexOption.IGNORE_CASE)
-    val normalized = when {
-        marketHost.containsMatchIn(value) -> value.replaceFirst(marketHost, "https://marketpg.onrender.com")
-        value.startsWith("//") -> "https:$value"
+    return when {
+        value.startsWith("http://", ignoreCase = true) -> value
         value.startsWith("https://", ignoreCase = true) -> value
-        else -> return null
+        value.startsWith("//") -> "http:$value"
+        else -> null
     }
-    return normalized.takeIf { it.startsWith("https://", ignoreCase = true) }
 }
 data class FollowedSellerDto(val id: Long, val name: String, val seller_rank: String? = null, val profile_photo_url: String? = null)
 data class FollowedSellerPage(val data: List<FollowedSellerDto> = emptyList())
