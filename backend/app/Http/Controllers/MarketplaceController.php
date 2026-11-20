@@ -25,6 +25,12 @@ class MarketplaceController extends Controller
 
     public function listings(Request $request)
     {
+        $request->validate([
+            'min_price' => 'nullable|numeric|min:0',
+            'max_price' => 'nullable|numeric|min:0',
+            'condition' => 'nullable|in:new,used,refurbished',
+            'sort' => 'nullable|in:price_asc,price_desc,oldest,newest',
+        ]);
         $query = Listing::query()->where('status', 'active')->latest();
         if ($request->filled('q')) $query->where('title', 'ilike', '%'.$request->string('q').'%');
         if ($request->filled('category_id')) $query->where('category_id', $request->integer('category_id'));
