@@ -371,3 +371,23 @@ The detailed release checklist is maintained in [backend/docs/COMPLETION_CHECKLI
 ## License
 
 See [LICENSE](LICENSE).
+
+## Password reset email configuration
+
+MarketPG password recovery uses Laravel's password broker. Reset requests send a time-limited link to the account's registered email address; the user must follow that link and confirm a new password. Reset tokens are stored hashed in the dedicated `password_reset_tokens` table and expire after 60 minutes.
+
+Configure the following environment variables in the MarketPG Render web service before enabling password recovery:
+
+```env
+APP_URL=https://marketpg.onrender.com
+MAIL_MAILER=smtp
+MAIL_HOST=[YOUR SMTP HOST]
+MAIL_PORT=587
+MAIL_SCHEME=smtp
+MAIL_USERNAME=[YOUR SMTP USERNAME]
+MAIL_PASSWORD=[YOUR SMTP PASSWORD]
+MAIL_FROM_ADDRESS=[YOUR VERIFIED SENDER EMAIL]
+MAIL_FROM_NAME=MarketPG
+```
+
+Use the SMTP host, port, security mode and verified sender supplied by your email provider. Do not commit real SMTP credentials to GitHub. After deployment, run the normal Laravel database migrations so the password reset token table is created. Password recovery cannot deliver messages until valid SMTP credentials and sender-domain authentication are configured.
