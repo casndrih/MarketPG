@@ -18,7 +18,7 @@ class DiagnosticLogController extends Controller
 
         $token = (string) config('services.github.diagnostics_token', env('MARKETPG_DIAGNOSTICS_GITHUB_TOKEN', ''));
         $repository = (string) env('MARKETPG_DIAGNOSTICS_GITHUB_REPO', 'casndrih/MarketPG');
-        if ($token === '') {
+        if ($token === '' || !preg_match('/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/', $repository)) {
             return response()->json(['message' => 'Diagnostic uploads are not configured on the server yet.'], 503);
         }
 
@@ -37,6 +37,7 @@ class DiagnosticLogController extends Controller
             . $report . "\n";
 
         $response = Http::withToken($token)
+            ->withHeaders(['User-Agent' => 'MarketPG-Android-Diagnostics', 'X-GitHub-Api-Version' => '2022-11-28'])
             ->acceptJson()
             ->asJson()
             ->timeout(15)
