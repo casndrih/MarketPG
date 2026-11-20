@@ -21,7 +21,7 @@ data class AuthResponse(val message: String? = null, val user: AuthUser? = null,
 data class MeResponse(val user: AuthUser)
 data class CreateOrderRequest(val payment_method: String = "cash_on_pickup", val buyer_note: String? = null)
 data class CreateListingRequest(val title: String, val description: String, val price: String, val condition: String, val location: String, val category_id: Int)
-data class OrderDto(val id: Long, val order_number: String, val amount: String, val currency: String, val payment_method: String, val status: String, val listing: ListingDto? = null)
+data class OrderListingDto(val id: Long, val title: String, val location: String? = null)\ndata class OrderDto(val id: Long, val order_number: String, val buyer_id: Long, val seller_id: Long, val amount: String, val currency: String, val payment_method: String, val status: String, val listing: OrderListingDto? = null)
 data class OrderResponse(val message: String? = null, val payment_instructions: String? = null, val data: OrderDto)
 data class OrderPage(val data: List<OrderDto> = emptyList())
 data class WishlistItemDto(val id: Long, val listing: ListingDto?)
@@ -70,6 +70,9 @@ interface MarketService {
     @retrofit2.http.DELETE("listings/{id}/wishlist") suspend fun removeFromWishlist(@Path("id") id: Long): Map<String, Any>
     @POST("listings/{id}/orders") suspend fun createOrder(@Path("id") id: Long, @Body request: CreateOrderRequest): OrderResponse
     @GET("orders") suspend fun orders(): OrderPage
+    @POST("orders/{id}/confirm-cash") suspend fun confirmCash(@Path("id") id: Long): Map<String, Any>
+    @POST("orders/{id}/complete") suspend fun completeOrder(@Path("id") id: Long): Map<String, Any>
+    @POST("orders/{id}/cancel") suspend fun cancelOrder(@Path("id") id: Long): Map<String, Any>
     @GET("categories") suspend fun categories(): CategoryPage
     @POST("listings") suspend fun createListing(@Body request: CreateListingRequest): ListingDetailResponse
     @GET("listings") suspend fun listings(
