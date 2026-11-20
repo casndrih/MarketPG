@@ -61,6 +61,11 @@ fun MarketPGApp() {
     var savedError by remember { mutableStateOf<String?>(null) }
     var currentUser by remember { mutableStateOf<AuthUser?>(null) }
     var savedRefresh by remember { mutableIntStateOf(0) }
+    var inboxMessages by remember { mutableStateOf<List<MessageDto>>(emptyList()) }
+    var inboxLoading by remember { mutableStateOf(false) }
+    var inboxError by remember { mutableStateOf<String?>(null) }
+    var replyingTo by remember { mutableStateOf<MessageDto?>(null) }
+    var replyText by remember { mutableStateOf("") }
     var newTitle by remember { mutableStateOf("") }
     var newDescription by remember { mutableStateOf("") }
     var newPrice by remember { mutableStateOf("") }
@@ -95,8 +100,15 @@ fun MarketPGApp() {
                 savedLoading = false
             }
         }
-        if (tab == 4 && signedIn) {
+        if ((tab == 3 || tab == 4) && signedIn) {
             try { currentUser = MarketApi.service.me().user } catch (_: Exception) { currentUser = null }
+        }
+        if (tab == 3 && signedIn) {
+            inboxLoading = true
+            inboxError = null
+            try { inboxMessages = MarketApi.service.messages().data }
+            catch (e: Exception) { inboxError = e.localizedMessage ?: "Could not load messages." }
+            finally { inboxLoading = false }
         }
     }
     LaunchedEffect(search, categoryId, retry) {
@@ -258,6 +270,27 @@ fun MarketPGApp() {
                         modifier = Modifier.fillMaxWidth()
                     ) { Text(if (createBusy) "Submitting..." else "Submit listing") }
                 }
+            } else if (tab == 3 && signedIn) {
+                Column(Modifier.fillMaxSize().padding(padding)) {
+                    Text("Inbox", Modifier.padding(20.dp), fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Ink)
+                    when {
+                        inboxLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                        inboxError != null -> Text(inboxError ?: "Error", Modifier.padding(20.dp), color = MaterialTheme.colorScheme.error)
+                        inboxMessages.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("No messages yet.", color = Color.Gray) }
+                        else -> LazyColumn(contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(inboxMessages, key = { it.id }) { message ->
+                                Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                                    Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                                        Text(message.listing?.title ?: "Marketplace conversation", fontWeight = FontWeight.Bold)
+                                        Text("From: " + (message.sender?.name ?: "MarketPG user") + " • To: " + (message.recipient?.name ?: "MarketPG user"), color = Color.Gray, fontSize = 12.sp)
+                                        Text(message.body, maxLines = 3, overflow = TextOverflow.Ellipsis)
+                                        TextButton(onClick = { replyingTo = message; replyText = "" }) { Text("Reply") }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             } else if (tab == 4 && signedIn) {
                 Column(Modifier.fillMaxSize().padding(padding).padding(28.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("Your profile", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Ink)
@@ -276,6 +309,30 @@ fun MarketPGApp() {
             }
         }
 
+        replyingTo?.let { message ->
+            AlertDialog(
+                onDismissRequest = { replyingTo = null },
+                title = { Text("Reply to " + (message.sender?.name ?: message.recipient?.name ?: "buyer/seller")) },
+                text = { OutlinedTextField(replyText, { replyText = it }, label = { Text("Your message") }, minLines = 3) },
+                confirmButton = {
+                    Button(enabled = replyText.isNotBlank(), onClick = {
+                        scope.launch {
+                            try {
+                                val recipientId = if (message.sender_id == currentUser?.id) message.recipient_id else message.sender_id
+                                MarketApi.service.sendMessage(message.listing_id, MessageRequest(recipientId, replyText.trim()))
+                                replyingTo = null
+                                replyText = ""
+                                savedRefresh++
+                                snackbarHost.showSnackbar("Message sent.")
+                            } catch (e: Exception) {
+                                snackbarHost.showSnackbar(e.localizedMessage ?: "Could not send message.")
+                            }
+                        }
+                    }) { Text("Send") }
+                },
+                dismissButton = { TextButton(onClick = { replyingTo = null }) { Text("Cancel") } }
+            )
+        }
         if (showAuth) {
             AlertDialog(
                 onDismissRequest = { showAuth = false },
