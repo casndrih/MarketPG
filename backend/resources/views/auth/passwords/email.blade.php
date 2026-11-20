@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reset password — MarketPG><script src="https://cdn.tailwindcss.com"></script></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reset password — MarketPG</title><script src="https://cdn.tailwindcss.com"></script></head>
 <body class="min-h-screen bg-gray-50 text-gray-900 grid place-items-center p-4">
 <main class="w-full max-w-md rounded-2xl bg-white p-7 shadow-sm">
 <a href="/" class="text-xl font-semibold">Market<span class="text-blue-600">PG</span></a>
