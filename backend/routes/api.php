@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MarketplaceController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\IdentityVerificationController;
 use App\Http\Middleware\EnsureMarketplaceAdmin;
 
@@ -23,6 +24,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/listings/{listing}', [MarketplaceController::class, 'update']);
     Route::delete('/listings/{listing}', [MarketplaceController::class, 'remove']);
     Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/wishlist', [WishlistController::class, 'index']);
+    Route::post('/listings/{listing}/wishlist', [WishlistController::class, 'store']);
+    Route::delete('/listings/{listing}/wishlist', [WishlistController::class, 'destroy']);
     Route::get('/messages', [MessageController::class, 'index']);
     Route::get('/listings/{listing}/messages/{participant}', [MessageController::class, 'thread']);
     Route::post('/listings/{listing}/messages', [MessageController::class, 'store'])->middleware('throttle:30,1');
