@@ -2,9 +2,12 @@ package pg.marketpg.app
 
 import android.os.Bundle
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -44,6 +47,9 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 private val PngProvinces = listOf("Central", "Gulf", "Milne Bay", "Northern (Oro)", "Southern Highlands", "Western Highlands", "Enga", "Simbu", "Eastern Highlands", "Morobe", "Madang", "East Sepik", "West Sepik (Sandaun)", "West New Britain", "East New Britain", "New Ireland", "Manus", "Hela", "Jiwaka", "Western", "National Capital District", "Autonomous Region of Bougainville")
 
@@ -94,6 +100,11 @@ fun MarketPGApp() {
     var profileLocation by remember { mutableStateOf("") }
     var profileAccountType by remember { mutableStateOf("both") }
     var profileBusy by remember { mutableStateOf(false) }
+    var identityStatus by remember { mutableStateOf<IdentityStatusDto?>(null) }
+    var identityBusy by remember { mutableStateOf(false) }
+    var idFrontUri by remember { mutableStateOf<Uri?>(null) }
+    var idBackUri by remember { mutableStateOf<Uri?>(null) }
+    var selfieUri by remember { mutableStateOf<Uri?>(null) }
     var savedRefresh by remember { mutableIntStateOf(0) }
     var inboxMessages by remember { mutableStateOf<List<MessageDto>>(emptyList()) }
     var myOrders by remember { mutableStateOf<List<OrderDto>>(emptyList()) }
@@ -138,6 +149,26 @@ fun MarketPGApp() {
     var authError by remember { mutableStateOf<String?>(null) }
     var authBusy by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val profilePhotoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) scope.launch {
+            profileBusy = true
+            try { currentUser = MarketApi.service.uploadProfileMedia(uri.toUploadPart(context, "profile_photo"), null).user; snackbarHost.showSnackbar("Profile photo saved.") }
+            catch (e: Exception) { snackbarHost.showSnackbar(e.localizedMessage ?: "Profile photo upload unavailable.") }
+            finally { profileBusy = false }
+        }
+    }
+    val coverPhotoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) scope.launch {
+            profileBusy = true
+            try { currentUser = MarketApi.service.uploadProfileMedia(null, uri.toUploadPart(context, "cover_photo")).user; snackbarHost.showSnackbar("Cover photo saved.") }
+            catch (e: Exception) { snackbarHost.showSnackbar(e.localizedMessage ?: "Cover photo upload unavailable.") }
+            finally { profileBusy = false }
+        }
+    }
+    val idFrontPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { idFrontUri = it }
+    val idBackPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { idBackUri = it }
+    val selfiePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { selfieUri = it }
+
     val context = LocalContext.current
     val view = LocalView.current
     SideEffect {
@@ -174,6 +205,7 @@ fun MarketPGApp() {
         if ((tab == 3 || tab == 4) && signedIn) {
             try {
                 currentUser = MarketApi.service.me().user
+                identityStatus = MarketApi.service.identityStatus().data
                 profileName = currentUser?.name ?: ""
                 profilePhone = currentUser?.phone ?: ""
                 profileLocation = currentUser?.location?.substringBefore(",")?.trim() ?: ""
@@ -466,10 +498,48 @@ fun MarketPGApp() {
                     Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("Your profile", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = colors.primary)
                         Text(currentUser?.email ?: "", color = colors.onSurfaceVariant)
+                        currentUser?.cover_photo_url?.let { AsyncImage(model = it, contentDescription = "Profile cover photo", modifier = Modifier.fillMaxWidth().height(116.dp)) }
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            if (currentUser?.profile_photo_url != null) AsyncImage(model = currentUser?.profile_photo_url, contentDescription = "Profile photo", modifier = Modifier.size(76.dp))
+                            else Box(Modifier.size(76.dp).background(colors.surfaceVariant, RoundedCornerShape(50)), contentAlignment = Alignment.Center) { Text("Photo", color = colors.onSurfaceVariant, fontSize = 11.sp) }
+                            Column(Modifier.weight(1f)) {
+                                Text("Profile and cover photos are required", fontWeight = FontWeight.SemiBold)
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    TextButton(enabled = !profileBusy, onClick = { profilePhotoPicker.launch("image/*") }) { Text("Profile photo") }
+                                    TextButton(enabled = !profileBusy, onClick = { coverPhotoPicker.launch("image/*") }) { Text("Cover photo") }
+                                }
+                            }
+                        }
+                        Text("Seller level: " + (currentUser?.seller_rank ?: "New Seller"), color = colors.primary, fontWeight = FontWeight.SemiBold)
+
                         OutlinedTextField(profileName, { profileName = it }, label = { Text("Full name") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
                         OutlinedTextField(profilePhone, { profilePhone = it }, label = { Text("Phone number") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
                         OutlinedTextField(profileLocation, { profileLocation = it }, label = { Text("Town / City") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
                         PngProvinceDropdown(profileProvince, { profileProvince = it })
+
+                        HorizontalDivider()
+                        Text("Identity verification", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Text("Status: " + (identityStatus?.status?.replaceFirstChar(Char::uppercase) ?: "Not submitted"), color = when(identityStatus?.status) { "approved" -> Color(0xFF16A34A); "rejected" -> MaterialTheme.colorScheme.error; else -> colors.onSurfaceVariant })
+                        Text("Upload a PNG National ID, passport or driver's licence. Buyer purchases require approval.", color = colors.onSurfaceVariant, fontSize = 12.sp)
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            OutlinedButton(onClick = { idFrontPicker.launch("*/*") }) { Text(if (idFrontUri == null) "ID front" else "Front selected") }
+                            OutlinedButton(onClick = { idBackPicker.launch("*/*") }) { Text(if (idBackUri == null) "ID back (optional)" else "Back selected") }
+                            OutlinedButton(onClick = { selfiePicker.launch("image/*") }) { Text(if (selfieUri == null) "Selfie" else "Selfie selected") }
+                        }
+                        Button(enabled = !identityBusy && idFrontUri != null && selfieUri != null && identityStatus?.status != "pending" && identityStatus?.status != "approved", onClick = {
+                            scope.launch {
+                                identityBusy = true
+                                try {
+                                    val front = idFrontUri!!.toUploadPart(context, "id_front")
+                                    val selfie = selfieUri!!.toUploadPart(context, "selfie")
+                                    val back = idBackUri?.toUploadPart(context, "id_back")
+                                    MarketApi.service.submitIdentity("png_nid".toRequestBody("text/plain".toMediaTypeOrNull()), "true".toRequestBody("text/plain".toMediaTypeOrNull()), front, back, selfie)
+                                    identityStatus = MarketApi.service.identityStatus().data
+                                    snackbarHost.showSnackbar("Identity documents submitted for review.")
+                                } catch (e: Exception) { snackbarHost.showSnackbar(e.localizedMessage ?: "Identity upload unavailable.") }
+                                finally { identityBusy = false }
+                            }
+                        }) { Text(if (identityBusy) "Submitting..." else "Submit identity documents") }
                         Text("Account type", fontWeight = FontWeight.SemiBold)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             listOf("buyer", "seller", "both").forEach { type ->
@@ -948,4 +1018,14 @@ class ListingDetailActivity : ComponentActivity() {
             }
         }
     }
+}
+
+
+private fun Uri.toUploadPart(context: android.content.Context, field: String): MultipartBody.Part {
+    val mime = context.contentResolver.getType(this) ?: "application/octet-stream"
+    val bytes = context.contentResolver.openInputStream(this)?.use { it.readBytes() }
+        ?: throw IllegalStateException("Could not read selected file.")
+    val fileName = when (field) { "id_front" -> "id-front"; "id_back" -> "id-back"; "selfie" -> "selfie"; "cover_photo" -> "cover"; else -> "profile" } +
+        if (mime == "application/pdf") ".pdf" else ".jpg"
+    return MultipartBody.Part.createFormData(field, fileName, bytes.toRequestBody(mime.toMediaTypeOrNull()))
 }
