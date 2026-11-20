@@ -48,7 +48,7 @@ return new class extends Migration {
             $table->dropColumn(['town', 'province']);
         });
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['town', 'province', 'profile_photo_path', 'cover_photo_path', 'payout_account_details']);
+            $table->dropColumn(['town', 'province', 'profile_photo_path', 'cover_photo_path']);
         });
     }
 };
