@@ -25,7 +25,7 @@ class DiagnosticLogController extends Controller
         // Defense in depth: scrub common secrets even if a client sends an unredacted report.
         $report = preg_replace('/(?i)(authorization\s*[:=]\s*bearer\s+)[^\s]+/', '$1[REDACTED]', $data['report']);
         $report = preg_replace('/(?i)((?:password|passwd|token|secret|api[_-]?key)\s*[:=]\s*)[^\s,;]+/', '$1[REDACTED]', $report);
-        $report = mb_substr($report, 0, 60000);
+        $report = preg_replace('/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}/', '[EMAIL]', $report);\n        $report = preg_replace('/(?<![A-Za-z0-9])\\+?[0-9][0-9 ()-]{6,}[0-9](?![A-Za-z0-9])/', '[PHONE/NUMBER]', $report);\n        $report = mb_substr($report, 0, 60000);
 
         $now = now()->utc();
         $path = 'debug-logs/' . $now->format('Y/m/d') . '/' . $now->format('His') . '-' . Str::lower(Str::random(8)) . '.txt';
@@ -33,7 +33,7 @@ class DiagnosticLogController extends Controller
             . "Received UTC: " . $now->toIso8601String() . "\n"
             . "User ID: " . (string) $request->user()->getAuthIdentifier() . "\n"
             . "App version: " . ($data['app_version'] ?? 'unknown') . "\n"
-            . "Device: " . ($data['device'] ?? 'unknown') . "\n\n"
+            . "Device: " . (preg_match('/^Android [0-9.]+; SDK [0-9]+$/', (string) ($data['device'] ?? '')) ? $data['device'] : 'Android version unavailable') . "\n\n"
             . $report . "\n";
 
         $response = Http::withToken($token)
