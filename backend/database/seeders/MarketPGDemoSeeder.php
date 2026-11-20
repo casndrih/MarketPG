@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Listing;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 use RuntimeException;
 
 class MarketPGDemoSeeder extends Seeder
@@ -22,10 +23,13 @@ class MarketPGDemoSeeder extends Seeder
             if (empty($account['email']) || empty($account['password'])) {
                 throw new RuntimeException('Demo seeding requires all demo account emails and passwords.');
             }
-            User::updateOrCreate(
+            $user = User::updateOrCreate(
                 ['email' => strtolower($account['email'])],
-                ['name' => $account['name'], 'password' => $account['password'], 'location' => $account['location'], 'account_type' => $account['account_type']]
+                ['name' => $account['name'], 'password' => Hash::make($account['password']), 'location' => $account['location'], 'account_type' => $account['account_type']]
             );
+            if (!Hash::check($account['password'], $user->password)) {
+                throw new RuntimeException('Demo account password verification failed for '.$account['email'].'.');
+            }
         }
 
         $seller = User::where('email', 'seller.test@marketpg.test')->firstOrFail();
