@@ -1,0 +1,32 @@
+name: MarketPG live API smoke test
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/marketpg-smoke.yml']
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for MarketPG API
+        run: |
+          set -euo pipefail
+          BASE="https://marketpg.onrender.com/api"
+          curl --fail --silent --show-error --retry 10 --retry-all-errors --retry-delay 6 \
+            -H "Accept: application/json" "$BASE/health" -o /tmp/health.json
+          cat /tmp/health.json
+          jq -e 'type == "object"' /tmp/health.json >/dev/null
+      - name: Verify public categories
+        run: |
+          curl --fail --silent --show-error \
+            -H "Accept: application/json" \
+            "https://marketpg.onrender.com/api/categories" -o /tmp/categories.json
+          jq -e '.data | type == "array" and length >= 1' /tmp/categories.json
+      - name: Verify public listing search
+        run: |
+          curl --fail --silent --show-error \
+            -H "Accept: application/json" \
+            "https://marketpg.onrender.com/api/listings" -o /tmp/listings.json
+          jq -e '.data | type == "array"' /tmp/listings.json
