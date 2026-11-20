@@ -12,14 +12,14 @@ class Order extends Model
     protected $fillable = [
         'order_number', 'listing_id', 'buyer_id', 'seller_id', 'amount',
         'currency', 'payment_method', 'status', 'buyer_note', 'admin_note', 'paid_at',
-        'completed_at', 'cancelled_at',
+        'completed_at', 'cancelled_at', 'shipped_at', 'delivered_at', 'released_at', 'tracking_reference', 'payout_status', 'payout_reference',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
         'paid_at' => 'datetime',
         'completed_at' => 'datetime',
-        'cancelled_at' => 'datetime',
+        'cancelled_at' => 'datetime',\n        'shipped_at' => 'datetime',\n        'delivered_at' => 'datetime',\n        'released_at' => 'datetime',
     ];
 
     public function listing(): BelongsTo { return $this->belongsTo(Listing::class); }
