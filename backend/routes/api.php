@@ -44,8 +44,10 @@ Route::get('/listings', [MarketplaceController::class, 'listings']);
 Route::get('/listings/{listing}', [MarketplaceController::class, 'show']);
 Route::get('/sellers/{seller}/listings', [MarketplaceController::class, 'sellerListings']);
 
+// Public, tightly rate-limited endpoint so diagnostics can upload even when sign-in fails.
+Route::post('/diagnostics/logs', [DiagnosticLogController::class, 'store'])->middleware('throttle:3,60');
+
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/diagnostics/logs', [DiagnosticLogController::class, 'store'])->middleware('throttle:3,60');
     Route::get('/auth/me', [AuthController::class, 'me']);
     Route::get('/notifications', fn (\Illuminate\Http\Request $request) => response()->json($request->user()->notifications()->latest()->paginate(30)));
     Route::post('/notifications/{notification}/read', function (\Illuminate\Http\Request $request, string $notification) { $item = $request->user()->notifications()->whereKey($notification)->firstOrFail(); $item->markAsRead(); return response()->json(['message' => 'Notification marked as read.']); });
