@@ -28,6 +28,15 @@ jobs:
         run: |
           curl --fail --silent --show-error             "https://marketpg.onrender.com/admin/login" -o /tmp/admin-login.html
           grep -q "Administrator access" /tmp/admin-login.html
+      - name: Verify protected admin dashboard redirect
+        run: |
+          curl --silent --show-error -D /tmp/admin.headers -o /dev/null \
+            "https://marketpg.onrender.com/admin"
+          grep -qi '^location:.*login' /tmp/admin.headers
+      - name: Verify marketplace homepage
+        run: |
+          curl --fail --silent --show-error "https://marketpg.onrender.com/" -o /tmp/home.html
+          grep -q "MarketPG" /tmp/home.html
       - name: Verify public listing search
         run: |
           curl --fail --silent --show-error \
