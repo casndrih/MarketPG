@@ -52,6 +52,8 @@ class AdminWebController extends Controller
             'pendingReceipts' => PaymentReceipt::with(['user:id,name,email', 'listing:id,title', 'order:id,order_number,amount,currency'])->where('status', 'pending')->latest()->get(),
             'pendingVerifications' => IdentityVerification::with('user:id,name,email')->where('status', 'pending')->latest()->get(),
             'ads' => $this->adsSettings(),
+            'carouselItems' => $this->carouselSettings(),
+            'pendingSmes' => User::where('sme_status', 'pending')->whereNotNull('sme_tin')->latest()->get(),
             'counts' => [
                 'users' => \App\Models\User::count(),
                 'active_listings' => Listing::where('status', 'active')->count(),
@@ -104,6 +106,65 @@ class AdminWebController extends Controller
         );
 
         return back()->with('status', $settings['enabled'] ? 'Google advertising settings saved and enabled.' : 'Google advertising has been disabled.');
+    }
+
+    private function carouselSettings(): array
+    {
+        $raw = DB::table('marketpg_settings')->where('key', 'home_carousel')->value('value');
+        $items = is_string($raw) ? json_decode($raw, true) : [];
+        return is_array($items) ? array_values($items) : [];
+    }
+
+    public function addCarouselItem(Request $request)
+    {
+        $data = $request->validate([
+            'image_url' => ['nullable', 'url', 'max:2048'],
+            'link_url' => ['nullable', 'url', 'max:2048'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'alt_text' => ['nullable', 'string', 'max:160'],
+        ]);
+        abort_unless(($request->filled('image_url') xor $request->hasFile('image')), 422, 'Provide either an image URL or upload one image.');
+        $path = null;
+        $imageUrl = trim((string) ($data['image_url'] ?? ''));
+        if ($request->hasFile('image')) {
+            abort_unless(config('marketpg.banner_uploads_enabled'), 503, 'Carousel image uploads require configured persistent public storage.');
+            $path = $request->file('image')->store('home-carousel', config('marketpg.public_disk'));
+            $imageUrl = Storage::disk(config('marketpg.public_disk'))->url($path);
+        }
+        $items = $this->carouselSettings();
+        $items[] = [
+            'id' => (string) \Illuminate\Support\Str::uuid(),
+            'image_url' => $imageUrl,
+            'storage_path' => $path,
+            'link_url' => trim((string) ($data['link_url'] ?? '')),
+            'alt_text' => trim((string) ($data['alt_text'] ?? 'MarketPG promotion')),
+            'active' => true,
+        ];
+        DB::table('marketpg_settings')->updateOrInsert(['key' => 'home_carousel'], ['value' => json_encode($items, JSON_THROW_ON_ERROR), 'updated_at' => now(), 'created_at' => now()]);
+        return back()->with('status', 'Home carousel slide added.');
+    }
+
+    public function deleteCarouselItem(Request $request, string $id)
+    {
+        $items = $this->carouselSettings();
+        $removed = collect($items)->firstWhere('id', $id);
+        abort_unless($removed, 404);
+        $items = array_values(array_filter($items, fn ($item) => ($item['id'] ?? null) !== $id));
+        DB::table('marketpg_settings')->updateOrInsert(['key' => 'home_carousel'], ['value' => json_encode($items, JSON_THROW_ON_ERROR), 'updated_at' => now(), 'created_at' => now()]);
+        if (!empty($removed['storage_path'])) Storage::disk(config('marketpg.public_disk'))->delete($removed['storage_path']);
+        return back()->with('status', 'Carousel slide removed.');
+    }
+
+    public function reviewSme(Request $request, User $user)
+    {
+        abort_unless($user->sme_status === 'pending' && filled($user->sme_tin), 409);
+        $data = $request->validate([
+            'decision' => ['required', Rule::in(['verified', 'rejected'])],
+            'reason' => ['nullable', 'string', 'max:1000'],
+        ]);
+        abort_if($data['decision'] === 'rejected' && trim((string) ($data['reason'] ?? '')) === '', 422, 'A rejection reason is required.');
+        $user->update(['sme_status' => $data['decision'], 'sme_review_note' => $data['reason'] ?? null, 'sme_reviewed_at' => now()]);
+        return back()->with('status', 'SME verification status updated.');
     }
 
     public function logout(Request $request)
