@@ -102,6 +102,7 @@ fun MarketPGApp() {
     var profileBusy by remember { mutableStateOf(false) }
     var identityStatus by remember { mutableStateOf<IdentityStatusDto?>(null) }
     var identityBusy by remember { mutableStateOf(false) }
+    var identityDocType by remember { mutableStateOf("png_nid") }
     var idFrontUri by remember { mutableStateOf<Uri?>(null) }
     var idBackUri by remember { mutableStateOf<Uri?>(null) }
     var selfieUri by remember { mutableStateOf<Uri?>(null) }
@@ -556,6 +557,12 @@ fun MarketPGApp() {
                         Text("Status: " + (identityStatus?.status?.replaceFirstChar(Char::uppercase) ?: "Not submitted"), color = when(identityStatus?.status) { "approved" -> Color(0xFF16A34A); "rejected" -> MaterialTheme.colorScheme.error; else -> colors.onSurfaceVariant })
                         Text("Upload a PNG National ID, passport or driver's licence. Buyer purchases require approval.", color = colors.onSurfaceVariant, fontSize = 12.sp)
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            listOf("png_nid" to "PNG National ID", "passport" to "Passport", "drivers_licence" to "Driver licence").forEach { (value, label) ->
+                                FilterChip(identityDocType == value, { identityDocType = value }, label = { Text(label) }, shape = RoundedCornerShape(50))
+                            }
+                        }
+                        identityStatus?.rejection_reason?.takeIf { it.isNotBlank() }?.let { Text("Review note: $it", color = MaterialTheme.colorScheme.error, fontSize = 12.sp) }
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             OutlinedButton(onClick = { idFrontPicker.launch("*/*") }) { Text(if (idFrontUri == null) "ID front" else "Front selected") }
                             OutlinedButton(onClick = { idBackPicker.launch("*/*") }) { Text(if (idBackUri == null) "ID back (optional)" else "Back selected") }
                             OutlinedButton(onClick = { selfiePicker.launch("image/*") }) { Text(if (selfieUri == null) "Selfie" else "Selfie selected") }
@@ -567,7 +574,7 @@ fun MarketPGApp() {
                                     val front = idFrontUri!!.toUploadPart(context, "id_front")
                                     val selfie = selfieUri!!.toUploadPart(context, "selfie")
                                     val back = idBackUri?.toUploadPart(context, "id_back")
-                                    MarketApi.service.submitIdentity("png_nid".toRequestBody("text/plain".toMediaTypeOrNull()), "true".toRequestBody("text/plain".toMediaTypeOrNull()), front, back, selfie)
+                                    MarketApi.service.submitIdentity(identityDocType.toRequestBody("text/plain".toMediaTypeOrNull()), "true".toRequestBody("text/plain".toMediaTypeOrNull()), front, back, selfie)
                                     identityStatus = MarketApi.service.identityStatus().data
                                     snackbarHost.showSnackbar("Identity documents submitted for review.")
                                 } catch (e: Exception) { snackbarHost.showSnackbar(e.localizedMessage ?: "Identity upload unavailable.") }
