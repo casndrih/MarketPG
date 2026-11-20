@@ -11,6 +11,9 @@ chown -R www-data:www-data storage bootstrap/cache
 php artisan config:cache
 php artisan view:cache
 php artisan migrate --force
+if [ "${MARKETPG_SEED_DEMO:-false}" = "true" ]; then
+    php artisan db:seed --class=Database\\Seeders\\MarketPGDemoSeeder --force
+fi
 php artisan storage:link || true
 
 exec apache2-foreground
