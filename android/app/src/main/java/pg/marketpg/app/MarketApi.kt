@@ -58,7 +58,7 @@ data class DisputeDto(
 data class DisputePaginator(val data: List<DisputeDto> = emptyList())
 data class DisputePage(val data: DisputePaginator)
 data class LoginRequest(val email: String, val password: String)
-data class RegisterRequest(val name: String, val email: String, val password: String, val password_confirmation: String)
+data class RegisterRequest(val name: String, val email: String, val password: String, val password_confirmation: String, val account_type: String)
 data class AuthResponse(val message: String? = null, val user: AuthUser? = null, val token: String)
 data class MeResponse(val user: AuthUser)
 data class IdentityStatusDto(val id: Long? = null, val status: String? = null, val document_type: String? = null, val rejection_reason: String? = null)
@@ -149,6 +149,7 @@ interface MarketService {
         @Query("condition") condition: String? = null
     ): ListingPage
     @GET("listings/{id}") suspend fun listing(@Path("id") id: Long): ListingDetailResponse
+    @GET("sellers/{id}/listings") suspend fun sellerListings(@Path("id") id: Long): ListingPage
 }
 
 object MarketApi {
