@@ -12,8 +12,9 @@ php artisan config:cache
 php artisan view:cache
 php artisan migrate --force
 if [ "${MARKETPG_SEED_DEMO:-false}" = "true" ]; then
-    echo "MarketPG: launching optional demo data seeder in the background."
-    (php artisan db:seed --class="Database\\Seeders\\MarketPGDemoSeeder" --force && echo "MarketPG: demo data seeding completed.") &
+    echo "MarketPG: running optional demo data seeder before accepting requests."
+    php artisan db:seed --class="Database\\Seeders\\MarketPGDemoSeeder" --force
+    echo "MarketPG: demo data seeding and password-hash verification completed."
 fi
 php artisan storage:link || true
 
