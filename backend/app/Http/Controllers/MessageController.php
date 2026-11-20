@@ -47,8 +47,8 @@ class MessageController extends Controller
             ->whereNull('read_at')->update(['read_at' => now()]);
 
         return response()->json([
-            'listing' => $listing->only(['id', 'title', 'price', 'image_path']),
-            'participant' => $participant->only(['id', 'name']),
+            'listing' => ['id' => $listing->id, 'title' => $listing->title, 'price' => $listing->price, 'image_path' => $listing->image_path],
+            'participant' => ['id' => $participant->id, 'name' => $participant->name],
             'data' => $messages,
         ]);
     }
