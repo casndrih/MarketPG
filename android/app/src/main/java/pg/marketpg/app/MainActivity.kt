@@ -432,7 +432,7 @@ fun MarketPGApp() {
                                 createBusy = true
                                 createError = null
                                 try {
-                                    MarketApi.service.createListing(CreateListingRequest(newTitle.trim(), newDescription.trim(), newPrice.trim(), newCondition, listOf(newLocation.trim(), newProvince).filter { it.isNotBlank() }.joinToString(", "), newCategoryId))
+                                    MarketApi.service.createListing(CreateListingRequest(newTitle.trim(), newDescription.trim(), newPrice.trim(), newCondition, listOf(newLocation.trim(), newProvince).filter { it.isNotBlank() }.joinToString(", "), newCategoryId, newLocation.trim(), newProvince))
                                     myListings = MarketApi.service.myListings().data
                                     newTitle = ""; newDescription = ""; newPrice = ""; newLocation = ""; newProvince = ""
                                     tab = 0
@@ -756,7 +756,7 @@ fun MarketPGApp() {
                                 try {
                                     MarketApi.service.updateListing(
                                         listing.id,
-                                        CreateListingRequest(editTitle.trim(), editDescription.trim(), editPrice.trim(), editCondition, listOf(editLocation.trim(), editProvince).filter { it.isNotBlank() }.joinToString(", "), editCategoryId)
+                                        CreateListingRequest(editTitle.trim(), editDescription.trim(), editPrice.trim(), editCondition, listOf(editLocation.trim(), editProvince).filter { it.isNotBlank() }.joinToString(", "), editCategoryId, editLocation.trim(), editProvince)
                                     )
                                     myListings = MarketApi.service.myListings().data
                                     editingListing = null
