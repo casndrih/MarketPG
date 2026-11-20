@@ -11,7 +11,10 @@ Route::get('/', function () {
         $query->where('title', 'ilike', '%' . request('q') . '%');
     }
     $listings = $query->take(24)->get();
-    return view('marketplace', compact('listings'));
+    $rawAds = DB::table('marketpg_settings')->where('key', 'ads')->value('value');
+    $ads = is_string($rawAds) ? json_decode($rawAds, true) : [];
+    $ads = is_array($ads) ? $ads : [];
+    return view('marketplace', compact('listings', 'ads'));
 });
 
 Route::get('/login', [AdminWebController::class, 'loginForm'])->name('login');
