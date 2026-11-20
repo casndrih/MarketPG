@@ -681,7 +681,7 @@ fun MarketPGApp() {
                         Text("Seller level: " + (currentUser?.seller_rank ?: "New Seller"), color = colors.primary, fontWeight = FontWeight.SemiBold)
                         HorizontalDivider()
                         Text("App diagnostics", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                        Text("Upload a redacted technical report to the MarketPG GitHub repository to help troubleshoot app and network errors. No passwords, tokens, request bodies or identity documents are recorded.", color = colors.onSurfaceVariant, fontSize = 12.sp)
+                        Text("Upload a redacted technical report to GitHub to help troubleshoot app and network errors. This repository is public, so uploaded reports are publicly visible. Passwords, tokens, email addresses, phone numbers, request bodies and identity documents are excluded.", color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
                         var diagnosticsBusy by remember { mutableStateOf(false) }
                         OutlinedButton(
                             enabled = !diagnosticsBusy,
