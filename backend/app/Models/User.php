@@ -29,7 +29,26 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    public function completedSales()\n    {\n        return $this->hasMany(Order::class, 'seller_id')->where('status', 'completed');\n    }\n\n    public function getSellerRankAttribute(): string\n    {\n        $sales = array_key_exists('completed_sales_count', $this->attributes)\n            ? (int) $this->attributes['completed_sales_count']\n            : $this->completedSales()->count();\n        return match (true) {\n            $sales >= 100 => 'Platinum',\n            $sales >= 50 => 'Gold',\n            $sales >= 20 => 'Silver',\n            $sales >= 5 => 'Bronze',\n            default => 'New Seller',\n        };\n    }\n\n    protected function casts(): array
+    public function completedSales()
+    {
+        return $this->hasMany(Order::class, 'seller_id')->where('status', 'completed');
+    }
+
+    public function getSellerRankAttribute(): string
+    {
+        $sales = array_key_exists('completed_sales_count', $this->attributes)
+            ? (int) $this->attributes['completed_sales_count']
+            : $this->completedSales()->count();
+        return match (true) {
+            $sales >= 100 => 'Platinum',
+            $sales >= 50 => 'Gold',
+            $sales >= 20 => 'Silver',
+            $sales >= 5 => 'Bronze',
+            default => 'New Seller',
+        };
+    }
+
+    protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
