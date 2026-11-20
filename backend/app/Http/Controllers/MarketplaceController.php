@@ -63,7 +63,10 @@ class MarketplaceController extends Controller
             'location' => 'required|string|max:120', 'category_id' => 'nullable|integer',
             'image' => 'nullable|image|max:5120',
         ]);
-        if ($request->hasFile('image')) $data['image_path'] = $request->file('image')->store('listings','public');
+        if ($request->hasFile('image')) {
+            abort_unless(config('marketpg.private_uploads_enabled'), 503, 'Listing image uploads are temporarily unavailable while persistent storage is being configured.');
+            $data['image_path'] = $request->file('image')->store('listings', 'public');
+        }
         unset($data['image']);
         $data['user_id'] = $request->user()->id;
         $data['status'] = 'pending';
