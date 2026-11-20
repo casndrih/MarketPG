@@ -57,6 +57,7 @@ fun MarketPGApp() {
     var retry by remember { mutableIntStateOf(0) }
     val snackbarHost = remember { SnackbarHostState() }
     var savedListings by remember { mutableStateOf<List<ListingDto>>(emptyList()) }
+    var myListings by remember { mutableStateOf<List<ListingDto>>(emptyList()) }
     var savedLoading by remember { mutableStateOf(false) }
     var savedError by remember { mutableStateOf<String?>(null) }
     var currentUser by remember { mutableStateOf<AuthUser?>(null) }
@@ -91,6 +92,9 @@ fun MarketPGApp() {
         try { categories = MarketApi.service.categories().data } catch (_: Exception) { }
     }
     LaunchedEffect(tab, signedIn, savedRefresh) {
+        if (tab == 2 && signedIn) {
+            try { myListings = MarketApi.service.myListings().data } catch (_: Exception) { myListings = emptyList() }
+        }
         if (tab == 1 && signedIn) {
             savedLoading = true
             savedError = null
@@ -263,6 +267,7 @@ fun MarketPGApp() {
                                 createError = null
                                 try {
                                     MarketApi.service.createListing(CreateListingRequest(newTitle.trim(), newDescription.trim(), newPrice.trim(), newCondition, newLocation.trim(), newCategoryId))
+                                    myListings = MarketApi.service.myListings().data
                                     newTitle = ""; newDescription = ""; newPrice = ""; newLocation = ""
                                     tab = 0
                                     retry++
@@ -276,6 +281,35 @@ fun MarketPGApp() {
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) { Text(if (createBusy) "Submitting..." else "Submit listing") }
+                    Spacer(Modifier.height(12.dp))
+                    Text("Your listings", fontSize = 19.sp, fontWeight = FontWeight.Bold)
+                    if (myListings.isEmpty()) {
+                        Text("You have not posted any listings yet.", color = Color.Gray)
+                    } else {
+                        myListings.forEach { own ->
+                            Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                                Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text(own.title, fontWeight = FontWeight.SemiBold)
+                                        Text("K " + own.price + " • " + (own.status ?: "pending"), color = Color.Gray, fontSize = 12.sp)
+                                    }
+                                    if (own.status != "reserved" && own.status != "sold") {
+                                        TextButton(onClick = {
+                                            scope.launch {
+                                                try {
+                                                    MarketApi.service.deleteListing(own.id)
+                                                    myListings = MarketApi.service.myListings().data
+                                                    snackbarHost.showSnackbar("Listing removed.")
+                                                } catch (e: Exception) {
+                                                    snackbarHost.showSnackbar(e.localizedMessage ?: "Could not remove listing.")
+                                                }
+                                            }
+                                        }) { Text("Delete") }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             } else if (tab == 3 && signedIn) {
                 Column(Modifier.fillMaxSize().padding(padding)) {
