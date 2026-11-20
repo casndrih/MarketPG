@@ -1,31 +1,15 @@
 <!doctype html>
 <html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>MarketPG Admin Sign In</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="min-h-screen bg-slate-950 text-white flex items-center justify-center p-5">
-    <main class="w-full max-w-md rounded-3xl border border-slate-800 bg-slate-900 p-8 shadow-xl">
-        <a href="/" class="text-2xl font-black text-lime-400">MarketPG</a>
-        <p class="mt-1 text-sm text-slate-400">Administrator access</p>
-        <h1 class="mt-8 text-2xl font-bold">Sign in</h1>
-        <p class="mt-2 text-sm text-slate-400">Use an account whose email is on the MarketPG administrator allowlist.</p>
-        @if ($errors->any())
-            <div class="mt-5 rounded-xl border border-red-900 bg-red-950/60 p-3 text-sm text-red-200">{{ $errors->first() }}</div>
-        @endif
-        <form method="POST" action="{{ route('admin.login.submit') }}" class="mt-6 space-y-4">
-            @csrf
-            <label class="block text-sm font-medium">Email
-                <input name="email" type="email" required value="{{ old('email') }}" autocomplete="username" class="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-lime-400">
-            </label>
-            <label class="block text-sm font-medium">Password
-                <input name="password" type="password" required autocomplete="current-password" class="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-lime-400">
-            </label>
-            <button class="w-full rounded-xl bg-lime-400 px-4 py-3 font-bold text-slate-950">Sign in to admin</button>
-        </form>
-        <a href="/" class="mt-6 inline-block text-sm text-slate-400 hover:text-white">Return to marketplace</a>
-    </main>
-</body>
-</html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MarketPG Admin Sign In</title><script>tailwind={config:{darkMode:'class',theme:{extend:{colors:{brand:{400:'#a3e635',500:'#84cc16'}}}}}};</script><script src="https://cdn.tailwindcss.com"></script><link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet"></head>
+<body class="flex min-h-screen items-center justify-center bg-gray-50 p-5 dark:bg-gray-950">
+<main class="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+    <a href="/" class="flex items-center gap-3"><span class="grid h-11 w-11 place-items-center rounded-xl bg-lime-400 text-xl font-black text-gray-950">M</span><span class="text-2xl font-extrabold text-gray-900 dark:text-white">Market<span class="text-lime-600 dark:text-lime-400">PG</span></span></a>
+    <div class="mt-8"><span class="rounded-full bg-lime-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-lime-800 dark:bg-lime-950 dark:text-lime-300">Secure admin portal</span><h1 class="mt-4 text-2xl font-extrabold text-gray-900 dark:text-white">Welcome back</h1><p class="mt-2 text-sm leading-6 text-gray-500 dark:text-gray-400">Sign in with an account on the MarketPG administrator allowlist.</p></div>
+    @if ($errors->any())<div class="mt-5 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300" role="alert">{{ $errors->first() }}</div>@endif
+    <form method="POST" action="{{ route('admin.login.submit') }}" class="mt-6 space-y-5">@csrf
+        <div><label for="email" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">Email address</label><input id="email" name="email" type="email" required value="{{ old('email') }}" autocomplete="username" class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-3 text-sm text-gray-900 focus:border-lime-500 focus:ring-lime-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white" placeholder="admin@example.com"></div>
+        <div><label for="password" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">Password</label><input id="password" name="password" type="password" required autocomplete="current-password" class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-3 text-sm text-gray-900 focus:border-lime-500 focus:ring-lime-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white" placeholder="••••••••"></div>
+        <button type="submit" class="w-full rounded-lg bg-lime-400 px-5 py-3 text-center text-sm font-bold text-gray-950 transition hover:bg-lime-300 focus:outline-none focus:ring-4 focus:ring-lime-200">Sign in to admin</button>
+    </form>
+    <div class="mt-6 border-t border-gray-100 pt-5 text-center dark:border-gray-800"><a href="/" class="text-sm font-medium text-gray-500 hover:text-lime-700 dark:text-gray-400 dark:hover:text-lime-400">← Return to marketplace</a></div>
+</main><script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script></body></html>
