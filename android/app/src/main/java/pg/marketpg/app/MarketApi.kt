@@ -16,6 +16,7 @@ data class CategoryPage(val data: List<CategoryDto> = emptyList())
 data class SellerDto(val id: Int, val name: String)
 data class AuthUser(val id: Long, val name: String, val email: String, val phone: String? = null, val location: String? = null, val account_type: String? = null)
 data class ProfileUpdateRequest(val name: String, val phone: String?, val location: String?, val account_type: String)
+data class DisputeRequest(val reason: String, val details: String)
 data class LoginRequest(val email: String, val password: String)
 data class RegisterRequest(val name: String, val email: String, val password: String, val password_confirmation: String)
 data class AuthResponse(val message: String? = null, val user: AuthUser? = null, val token: String)
@@ -75,6 +76,7 @@ interface MarketService {
     @retrofit2.http.DELETE("listings/{id}/wishlist") suspend fun removeFromWishlist(@Path("id") id: Long): Map<String, Any>
     @POST("listings/{id}/orders") suspend fun createOrder(@Path("id") id: Long, @Body request: CreateOrderRequest): OrderResponse
     @GET("orders") suspend fun orders(): OrderPage
+    @POST("orders/{id}/disputes") suspend fun raiseDispute(@Path("id") id: Long, @Body request: DisputeRequest): Map<String, Any>
     @POST("orders/{id}/confirm-cash") suspend fun confirmCash(@Path("id") id: Long): Map<String, Any>
     @POST("orders/{id}/complete") suspend fun completeOrder(@Path("id") id: Long): Map<String, Any>
     @POST("orders/{id}/cancel") suspend fun cancelOrder(@Path("id") id: Long): Map<String, Any>
