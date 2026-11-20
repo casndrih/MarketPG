@@ -41,38 +41,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 private val MarketLime = Color(0xFFB7F34A)
-private val LightColors = lightColorScheme(
-    primary = Color(0xFF365314),
-    onPrimary = Color.White,
-    primaryContainer = Color(0xFFE5F5C7),
-    onPrimaryContainer = Color(0xFF1E2D0A),
-    secondary = Color(0xFF58752B),
-    onSecondary = Color.White,
-    tertiary = Color(0xFFB7F34A),
-    background = Color(0xFFF7F8F4),
-    onBackground = Color(0xFF1B1C18),
-    surface = Color(0xFFFFFFFF),
-    onSurface = Color(0xFF1B1C18),
-    surfaceVariant = Color(0xFFEEF0E7),
-    onSurfaceVariant = Color(0xFF62665A),
-    outline = Color(0xFF777B6D)
-)
-private val DarkColors = darkColorScheme(
-    primary = Color(0xFFC4F27B),
-    onPrimary = Color(0xFF24340D),
-    primaryContainer = Color(0xFF3B531B),
-    onPrimaryContainer = Color(0xFFE5F5C7),
-    secondary = Color(0xFFB8D58A),
-    onSecondary = Color(0xFF263514),
-    tertiary = Color(0xFFB7F34A),
-    background = Color(0xFF11140E),
-    onBackground = Color(0xFFE4E7DC),
-    surface = Color(0xFF1B2017),
-    onSurface = Color(0xFFE4E7DC),
-    surfaceVariant = Color(0xFF2A3024),
-    onSurfaceVariant = Color(0xFFB9C0AE),
-    outline = Color(0xFF858D79)
-)
+private val MarketBlue = Color(0xFF3B82F6)
+private val LightColors = lightColorScheme(primary = Color(0xFF2563EB), onPrimary = Color.White, primaryContainer = Color(0xFFDBEAFE), onPrimaryContainer = Color(0xFF102A56), secondary = Color(0xFF475569), onSecondary = Color.White, tertiary = Color(0xFF60A5FA), background = Color(0xFFF7F8FA), onBackground = Color(0xFF111827), surface = Color.White, onSurface = Color(0xFF111827), surfaceVariant = Color(0xFFF1F5F9), onSurfaceVariant = Color(0xFF64748B), outline = Color(0xFFCBD5E1))
+private val DarkColors = darkColorScheme(primary = Color(0xFF60A5FA), onPrimary = Color(0xFF071A33), primaryContainer = Color(0xFF172B46), onPrimaryContainer = Color(0xFFDBEAFE), secondary = Color(0xFF94A3B8), onSecondary = Color(0xFF111827), tertiary = Color(0xFF93C5FD), background = Color.Black, onBackground = Color(0xFFF9FAFB), surface = Color(0xFF171717), onSurface = Color(0xFFF3F4F6), surfaceVariant = Color(0xFF262626), onSurfaceVariant = Color(0xFFA3A3A3), outline = Color(0xFF525252))
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -102,6 +73,7 @@ fun MarketPGApp() {
     var selected by remember { mutableStateOf<ListingDto?>(null) }
     var tab by remember { mutableIntStateOf(0) }
     var retry by remember { mutableIntStateOf(0) }
+    var showNetworkDialog by remember { mutableStateOf(false) }
     val snackbarHost = remember { SnackbarHostState() }
     var savedListings by remember { mutableStateOf<List<ListingDto>>(emptyList()) }
     var myListings by remember { mutableStateOf<List<ListingDto>>(emptyList()) }
@@ -224,6 +196,7 @@ fun MarketPGApp() {
             ).data
         } catch (e: Exception) {
             error = e.localizedMessage ?: "Unable to connect to MarketPG."
+            showNetworkDialog = true
         } finally { loading = false }
     }
 
@@ -232,7 +205,7 @@ fun MarketPGApp() {
         Scaffold(
             containerColor = colors.background,
             topBar = {
-                CenterAlignedTopAppBar(
+                TopAppBar(
                     title = {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text("MarketPG", fontWeight = FontWeight.ExtraBold, color = colors.onSurface)
@@ -289,10 +262,10 @@ fun MarketPGApp() {
         ) { padding ->
             if (tab == 0) {
                 Column(Modifier.fillMaxSize().padding(padding)) {
-                    OutlinedTextField(search, { search = it }, Modifier.fillMaxWidth().padding(horizontal = 16.dp), placeholder = { Text("Search phones, cars, furniture...") }, leadingIcon = { Icon(Icons.Default.Search, null) }, singleLine = true, shape = RoundedCornerShape(16.dp))
+                    OutlinedTextField(search, { search = it }, Modifier.fillMaxWidth().padding(horizontal = 16.dp), placeholder = { Text("Search phones, cars, furniture...") }, leadingIcon = { Icon(Icons.Default.Search, null) }, singleLine = true, shape = RoundedCornerShape(50))
                     Card(Modifier.fillMaxWidth().padding(16.dp), colors = CardDefaults.cardColors(containerColor = colors.primaryContainer), shape = RoundedCornerShape(22.dp)) {
                         Column(Modifier.padding(20.dp)) {
-                            Text("GREAT LOCAL FINDS", color = MarketLime, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                            Text("GREAT LOCAL FINDS", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 11.sp)
                             Text("Give good things\na second life.", color = colors.onPrimaryContainer, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold)
                             Text("Discover real listings from sellers across Papua New Guinea.", color = colors.onSurfaceVariant)
                         }
@@ -313,7 +286,7 @@ fun MarketPGApp() {
                         TextButton(onClick = { showFilters = true }) { Icon(Icons.Filled.Tune, contentDescription = null); Spacer(Modifier.width(6.dp)); Text("Filter & sort") }
                     }
                     when {
-                        loading -> Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = colors.primary) }
+                        loading -> ListingShimmer(Modifier.weight(1f).fillMaxWidth())
                         error != null -> Column(Modifier.fillMaxWidth().padding(28.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                             Text("Couldn't load listings", fontWeight = FontWeight.Bold)
                             Text(error ?: "Network error", color = colors.onSurfaceVariant)
@@ -808,6 +781,8 @@ fun MarketPGApp() {
             )
         }
 
+
+        if (showNetworkDialog) { AlertDialog(onDismissRequest = { showNetworkDialog = false }, shape = RoundedCornerShape(16.dp), containerColor = colors.surface, title = { Text("No internet connection") }, text = { Text("MarketPG couldn't reach the server. Check your connection and try again.", color = colors.onSurfaceVariant) }, confirmButton = { Button(onClick = { showNetworkDialog = false; retry++ }) { Text("Retry") } }, dismissButton = { TextButton(onClick = { showNetworkDialog = false }) { Text("Not now") } }) }
         messageListing?.let { listing ->
             AlertDialog(
                 onDismissRequest = { if (!messageBusy) messageListing = null },
@@ -917,5 +892,15 @@ fun MarketPGApp() {
                 }
             )
         }
+    }
+}
+
+@Composable
+private fun ListingShimmer(modifier: Modifier = Modifier) {
+    val transition = androidx.compose.animation.core.rememberInfiniteTransition(label = "listing-shimmer")
+    val alpha by transition.animateFloat(0.35f, 0.8f, animationSpec = androidx.compose.animation.core.infiniteRepeatable(androidx.compose.animation.core.tween(850), repeatMode = androidx.compose.animation.core.RepeatMode.Reverse), label = "shimmer-alpha")
+    val placeholder = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = alpha)
+    LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = modifier, contentPadding = PaddingValues(12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        items(6) { Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) { Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) { Box(Modifier.fillMaxWidth().height(112.dp).background(placeholder, RoundedCornerShape(8.dp))); Box(Modifier.fillMaxWidth(0.82f).height(13.dp).background(placeholder, RoundedCornerShape(8.dp))); Box(Modifier.fillMaxWidth(0.52f).height(17.dp).background(placeholder, RoundedCornerShape(8.dp))); Box(Modifier.fillMaxWidth(0.66f).height(10.dp).background(placeholder, RoundedCornerShape(8.dp))) } } }
     }
 }
