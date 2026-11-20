@@ -1,6 +1,14 @@
 package pg.marketpg.app
 
 import android.content.Context
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties
+import android.util.Base64
+import java.security.KeyStore
+import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
+import javax.crypto.spec.GCMParameterSpec
 import com.google.gson.annotations.SerializedName
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -117,19 +125,63 @@ object MarketApi {
     @Volatile private var token: String? = null
     private var preferences: android.content.SharedPreferences? = null
 
+    private const val KEY_ALIAS = "marketpg_session_key"
+
     fun initialize(context: Context) {
         preferences = context.applicationContext.getSharedPreferences("marketpg_session", Context.MODE_PRIVATE)
-        token = preferences?.getString("api_token", null)
+        token = readEncryptedToken()
     }
 
     fun saveToken(value: String) {
         token = value
-        preferences?.edit()?.putString("api_token", value)?.apply()
+        try {
+            val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+            cipher.init(Cipher.ENCRYPT_MODE, getOrCreateKey())
+            val encrypted = Base64.encodeToString(cipher.doFinal(value.toByteArray(Charsets.UTF_8)), Base64.NO_WRAP)
+            val iv = Base64.encodeToString(cipher.iv, Base64.NO_WRAP)
+            preferences?.edit()?.putString("api_token_ciphertext", encrypted)?.putString("api_token_iv", iv)?.remove("api_token")?.apply()
+        } catch (_: Exception) {
+            // Keep the session only in memory rather than falling back to plaintext storage.
+            preferences?.edit()?.remove("api_token")?.remove("api_token_ciphertext")?.remove("api_token_iv")?.apply()
+        }
     }
 
     fun clearToken() {
         token = null
-        preferences?.edit()?.remove("api_token")?.apply()
+        preferences?.edit()?.remove("api_token")?.remove("api_token_ciphertext")?.remove("api_token_iv")?.apply()
+    }
+
+    private fun readEncryptedToken(): String? {
+        val prefs = preferences ?: return null
+        val ciphertext = prefs.getString("api_token_ciphertext", null) ?: run {
+            // Remove legacy plaintext tokens written by earlier app builds.
+            prefs.edit().remove("api_token").apply()
+            return null
+        }
+        return try {
+            val iv = Base64.decode(prefs.getString("api_token_iv", null), Base64.NO_WRAP)
+            val encrypted = Base64.decode(ciphertext, Base64.NO_WRAP)
+            val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+            cipher.init(Cipher.DECRYPT_MODE, getOrCreateKey(), GCMParameterSpec(128, iv))
+            String(cipher.doFinal(encrypted), Charsets.UTF_8)
+        } catch (_: Exception) {
+            clearToken()
+            null
+        }
+    }
+
+    private fun getOrCreateKey(): SecretKey {
+        val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+        (keyStore.getKey(KEY_ALIAS, null) as? SecretKey)?.let { return it }
+        val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
+        generator.init(
+            KeyGenParameterSpec.Builder(KEY_ALIAS, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
+                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                .setRandomizedEncryptionRequired(true)
+                .build()
+        )
+        return generator.generateKey()
     }
 
     fun hasSession(): Boolean = !token.isNullOrBlank()
