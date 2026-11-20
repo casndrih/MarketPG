@@ -1,14 +1,7 @@
 # Render Blueprint for MarketPG
-# Add this file through Render Dashboard -> Blueprints -> New Blueprint.
-
-databases:
-  - name: marketpg-db
-    databaseName: marketpg
-    user: marketpg
-    plan: basic-256mb
-    region: singapore
-    postgresMajorVersion: "18"
-    ipAllowList: []
+# Uses the existing Growgreen PostgreSQL database.
+# During Blueprint apply, paste Growgreen's INTERNAL database URL into DB_URL.
+# MarketPG tables are isolated with the marketpg_ prefix.
 
 services:
   - type: web
@@ -37,9 +30,9 @@ services:
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_URL
-        fromDatabase:
-          name: marketpg-db
-          property: connectionString
+        sync: false
+      - key: DB_PREFIX
+        value: marketpg_
       - key: SESSION_DRIVER
         value: file
       - key: CACHE_STORE
