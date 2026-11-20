@@ -20,7 +20,7 @@ MarketPG accepts these verification document types:
 
 A submission requires the document front and a selfie; the reverse side is optional. The API records pending, approved or rejected status, requires user consent, limits submission attempts, and provides admin-only review/document endpoints. Only the final four characters of a supplied document number are retained. Uploaded identity documents are stored on Laravel's non-public local disk and are never returned as public URLs.
 
-**Production release blocker:** Render's local filesystem is ephemeral. Before collecting real identity documents, configure encrypted private object storage with short-lived authorized access, retention/deletion controls and backups. Add a liveness/face-match provider or a documented manual identity comparison procedure. Obtain PNG legal/privacy review and publish a privacy notice before collecting real ID data.
+**Production release blocker:** Identity submissions are intentionally disabled by default (`IDENTITY_UPLOADS_ENABLED=false`) until secure private object storage is configured. Render's local filesystem is ephemeral. Before collecting real identity documents, configure encrypted private object storage with short-lived authorized access, retention/deletion controls and backups. Add a liveness/face-match provider or a documented manual identity comparison procedure. Obtain PNG legal/privacy review and publish a privacy notice before collecting real ID data.
 
 Set `MARKETPG_ADMIN_EMAILS` in Render to a comma-separated allowlist of administrator email addresses. Do not commit this value or any credentials to Git.
 
