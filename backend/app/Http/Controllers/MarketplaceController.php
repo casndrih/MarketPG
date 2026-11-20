@@ -55,6 +55,18 @@ class MarketplaceController extends Controller
         return response()->json(['data' => $listing->load(['images', 'user' => fn ($user) => $user->withCount('completedSales')])]);
     }
 
+    public function sellerListings(User $seller)
+    {
+        $listings = Listing::query()
+            ->with(['images', 'user' => fn ($user) => $user->withCount('completedSales')])
+            ->where('user_id', $seller->id)
+            ->where('status', 'active')
+            ->latest()
+            ->paginate(20);
+
+        return response()->json($listings);
+    }
+
     public function store(Request $request)
     {
         abort_unless($request->user()->profile_photo_path && $request->user()->cover_photo_path, 403, 'Complete your profile photo and cover photo before publishing listings.');
