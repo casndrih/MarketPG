@@ -17,11 +17,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/auth/me', [AuthController::class, 'me']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::post('/listings', [MarketplaceController::class, 'store']);
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::post('/listings/{listing}/orders', [OrderController::class, 'store']);
+    Route::get('/orders/{order}', [OrderController::class, 'show']);
+    Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel']);
+    Route::post('/orders/{order}/complete', [OrderController::class, 'complete']);
     Route::post('/listings/{listing}/receipt', [MarketplaceController::class, 'uploadReceipt']);
     Route::get('/identity-verification', [IdentityVerificationController::class, 'status']);
     Route::post('/identity-verification', [IdentityVerificationController::class, 'submit'])->middleware('throttle:3,60');
 
     Route::prefix('admin')->middleware(EnsureMarketplaceAdmin::class)->group(function () {
+        Route::get('/orders', [OrderController::class, 'adminIndex']);
+        Route::patch('/orders/{order}', [OrderController::class, 'adminUpdate']);
         Route::get('/identity-verifications', [IdentityVerificationController::class, 'queue']);
         Route::post('/identity-verifications/{verification}/review', [IdentityVerificationController::class, 'review']);
         Route::get('/identity-verifications/{verification}/documents/{kind}', [IdentityVerificationController::class, 'document']);
