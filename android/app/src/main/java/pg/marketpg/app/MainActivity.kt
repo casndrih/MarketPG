@@ -70,6 +70,8 @@ fun MarketPGApp() {
     var inboxMessages by remember { mutableStateOf<List<MessageDto>>(emptyList()) }
     var myOrders by remember { mutableStateOf<List<OrderDto>>(emptyList()) }
     var ordersLoading by remember { mutableStateOf(false) }
+    var myDisputes by remember { mutableStateOf<List<DisputeDto>>(emptyList()) }
+    var disputesLoading by remember { mutableStateOf(false) }
     var inboxLoading by remember { mutableStateOf(false) }
     var inboxError by remember { mutableStateOf<String?>(null) }
     var replyingTo by remember { mutableStateOf<MessageDto?>(null) }
@@ -125,8 +127,11 @@ fun MarketPGApp() {
         }
         if (tab == 4 && signedIn) {
             ordersLoading = true
+            disputesLoading = true
             try { myOrders = MarketApi.service.orders().data } catch (_: Exception) { myOrders = emptyList() }
             finally { ordersLoading = false }
+            try { myDisputes = MarketApi.service.disputes().data.data } catch (_: Exception) { myDisputes = emptyList() }
+            finally { disputesLoading = false }
         }
         if (tab == 3 && signedIn) {
             inboxLoading = true
@@ -379,6 +384,32 @@ fun MarketPGApp() {
                                 tab = 0
                             }
                         }) { Text("Sign out") }
+                    }
+                    Text("Your disputes", Modifier.padding(horizontal = 20.dp), fontSize = 19.sp, fontWeight = FontWeight.Bold)
+                    when {
+                        disputesLoading -> LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 20.dp))
+                        myDisputes.isEmpty() -> Text("No disputes raised.", Modifier.padding(horizontal = 20.dp), color = Color.Gray, fontSize = 12.sp)
+                        else -> LazyRow(
+                            Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(horizontal = 12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(myDisputes, key = { it.id }) { dispute ->
+                                Card(
+                                    Modifier.width(230.dp),
+                                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                                ) {
+                                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        Text(dispute.order?.listing?.title ?: dispute.order?.order_number ?: "Order dispute", fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                        Text(dispute.reason.replace('_', ' '), color = Color.Gray, fontSize = 12.sp)
+                                        Text("Status: " + dispute.status.replace('_', ' '), color = Ink, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                                        if (!dispute.resolution.isNullOrBlank()) {
+                                            Text("Resolution: " + dispute.resolution, fontSize = 12.sp, maxLines = 3, overflow = TextOverflow.Ellipsis)
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                     Text("Your orders", Modifier.padding(horizontal = 20.dp), fontSize = 19.sp, fontWeight = FontWeight.Bold)
                     if (ordersLoading) {
