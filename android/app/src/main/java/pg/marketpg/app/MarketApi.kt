@@ -1,26 +1,24 @@
 package pg.marketpg.app
 
+import android.content.Context
 import com.google.gson.annotations.SerializedName
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-data class CategoryDto(
-    val id: Int,
-    val name: String,
-    val slug: String
-)
-
-data class CategoryPage(
-    val data: List<CategoryDto> = emptyList()
-)
-
-data class SellerDto(
-    val id: Int,
-    val name: String
-)
+data class CategoryDto(val id: Int, val name: String, val slug: String)
+data class CategoryPage(val data: List<CategoryDto> = emptyList())
+data class SellerDto(val id: Int, val name: String)
+data class AuthUser(val id: Long, val name: String, val email: String)
+data class LoginRequest(val email: String, val password: String)
+data class RegisterRequest(val name: String, val email: String, val password: String, val password_confirmation: String)
+data class AuthResponse(val message: String? = null, val user: AuthUser? = null, val token: String)
+data class MeResponse(val user: AuthUser)
 
 data class ListingDto(
     val id: Long,
@@ -37,39 +35,55 @@ data class ListingDto(
             "https://marketpg.onrender.com/storage/" + it.trimStart('/')
         }
 }
-
-data class ListingPage(
-    val data: List<ListingDto> = emptyList(),
-    val current_page: Int? = null,
-    val last_page: Int? = null
-)
-
-data class ListingDetailResponse(
-    val data: ListingDto
-)
+data class ListingPage(val data: List<ListingDto> = emptyList(), val current_page: Int? = null, val last_page: Int? = null)
+data class ListingDetailResponse(val data: ListingDto)
 
 interface MarketService {
-    @GET("categories")
-    suspend fun categories(): CategoryPage
-
-    @GET("listings")
-    suspend fun listings(
+    @POST("auth/login") suspend fun login(@Body request: LoginRequest): AuthResponse
+    @POST("auth/register") suspend fun register(@Body request: RegisterRequest): AuthResponse
+    @GET("auth/me") suspend fun me(): MeResponse
+    @GET("categories") suspend fun categories(): CategoryPage
+    @GET("listings") suspend fun listings(
         @Query("q") query: String? = null,
         @Query("category_id") categoryId: Int? = null,
         @Query("location") location: String? = null,
         @Query("sort") sort: String? = null
     ): ListingPage
-
-    @GET("listings/{id}")
-    suspend fun listing(@Path("id") id: Long): ListingDetailResponse
+    @GET("listings/{id}") suspend fun listing(@Path("id") id: Long): ListingDetailResponse
 }
 
 object MarketApi {
     private const val BASE_URL = "https://marketpg.onrender.com/api/"
+    @Volatile private var token: String? = null
+    private var preferences: android.content.SharedPreferences? = null
+
+    fun initialize(context: Context) {
+        preferences = context.applicationContext.getSharedPreferences("marketpg_session", Context.MODE_PRIVATE)
+        token = preferences?.getString("api_token", null)
+    }
+
+    fun saveToken(value: String) {
+        token = value
+        preferences?.edit()?.putString("api_token", value)?.apply()
+    }
+
+    fun clearToken() {
+        token = null
+        preferences?.edit()?.remove("api_token")?.apply()
+    }
+
+    fun hasSession(): Boolean = !token.isNullOrBlank()
 
     val service: MarketService by lazy {
+        val client = OkHttpClient.Builder().addInterceptor { chain ->
+            val request = chain.request().newBuilder().apply {
+                token?.takeIf { it.isNotBlank() }?.let { header("Authorization", "Bearer " + it) }
+            }.build()
+            chain.proceed(request)
+        }.build()
         Retrofit.Builder()
             .baseUrl(BASE_URL)
+            .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(MarketService::class.java)
