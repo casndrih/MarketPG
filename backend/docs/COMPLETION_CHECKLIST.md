@@ -22,7 +22,7 @@ The unchecked release gates below remain authoritative: private/persistent stora
 - [x] PNG NID, passport, driver's licence and other government photo ID submission choices
 - [x] Front image/document, optional reverse side, selfie, consent, pending/approved/rejected state
 - [x] Private authenticated document retrieval and admin decision API
-- [ ] Admin web UI for document review and reasoned decisions
+- [x] Admin web UI for identity document review through admin-session-protected, no-store document routes, with reasoned approve/reject decisions
 - [ ] Production private object storage with encryption, signed short-lived access and retention/deletion policy
 - [ ] Face comparison/liveness provider integration and documented manual fallback
 - [ ] Verification audit log, rate limits, duplicate-account checks and appeal/resubmission workflow
