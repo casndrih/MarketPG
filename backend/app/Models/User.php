@@ -24,6 +24,8 @@ class User extends Authenticatable
         'cover_photo_path',
     ];
 
+    protected $appends = ['seller_rank'];
+
     protected $hidden = [
         'password',
         'remember_token',
