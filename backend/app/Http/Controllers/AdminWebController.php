@@ -119,8 +119,8 @@ class AdminWebController extends Controller
     public function addCarouselItem(Request $request)
     {
         $data = $request->validate([
-            'image_url' => ['nullable', 'url', 'max:2048'],
-            'link_url' => ['nullable', 'url', 'max:2048'],
+            'image_url' => ['nullable', 'url', 'regex:/^https:\/\//i', 'max:2048'],
+            'link_url' => ['nullable', 'url', 'regex:/^https:\/\//i', 'max:2048'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'alt_text' => ['nullable', 'string', 'max:160'],
         ]);
