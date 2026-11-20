@@ -97,7 +97,7 @@ class MarketplaceController extends Controller
             'decision' => 'required|in:active,rejected',
             'reason' => 'nullable|string|max:1000',
         ]);
-        $listing->update(['status' => $data['decision']]);
+        $listing->update(['status' => $data['decision'], 'moderation_note' => $data['reason'] ?? null]);
         return response()->json(['message' => 'Listing moderation decision saved.', 'data' => $listing->fresh()]);
     }
 
