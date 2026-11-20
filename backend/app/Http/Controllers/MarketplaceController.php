@@ -92,6 +92,7 @@ class MarketplaceController extends Controller
     public function update(Request $request, Listing $listing)
     {
         abort_unless($listing->user_id === $request->user()->id, 403);
+        abort_unless($request->user()->profile_photo_path && $request->user()->cover_photo_path, 403, 'Complete your profile photo and cover photo before managing listings.');
         abort_unless(in_array($listing->status, ['pending', 'rejected', 'active'], true), 409);
 
         $data = $request->validate([
