@@ -76,7 +76,8 @@ data class ListingDto(
     @SerializedName("image_path") val imagePath: String? = null,
     val status: String? = null,
     val user: SellerDto? = null,
-    @SerializedName("category_id") val categoryId: Int? = null
+    @SerializedName("category_id") val categoryId: Int? = null,
+    val images: List<ListingImageDto> = emptyList()
 ) {
     val imageUrl: String?
         get() = imagePath?.takeIf { it.isNotBlank() }?.let {
