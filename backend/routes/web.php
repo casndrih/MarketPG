@@ -15,7 +15,7 @@ Route::get('/', function () {
 });
 
 Route::get('/admin/login', [AdminWebController::class, 'loginForm'])->name('admin.login');
-Route::post('/admin/login', [AdminWebController::class, 'login'])->name('admin.login.submit');
+Route::post('/admin/login', [AdminWebController::class, 'login'])->middleware('throttle:5,1')->name('admin.login.submit');
 
 Route::prefix('admin')->name('admin.')->middleware(['auth', EnsureMarketplaceAdmin::class])->group(function () {
     Route::get('/', [AdminWebController::class, 'dashboard'])->name('dashboard');
