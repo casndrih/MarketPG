@@ -33,6 +33,18 @@ internal fun secureMarketPgUrl(url: String?): String? {
         else -> value
     }
 }
+data class FollowedSellerDto(val id: Long, val name: String, val seller_rank: String? = null, val profile_photo_url: String? = null)
+data class FollowedSellerPage(val data: List<FollowedSellerDto> = emptyList())
+data class BlockReasonDto(val value: String, val label: String)
+data class BlockReasonPage(val data: List<BlockReasonDto> = emptyList())
+data class BlockBuyerRequest(val reason: String, val details: String? = null)
+data class SupportTicketMessageDto(val id: Long, val body: String, val sender_name: String? = null, val is_admin: Boolean = false, val created_at: String? = null)
+data class SupportTicketDto(val id: Long, val ticket_number: String, val subject: String, val category: String, val priority: String, val status: String, val messages: List<SupportTicketMessageDto> = emptyList())
+data class SupportTicketPage(val data: List<SupportTicketDto> = emptyList())
+data class CreateSupportTicketRequest(val subject: String, val category: String, val priority: String = "normal", val message: String)
+data class SupportTicketReplyRequest(val message: String)
+data class MarketNotificationDto(val id: String, val data: Map<String, Any?> = emptyMap(), val read_at: String? = null, val created_at: String? = null)
+data class MarketNotificationPage(val data: List<MarketNotificationDto> = emptyList())
 data class PublicAdsDto(val enabled: Boolean = false, val mobile_app_id: String? = null, val mobile_banner_ad_unit_id: String? = null)
 data class PublicConfigDto(val ads: PublicAdsDto = PublicAdsDto())
 data class HomeBannerDto(val id: String, val image_url: String, val link_url: String? = null, val alt_text: String? = null)
@@ -112,6 +124,18 @@ data class ListingPage(val data: List<ListingDto> = emptyList(), val current_pag
 data class ListingDetailResponse(val data: ListingDto)
 
 interface MarketService {
+    @GET("sellers/following") suspend fun followedSellers(): FollowedSellerPage
+    @POST("sellers/{id}/follow") suspend fun followSeller(@Path("id") id: Long): Map<String, Any>
+    @retrofit2.http.DELETE("sellers/{id}/follow") suspend fun unfollowSeller(@Path("id") id: Long): Map<String, Any>
+    @GET("seller-block-reasons") suspend fun sellerBlockReasons(): BlockReasonPage
+    @POST("buyers/{id}/block") suspend fun blockBuyer(@Path("id") id: Long, @Body request: BlockBuyerRequest): Map<String, Any>
+    @retrofit2.http.DELETE("buyers/{id}/block") suspend fun unblockBuyer(@Path("id") id: Long): Map<String, Any>
+    @GET("support/tickets") suspend fun supportTickets(): SupportTicketPage
+    @POST("support/tickets") suspend fun createSupportTicket(@Body request: CreateSupportTicketRequest): Map<String, Any>
+    @GET("support/tickets/{id}") suspend fun supportTicket(@Path("id") id: Long): Map<String, Any>
+    @POST("support/tickets/{id}/replies") suspend fun replySupportTicket(@Path("id") id: Long, @Body request: SupportTicketReplyRequest): Map<String, Any>
+    @GET("notifications") suspend fun notifications(): MarketNotificationPage
+    @POST("notifications/{id}/read") suspend fun markNotificationRead(@Path("id") id: String): Map<String, Any>
     @GET("public-config") suspend fun publicConfig(): PublicConfigDto
     @GET("home-carousel") suspend fun homeCarousel(): HomeBannerPage
     @POST("auth/login") suspend fun login(@Body request: LoginRequest): AuthResponse
