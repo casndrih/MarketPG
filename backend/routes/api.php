@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MarketplaceController;
 use App\Http\Controllers\OrderController;
@@ -12,9 +13,12 @@ use App\Http\Controllers\OrderDisputeController;
 use App\Http\Controllers\IdentityVerificationController;
 use App\Http\Middleware\EnsureMarketplaceAdmin;
 
-Route::get('/health', fn () => response()->json(['status' => 'ok', 'app' => 'MarketPG']));
-Route::post('/auth/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
-Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
+Route::get('/health', function () {
+    DB::select('select 1');
+    return response()->json(['status' => 'ok', 'app' => 'MarketPG', 'database' => 'connected']);
+});
+Route::post('/auth/register', [AuthController::class, 'register'])->middleware('throttle:10,1');
+Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 Route::get('/categories', [MarketplaceController::class, 'categories']);
 Route::get('/listings', [MarketplaceController::class, 'listings']);
 Route::get('/listings/{listing}', [MarketplaceController::class, 'show']);
