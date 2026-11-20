@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminWebController;
 use App\Http\Middleware\EnsureMarketplaceAdmin;
 use App\Models\Listing;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
 
 Route::get('/', function () {
     $query = Listing::query()->where('status', 'active')->latest();
