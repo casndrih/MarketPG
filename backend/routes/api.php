@@ -83,7 +83,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/identity-verification', [IdentityVerificationController::class, 'status']);
     Route::post('/identity-verification', [IdentityVerificationController::class, 'submit'])->middleware('throttle:3,60');
 
-    Route::prefix('admin')->middleware(EnsureMarketplaceAdmin::class)->group(function () {\n        Route::get('/support/tickets', [CommunityController::class, 'adminTickets']);\n        Route::patch('/support/tickets/{ticket}', [CommunityController::class, 'adminUpdateTicket']);
+    Route::prefix('admin')->middleware(EnsureMarketplaceAdmin::class)->group(function () {
+        Route::get('/support/tickets', [CommunityController::class, 'adminTickets']);
+        Route::patch('/support/tickets/{ticket}', [CommunityController::class, 'adminUpdateTicket']);
         Route::get('/listings', [MarketplaceController::class, 'adminQueue']);
         Route::post('/listings/{listing}/review', [MarketplaceController::class, 'adminReview']);
         Route::get('/orders', [OrderController::class, 'adminIndex']);
