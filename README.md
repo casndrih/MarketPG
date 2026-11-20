@@ -38,6 +38,7 @@ Set `MARKETPG_ADMIN_EMAILS` in Render to a comma-separated allowlist of administ
 - `PUT /api/listings/{listing}` and `DELETE /api/listings/{listing}` (owner only)
 - `POST /api/listings/{listing}/orders` (Sanctum; reserves an available listing)
 - `GET /api/orders` and `GET /api/orders/{order}` (buyer/seller only)
+- `GET /api/wishlist`, `POST /api/listings/{listing}/wishlist` and `DELETE /api/listings/{listing}/wishlist` (Sanctum)
 - `POST /api/orders/{order}/cancel` (buyer only)
 - `POST /api/orders/{order}/complete` (seller after admin payment confirmation)
 - `GET /api/messages` and listing-scoped message thread/send endpoints (Sanctum)
