@@ -137,6 +137,7 @@ class MarketplaceController extends Controller
             ->where('listing_id', $listing->id)
             ->where('buyer_id', $request->user()->id)
             ->where('status', 'awaiting_payment')
+            ->where('payment_method', 'bank_transfer')
             ->firstOrFail();
 
         $path = $request->file('receipt')->store('payment-receipts','local');
