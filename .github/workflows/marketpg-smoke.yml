@@ -24,6 +24,11 @@ jobs:
             -H "Accept: application/json" \
             "https://marketpg.onrender.com/api/categories" -o /tmp/categories.json
           jq -e '.data | type == "array" and length >= 1' /tmp/categories.json
+      - name: Verify disputes API boundary
+        run: |
+          disputes_status=$(curl --silent --show-error -o /tmp/disputes.json -w "%{http_code}" \
+            -H "Accept: application/json" "https://marketpg.onrender.com/api/disputes")
+          test "$disputes_status" = "401"
       - name: Verify administrator sign-in page
         run: |
           curl --fail --silent --show-error             "https://marketpg.onrender.com/admin/login" -o /tmp/admin-login.html
