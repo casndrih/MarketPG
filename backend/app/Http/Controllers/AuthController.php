@@ -15,11 +15,13 @@ class AuthController extends Controller
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', Password::min(10)->letters()->numbers()],
+            'account_type' => ['required', 'in:buyer,seller'],
         ]);
         $user = User::create([
             'name' => $data['name'],
             'email' => strtolower($data['email']),
             'password' => Hash::make($data['password']),
+            'account_type' => $data['account_type'],
         ]);
         return response()->json([
             'message' => 'Account created.',
