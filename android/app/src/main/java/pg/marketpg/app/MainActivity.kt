@@ -14,6 +14,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -74,6 +75,7 @@ class MainActivity : ComponentActivity() {
 fun MarketPGApp() {
     val systemDarkTheme = isSystemInDarkTheme()
     var search by remember { mutableStateOf("") }
+    var showSearch by remember { mutableStateOf(false) }
     var darkTheme by remember { mutableStateOf(systemDarkTheme) }
     var categoryId by remember { mutableStateOf<Int?>(null) }
     var showFilters by remember { mutableStateOf(false) }
@@ -302,7 +304,11 @@ fun MarketPGApp() {
                 Surface(shadowElevation = 1.dp, color = colors.surface) {
                 TopAppBar(
                     title = { Text("MarketPG", fontWeight = FontWeight.SemiBold, color = colors.onSurface) },
+                    navigationIcon = {
+                        if (showSearch) IconButton(onClick = { showSearch = false; search = "" }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Close search") }
+                    },
                     actions = {
+                        IconButton(onClick = { showSearch = true }) { Icon(Icons.Filled.Search, contentDescription = "Search listings") }
                         IconButton(onClick = { darkTheme = !darkTheme }) {
                             Icon(
                                 imageVector = if (darkTheme) Icons.Filled.LightMode else Icons.Filled.DarkMode,
@@ -352,9 +358,36 @@ fun MarketPGApp() {
                 }
             }
         ) { padding ->
-            if (tab == 0) {
+            if (showSearch) {
                 Column(Modifier.fillMaxSize().padding(padding)) {
-                    OutlinedTextField(search, { search = it }, Modifier.fillMaxWidth().padding(horizontal = 16.dp), placeholder = { Text("Search phones, cars, furniture...") }, leadingIcon = { Icon(Icons.Default.Search, null) }, singleLine = true, shape = RoundedCornerShape(50))
+                    OutlinedTextField(value = search, onValueChange = { search = it }, modifier = Modifier.fillMaxWidth().padding(16.dp), placeholder = { Text("Search phones, cars, furniture...") }, leadingIcon = { Icon(Icons.Default.Search, null) }, singleLine = true, shape = RoundedCornerShape(50))
+                    Text("Search results", Modifier.padding(horizontal = 18.dp), fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    when {
+                        loading -> ListingShimmer(Modifier.fillMaxSize())
+                        listings.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("No matching listings found.", color = colors.onSurfaceVariant) }
+                        else -> LazyVerticalGrid(GridCells.Fixed(2), Modifier.fillMaxSize(), contentPadding = PaddingValues(12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            items(listings, key = { it.id }) { listing -> ListingCard(listing, colors) { selected = listing } }
+                        }
+                    }
+                }
+            } else if (tab == 0) {
+                Column(Modifier.fillMaxSize().padding(padding)) {
+                    if (listings.isNotEmpty()) {
+                        Text("Featured finds", Modifier.padding(start = 18.dp, top = 10.dp), fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        LazyRow(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            items(listings.take(6), key = { "featured-${it.id}" }) { featured ->
+                                Card(Modifier.width(260.dp).height(156.dp).clickable { selected = featured }, shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = colors.surfaceVariant)) {
+                                    Box(Modifier.fillMaxSize()) {
+                                        featured.imageUrl?.let { AsyncImage(it, featured.title, Modifier.fillMaxSize()) }
+                                        Column(Modifier.align(Alignment.BottomStart).fillMaxWidth().background(colors.surface.copy(alpha = 0.92f)).padding(10.dp)) {
+                                            Text(featured.title, maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.Bold)
+                                            Text("K ${featured.price} • ${featured.location}", color = colors.primary, maxLines = 1, fontSize = 12.sp)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                     Card(Modifier.fillMaxWidth().padding(16.dp), colors = CardDefaults.cardColors(containerColor = colors.primaryContainer), shape = RoundedCornerShape(22.dp)) {
                         Column(Modifier.padding(20.dp)) {
                             Text("GREAT LOCAL FINDS", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 11.sp)
@@ -385,7 +418,8 @@ fun MarketPGApp() {
                             Button(onClick = { retry++ }) { Text("Try again") }
                         }
                         listings.isEmpty() -> Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { Text("No active listings found. Try another search.", color = colors.onSurfaceVariant) }
-                        else -> LazyVerticalGrid(GridCells.Fixed(2), Modifier.weight(1f), contentPadding = PaddingValues(12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        else -> PullToRefreshBox(isRefreshing = loading, onRefresh = { retry++ }, modifier = Modifier.weight(1f).fillMaxWidth()) {
+                            LazyVerticalGrid(GridCells.Fixed(2), Modifier.fillMaxSize(), contentPadding = PaddingValues(12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                             items(listings, key = { it.id }) { listing ->
                                 Card(Modifier.clickable { selected = listing }, shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = colors.surface)) {
                                     Column {
@@ -398,6 +432,7 @@ fun MarketPGApp() {
                                         }
                                     }
                                 }
+                            }
                             }
                         }
                     }
