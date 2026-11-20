@@ -8,6 +8,7 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\PaymentReceiptController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\OrderDisputeController;
 use App\Http\Controllers\IdentityVerificationController;
 use App\Http\Middleware\EnsureMarketplaceAdmin;
 
@@ -28,6 +29,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/listings/{listing}', [MarketplaceController::class, 'update']);
     Route::delete('/listings/{listing}', [MarketplaceController::class, 'remove']);
     Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/disputes', [OrderDisputeController::class, 'index']);
+    Route::post('/orders/{order}/disputes', [OrderDisputeController::class, 'store']);
     Route::get('/wishlist', [WishlistController::class, 'index']);
     Route::post('/listings/{listing}/wishlist', [WishlistController::class, 'store']);
     Route::delete('/listings/{listing}/wishlist', [WishlistController::class, 'destroy']);
@@ -47,6 +50,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/listings', [MarketplaceController::class, 'adminQueue']);
         Route::post('/listings/{listing}/review', [MarketplaceController::class, 'adminReview']);
         Route::get('/orders', [OrderController::class, 'adminIndex']);
+        Route::get('/disputes', [OrderDisputeController::class, 'adminIndex']);
+        Route::post('/disputes/{dispute}/resolve', [OrderDisputeController::class, 'adminResolve']);
         Route::get('/payment-receipts', [PaymentReceiptController::class, 'index']);
         Route::get('/payment-receipts/{receipt}/document', [PaymentReceiptController::class, 'document']);
         Route::post('/payment-receipts/{receipt}/review', [PaymentReceiptController::class, 'review']);
