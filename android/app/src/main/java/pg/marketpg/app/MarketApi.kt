@@ -27,11 +27,11 @@ import retrofit2.http.Query
 /** Enforce HTTPS for MarketPG media URLs returned by older API/storage records. */
 internal fun secureMarketPgUrl(url: String?): String? {
     val value = url?.trim()?.takeIf { it.isNotEmpty() } ?: return null
-    return when {
-        value.startsWith("http://marketpg.onrender.com/", ignoreCase = true) -> value.replaceFirst("http://", "https://", ignoreCase = true)
-        value.startsWith("//marketpg.onrender.com/", ignoreCase = true) -> "https:$value"
-        else -> value
-    }
+    // Normalize every legacy MarketPG URL, including the bare host and URLs with ports/query strings.
+    val marketHost = Regex("^(https?:)?//marketpg\\.onrender\\.com(?=[:/?#]|$)", RegexOption.IGNORE_CASE)
+    return if (marketHost.containsMatchIn(value)) {
+        value.replaceFirst(marketHost, "https://marketpg.onrender.com")
+    } else value
 }
 data class FollowedSellerDto(val id: Long, val name: String, val seller_rank: String? = null, val profile_photo_url: String? = null)
 data class FollowedSellerPage(val data: List<FollowedSellerDto> = emptyList())
