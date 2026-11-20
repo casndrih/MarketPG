@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 private val Lime = Color(0xFFB7F34A)
 private val Ink = Color(0xFF26321B)
@@ -33,6 +35,7 @@ private val Canvas = Color(0xFFF7F8F4)
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        MarketApi.initialize(applicationContext)
         setContent { MarketPGApp() }
     }
 }
@@ -49,6 +52,16 @@ fun MarketPGApp() {
     var selected by remember { mutableStateOf<ListingDto?>(null) }
     var tab by remember { mutableIntStateOf(0) }
     var retry by remember { mutableIntStateOf(0) }
+    var signedIn by remember { mutableStateOf(MarketApi.hasSession()) }
+    var showAuth by remember { mutableStateOf(false) }
+    var registerMode by remember { mutableStateOf(false) }
+    var authName by remember { mutableStateOf("") }
+    var authEmail by remember { mutableStateOf("") }
+    var authPassword by remember { mutableStateOf("") }
+    var authConfirm by remember { mutableStateOf("") }
+    var authError by remember { mutableStateOf<String?>(null) }
+    var authBusy by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         try { categories = MarketApi.service.categories().data } catch (_: Exception) { }
@@ -75,7 +88,7 @@ fun MarketPGApp() {
                     val labels = listOf("Explore", "Saved", "Sell", "Inbox", "Profile")
                     val icons = listOf("⌂", "♡", "+", "✉", "☺")
                     labels.forEachIndexed { i, label ->
-                        NavigationBarItem(tab == i, { tab = i }, icon = { Text(icons[i], fontSize = 20.sp) }, label = { Text(label) })
+                        NavigationBarItem(tab == i, { tab = i; if (i != 0 && !signedIn) { showAuth = true; authError = null } }, icon = { Text(icons[i], fontSize = 20.sp) }, label = { Text(label) })
                     }
                 }
             }
@@ -138,10 +151,66 @@ fun MarketPGApp() {
                 Column(Modifier.fillMaxSize().padding(padding).padding(28.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(listOf("Explore", "Saved items", "Sell on MarketPG", "Messages", "Your profile")[tab], fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Ink)
                     Spacer(Modifier.height(8.dp))
-                    Text(listOf("", "Sign in and save listings to build your wishlist.", "Seller tools are being connected to your account.", "Buyer and seller conversations will appear here.", "Sign in to manage your account and verification status.")[tab], color = Color.Gray)
+                    Text(listOf("", "Your saved listings will appear here.", "Seller tools are being connected to your account.", "Buyer and seller conversations will appear here.", "Manage your MarketPG account.")[tab], color = Color.Gray)
+                    if (tab == 4 && signedIn) {
+                        Spacer(Modifier.height(16.dp))
+                        Button(onClick = { MarketApi.clearToken(); signedIn = false; tab = 0 }) { Text("Sign out") }
+                    }
                 }
             }
         }
+
+        if (showAuth) {
+            AlertDialog(
+                onDismissRequest = { showAuth = false },
+                title = { Text(if (registerMode) "Create your MarketPG account" else "Sign in to MarketPG") },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (registerMode) {
+                            OutlinedTextField(authName, { authName = it }, label = { Text("Full name") }, singleLine = true)
+                        }
+                        OutlinedTextField(authEmail, { authEmail = it }, label = { Text("Email address") }, singleLine = true)
+                        OutlinedTextField(authPassword, { authPassword = it }, label = { Text("Password") }, visualTransformation = PasswordVisualTransformation(), singleLine = true)
+                        if (registerMode) {
+                            OutlinedTextField(authConfirm, { authConfirm = it }, label = { Text("Confirm password") }, visualTransformation = PasswordVisualTransformation(), singleLine = true)
+                        }
+                        authError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                        TextButton(onClick = { registerMode = !registerMode; authError = null }) {
+                            Text(if (registerMode) "Already registered? Sign in" else "New here? Create an account")
+                        }
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        enabled = !authBusy,
+                        onClick = {
+                            scope.launch {
+                                authBusy = true
+                                authError = null
+                                try {
+                                    val result = if (registerMode) {
+                                        MarketApi.service.register(RegisterRequest(authName.trim(), authEmail.trim(), authPassword, authConfirm))
+                                    } else {
+                                        MarketApi.service.login(LoginRequest(authEmail.trim(), authPassword))
+                                    }
+                                    MarketApi.saveToken(result.token)
+                                    signedIn = true
+                                    showAuth = false
+                                    authPassword = ""
+                                    authConfirm = ""
+                                } catch (e: Exception) {
+                                    authError = e.localizedMessage ?: "Authentication failed. Please try again."
+                                } finally {
+                                    authBusy = false
+                                }
+                            }
+                        }
+                    ) { Text(if (authBusy) "Please wait..." else if (registerMode) "Create account" else "Sign in") }
+                },
+                dismissButton = { TextButton(onClick = { showAuth = false }) { Text("Cancel") } }
+            )
+        }
+
         selected?.let { listing ->
             AlertDialog(
                 onDismissRequest = { selected = null },
