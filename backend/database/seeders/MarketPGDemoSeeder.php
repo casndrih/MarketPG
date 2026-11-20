@@ -15,6 +15,7 @@ class MarketPGDemoSeeder extends Seeder
             ['name' => 'MarketPG Test Buyer', 'email' => 'buyer.test@marketpg.test', 'password' => env('MARKETPG_DEMO_BUYER_PASSWORD', 'Buyer-MPG-Test-2026!'), 'location' => 'Port Moresby', 'account_type' => 'buyer'],
             ['name' => 'MarketPG Test Seller', 'email' => 'seller.test@marketpg.test', 'password' => env('MARKETPG_DEMO_SELLER_PASSWORD', 'Seller-MPG-Test-2026!'), 'location' => 'Lae', 'account_type' => 'seller'],
             ['name' => 'MarketPG Test Admin', 'email' => env('MARKETPG_DEMO_ADMIN_EMAIL', 'admin.test@marketpg.test'), 'password' => env('MARKETPG_DEMO_ADMIN_PASSWORD', 'Admin-MPG-Test-2026!'), 'location' => 'Port Moresby', 'account_type' => 'both'],
+            ['name' => 'MarketPG Test Buyer 2', 'email' => 'test@test.com', 'password' => env('MARKETPG_DEMO_EXTRA_BUYER_PASSWORD'), 'location' => 'Lae', 'account_type' => 'buyer'],
         ];
 
         foreach ($accounts as $account) {
