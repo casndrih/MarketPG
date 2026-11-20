@@ -9,6 +9,7 @@ mkdir -p storage/framework/cache storage/framework/sessions storage/framework/vi
 chown -R www-data:www-data storage bootstrap/cache
 
 php artisan config:cache
+php artisan view:cache
 php artisan migrate --force
 php artisan storage:link || true
 
