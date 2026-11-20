@@ -26,4 +26,5 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', EnsureMarketplaceAdm
     Route::post('/disputes/{dispute}/resolve', [AdminWebController::class, 'resolveDispute'])->name('disputes.resolve');
     Route::post('/receipts/{receipt}/review', [AdminWebController::class, 'reviewReceipt'])->name('receipts.review');
     Route::post('/identity/{verification}/review', [AdminWebController::class, 'reviewIdentity'])->name('identity.review');
+    Route::get('/identity/{verification}/documents/{kind}', [AdminWebController::class, 'identityDocument'])->name('identity.document');
 });
