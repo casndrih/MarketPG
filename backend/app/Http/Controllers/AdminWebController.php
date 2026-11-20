@@ -57,6 +57,7 @@ class AdminWebController extends Controller
             'ads' => $this->adsSettings(),
             'carouselItems' => $this->carouselSettings(),
             'pendingSmes' => User::where('sme_status', 'pending')->whereNotNull('sme_tin')->latest()->get(),
+            'supportTickets' => DB::table('support_tickets')->join('users', 'users.id', '=', 'support_tickets.user_id')->select('support_tickets.*', 'users.name as user_name', 'users.email as user_email')->latest('support_tickets.updated_at')->take(30)->get(),
             'counts' => [
                 'users' => \App\Models\User::count(),
                 'active_listings' => Listing::where('status', 'active')->count(),
@@ -168,6 +169,32 @@ class AdminWebController extends Controller
         abort_if($data['decision'] === 'rejected' && trim((string) ($data['reason'] ?? '')) === '', 422, 'A rejection reason is required.');
         $user->update(['sme_status' => $data['decision'], 'sme_review_note' => $data['reason'] ?? null, 'sme_reviewed_at' => now()]);
         return back()->with('status', 'SME verification status updated.');
+    }
+
+
+    public function adminTicketReply(Request $request, int $ticket)
+    {
+        $data = $request->validate(['message' => ['required', 'string', 'min:2', 'max:5000']]);
+        $exists = DB::table('support_tickets')->where('id', $ticket)->exists();
+        abort_unless($exists, 404);
+        DB::transaction(function () use ($request, $ticket, $data) {
+            DB::table('support_ticket_messages')->insert([
+                'ticket_id' => $ticket, 'user_id' => $request->user()->id,
+                'body' => $data['message'], 'is_admin' => true, 'created_at' => now(), 'updated_at' => now(),
+            ]);
+            DB::table('support_tickets')->where('id', $ticket)->update([
+                'status' => 'waiting_user', 'last_reply_at' => now(), 'updated_at' => now(),
+            ]);
+        });
+        return back()->with('status', 'Support ticket reply sent.');
+    }
+
+    public function adminTicketStatus(Request $request, int $ticket)
+    {
+        $data = $request->validate(['status' => ['required', Rule::in(['open', 'waiting_user', 'waiting_admin', 'resolved', 'closed'])]]);
+        abort_unless(DB::table('support_tickets')->where('id', $ticket)->exists(), 404);
+        DB::table('support_tickets')->where('id', $ticket)->update(['status' => $data['status'], 'updated_at' => now()]);
+        return back()->with('status', 'Support ticket status updated.');
     }
 
     public function logout(Request $request)
