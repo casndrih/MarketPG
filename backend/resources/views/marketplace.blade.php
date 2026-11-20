@@ -18,13 +18,44 @@
 @if (($ads['enabled'] ?? false) && !empty($ads['web_publisher_id']) && !empty($ads['web_slot_id']))
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ $ads['web_publisher_id'] }}" crossorigin="anonymous"></script>
 @endif
+<script>
+(function(){try{var saved=localStorage.getItem('marketpg_theme');var theme=saved||(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.dataset.theme=theme;}catch(e){document.documentElement.dataset.theme='light';}})();
+</script>
+<style>
+.market-theme-toggle{display:inline-flex;align-items:center;justify-content:center;gap:.45rem;min-width:42px;height:40px;padding:0 .8rem;border:0;border-radius:9999px;background:#f3f4f6;color:#374151;font-size:14px;font-weight:600;cursor:pointer;transition:background .2s,color .2s}
+.market-theme-toggle:hover{background:#e5e7eb}
+html[data-theme="dark"] body{background:#0b0d12!important;color:#e5e7eb!important}
+html[data-theme="dark"] .bg-white{background-color:#171a22!important}
+html[data-theme="dark"] .bg-gray-50{background-color:#0b0d12!important}
+html[data-theme="dark"] .bg-gray-100{background-color:#222631!important}
+html[data-theme="dark"] .bg-gray-200{background-color:#303644!important}
+html[data-theme="dark"] .bg-gray-800{background-color:#252b36!important}
+html[data-theme="dark"] .text-gray-900,html[data-theme="dark"] .text-gray-800,html[data-theme="dark"] .text-gray-700{color:#f3f4f6!important}
+html[data-theme="dark"] .text-gray-600,html[data-theme="dark"] .text-gray-500{color:#a1a1aa!important}
+html[data-theme="dark"] .text-gray-400{color:#8b93a3!important}
+html[data-theme="dark"] .border-gray-100,html[data-theme="dark"] .border-gray-200,html[data-theme="dark"] .border-gray-300{border-color:#303644!important}
+html[data-theme="dark"] .market-toolbar{background:rgba(17,20,27,.96)!important;box-shadow:0 1px 2px rgba(0,0,0,.35)}
+html[data-theme="dark"] .market-card{background:#171a22!important;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+html[data-theme="dark"] .market-input{background:#222631!important;color:#f3f4f6!important}
+html[data-theme="dark"] .market-input::placeholder{color:#8b93a3}
+html[data-theme="dark"] .market-theme-toggle{background:#292f3b;color:#facc15}
+html[data-theme="dark"] .market-theme-toggle:hover{background:#363e4c}
+html[data-theme="dark"] .bg-lime-50{background:#202b16!important}
+html[data-theme="dark"] .text-lime-800{color:#bef264!important}
+html[data-theme="dark"] .text-lime-700{color:#a3e635!important}
+html[data-theme="dark"] footer{background:#11141b!important;border-color:#303644!important}
+html[data-theme="dark"] .prose{color:#cbd5e1}
+html[data-theme="dark"] .prose h2{color:#f3f4f6}
+html[data-theme="dark"] input,html[data-theme="dark"] textarea,html[data-theme="dark"] select{color:#f3f4f6}
+@media(prefers-reduced-motion:reduce){.market-theme-toggle{transition:none}}
+</style>
 </head>
 <body class="bg-gray-50 text-gray-800 antialiased">
 <header class="market-toolbar sticky top-0 z-40 bg-white/95 backdrop-blur">
  <div class="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3">
   <a href="/" class="flex shrink-0 items-center gap-2.5"><span class="grid h-9 w-9 place-items-center rounded-xl bg-lime-400 text-lg font-semibold text-gray-950">M</span><span class="text-xl font-medium tracking-tight text-gray-900">Market<span class="text-lime-600">PG</span></span></a>
   <form action="/" class="mx-auto hidden w-full max-w-2xl items-center rounded-full bg-gray-100 px-4 sm:flex"><svg class="h-5 w-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input name="q" value="{{ request('q') }}" placeholder="Search products, brands and more" class="market-input w-full px-3 py-2.5 text-sm"><button class="market-button px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200">Search</button></form>
-  <nav class="ml-auto flex shrink-0 items-center gap-2"><a href="/about" class="hidden px-3 py-2 text-sm text-gray-600 hover:text-gray-950 md:inline">About</a><a href="/login" class="market-button bg-gray-100 px-4 py-2 text-sm font-medium hover:bg-gray-200">Sign in</a></nav>
+  <nav class="ml-auto flex shrink-0 items-center gap-2"><button type="button" data-marketpg-theme-toggle onclick="marketpgToggleTheme()" class="market-theme-toggle" aria-label="Toggle colour theme">☾ Dark</button><a href="/about" class="hidden px-3 py-2 text-sm text-gray-600 hover:text-gray-950 md:inline">About</a><a href="/login" class="market-button bg-gray-100 px-4 py-2 text-sm font-medium hover:bg-gray-200">Sign in</a></nav>
  </div>
  <form action="/" class="mx-4 mb-3 flex items-center rounded-full bg-gray-100 px-4 sm:hidden"><input name="q" value="{{ request('q') }}" placeholder="Search the marketplace" class="market-input w-full px-2 py-2.5 text-sm"><button class="market-button px-3 py-2 text-sm font-medium">Search</button></form>
 </header>
@@ -61,4 +92,9 @@
  <div class="mt-8">{{ $listings->links() }}</div>
 </main>
 <footer class="border-t border-gray-200 bg-white"><div class="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:grid-cols-2"><div><a href="/" class="text-lg font-medium text-gray-900">Market<span class="text-lime-600">PG</span></a><p class="mt-2 max-w-sm text-sm leading-6 text-gray-500">A local marketplace connecting buyers and sellers throughout Papua New Guinea.</p></div><div class="flex flex-wrap gap-x-6 gap-y-3 text-sm text-gray-500 sm:justify-end sm:content-start"><a href="/about" class="hover:text-gray-900">About</a><a href="/privacy-policy" class="hover:text-gray-900">Privacy policy</a><a href="/terms-and-conditions" class="hover:text-gray-900">Terms & conditions</a><a href="/login" class="hover:text-gray-900">Sign in</a></div></div><div class="border-t border-gray-100 py-4 text-center text-xs text-gray-400">© {{ date('Y') }} MarketPG. All rights reserved.</div></footer>
-<script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script></body></html>
+<script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script><script>
+(function(){function setTheme(theme){document.documentElement.dataset.theme=theme;try{localStorage.setItem('marketpg_theme',theme);}catch(e){}document.querySelectorAll('[data-marketpg-theme-toggle]').forEach(function(button){button.textContent=theme==='dark'?'☀ Light':'☾ Dark';button.setAttribute('aria-label',theme==='dark'?'Switch to light mode':'Switch to dark mode');button.setAttribute('title',theme==='dark'?'Switch to light mode':'Switch to dark mode');});}
+window.marketpgToggleTheme=function(){setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');};
+document.addEventListener('DOMContentLoaded',function(){setTheme(document.documentElement.dataset.theme||'light');});
+})();
+</script></body></html>
