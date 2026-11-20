@@ -34,7 +34,9 @@ internal fun secureMarketPgUrl(url: String?): String? {
     }
 }
 data class PublicAdsDto(val enabled: Boolean = false, val mobile_app_id: String? = null, val mobile_banner_ad_unit_id: String? = null)
-data class PublicConfigDto(val ads: PublicAdsDto = PublicAdsDto())\ndata class HomeBannerDto(val id: String, val image_url: String, val link_url: String? = null, val alt_text: String? = null)\ndata class HomeBannerPage(val data: List<HomeBannerDto> = emptyList())
+data class PublicConfigDto(val ads: PublicAdsDto = PublicAdsDto())
+data class HomeBannerDto(val id: String, val image_url: String, val link_url: String? = null, val alt_text: String? = null)
+data class HomeBannerPage(val data: List<HomeBannerDto> = emptyList())
 data class CategoryDto(val id: Int, val name: String, val slug: String)
 data class CategoryPage(val data: List<CategoryDto> = emptyList())
 data class SellerDto(val id: Int, val name: String, val seller_rank: String? = null, val profile_photo_url: String? = null, val cover_photo_url: String? = null, val seller_bio: String? = null, val seller_website: String? = null, val seller_facebook_url: String? = null, val seller_x_url: String? = null, val seller_linkedin_url: String? = null, val sme_status: String? = null)
@@ -110,7 +112,8 @@ data class ListingPage(val data: List<ListingDto> = emptyList(), val current_pag
 data class ListingDetailResponse(val data: ListingDto)
 
 interface MarketService {
-    @GET("public-config") suspend fun publicConfig(): PublicConfigDto\n    @GET("home-carousel") suspend fun homeCarousel(): HomeBannerPage
+    @GET("public-config") suspend fun publicConfig(): PublicConfigDto
+    @GET("home-carousel") suspend fun homeCarousel(): HomeBannerPage
     @POST("auth/login") suspend fun login(@Body request: LoginRequest): AuthResponse
     @POST("auth/register") suspend fun register(@Body request: RegisterRequest): AuthResponse
     @GET("auth/me") suspend fun me(): MeResponse
