@@ -62,6 +62,8 @@ fun MarketPGApp() {
     var currentUser by remember { mutableStateOf<AuthUser?>(null) }
     var savedRefresh by remember { mutableIntStateOf(0) }
     var inboxMessages by remember { mutableStateOf<List<MessageDto>>(emptyList()) }
+    var myOrders by remember { mutableStateOf<List<OrderDto>>(emptyList()) }
+    var ordersLoading by remember { mutableStateOf(false) }
     var inboxLoading by remember { mutableStateOf(false) }
     var inboxError by remember { mutableStateOf<String?>(null) }
     var replyingTo by remember { mutableStateOf<MessageDto?>(null) }
@@ -102,6 +104,11 @@ fun MarketPGApp() {
         }
         if ((tab == 3 || tab == 4) && signedIn) {
             try { currentUser = MarketApi.service.me().user } catch (_: Exception) { currentUser = null }
+        }
+        if (tab == 4 && signedIn) {
+            ordersLoading = true
+            try { myOrders = MarketApi.service.orders().data } catch (_: Exception) { myOrders = emptyList() }
+            finally { ordersLoading = false }
         }
         if (tab == 3 && signedIn) {
             inboxLoading = true
@@ -292,13 +299,55 @@ fun MarketPGApp() {
                     }
                 }
             } else if (tab == 4 && signedIn) {
-                Column(Modifier.fillMaxSize().padding(padding).padding(28.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Your profile", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Ink)
-                    Spacer(Modifier.height(8.dp))
-                    Text(currentUser?.name ?: "Loading profile...", fontWeight = FontWeight.SemiBold)
-                    Text(currentUser?.email ?: "", color = Color.Gray)
-                    Spacer(Modifier.height(16.dp))
-                    Button(onClick = { MarketApi.clearToken(); signedIn = false; tab = 0 }) { Text("Sign out") }
+                Column(Modifier.fillMaxSize().padding(padding)) {
+                    Column(Modifier.fillMaxWidth().padding(20.dp)) {
+                        Text("Your profile", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Ink)
+                        Text(currentUser?.name ?: "Loading profile...", fontWeight = FontWeight.SemiBold)
+                        Text(currentUser?.email ?: "", color = Color.Gray)
+                        TextButton(onClick = { MarketApi.clearToken(); signedIn = false; tab = 0 }) { Text("Sign out") }
+                    }
+                    Text("Your orders", Modifier.padding(horizontal = 20.dp), fontSize = 19.sp, fontWeight = FontWeight.Bold)
+                    if (ordersLoading) {
+                        Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                    } else if (myOrders.isEmpty()) {
+                        Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { Text("No orders yet.", color = Color.Gray) }
+                    } else {
+                        LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(myOrders, key = { it.id }) { order ->
+                                Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                                    Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                                        Text(order.listing?.title ?: order.order_number, fontWeight = FontWeight.Bold)
+                                        Text(order.order_number, color = Color.Gray, fontSize = 12.sp)
+                                        Text("K " + order.amount + " • " + order.status.replace('_', ' '), color = Ink)
+                                        if (order.seller_id == currentUser?.id && order.status == "awaiting_payment" && order.payment_method == "cash_on_pickup") {
+                                            TextButton(onClick = {
+                                                scope.launch {
+                                                    try { MarketApi.service.confirmCash(order.id); savedRefresh++ }
+                                                    catch (e: Exception) { snackbarHost.showSnackbar(e.localizedMessage ?: "Could not confirm payment.") }
+                                                }
+                                            }) { Text("Confirm cash received") }
+                                        }
+                                        if (order.seller_id == currentUser?.id && order.status == "paid") {
+                                            TextButton(onClick = {
+                                                scope.launch {
+                                                    try { MarketApi.service.completeOrder(order.id); savedRefresh++ }
+                                                    catch (e: Exception) { snackbarHost.showSnackbar(e.localizedMessage ?: "Could not complete order.") }
+                                                }
+                                            }) { Text("Mark completed") }
+                                        }
+                                        if (order.buyer_id == currentUser?.id && order.status == "awaiting_payment") {
+                                            TextButton(onClick = {
+                                                scope.launch {
+                                                    try { MarketApi.service.cancelOrder(order.id); savedRefresh++ }
+                                                    catch (e: Exception) { snackbarHost.showSnackbar(e.localizedMessage ?: "Could not cancel order.") }
+                                                }
+                                            }) { Text("Cancel order") }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             } else {
                 Column(Modifier.fillMaxSize().padding(padding).padding(28.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
