@@ -11,8 +11,8 @@ class EnsureMarketplaceAdmin
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
-        $admins = array_filter(array_map('trim', explode(',', (string) env('MARKETPG_ADMIN_EMAILS', ''))));
-        abort_unless($user && in_array(strtolower($user->email), array_map('strtolower', $admins), true), 403, 'Administrator access required.');
+        $admins = config('marketpg.admin_emails', []);
+        abort_unless($user && in_array(strtolower($user->email), $admins, true), 403, 'Administrator access required.');
         return $next($request);
     }
 }
