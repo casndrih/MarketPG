@@ -17,7 +17,7 @@ services:
     branch: main
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    healthCheckPath: /api/health
+    healthCheckPath: /up
     autoDeploy: true
     envVars:
       - key: APP_NAME
