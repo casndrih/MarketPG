@@ -44,6 +44,63 @@ class MarketplaceController extends Controller
         return response()->json(['data' => Listing::create($data)], 201);
     }
 
+
+    public function mine(Request $request)
+    {
+        return response()->json(Listing::where('user_id', $request->user()->id)->latest()->paginate(20));
+    }
+
+    public function update(Request $request, Listing $listing)
+    {
+        abort_unless($listing->user_id === $request->user()->id, 403);
+        abort_unless(in_array($listing->status, ['pending', 'rejected', 'active'], true), 409);
+
+        $data = $request->validate([
+            'title' => 'sometimes|required|string|max:120',
+            'description' => 'sometimes|required|string|max:5000',
+            'price' => 'sometimes|required|numeric|min:0',
+            'condition' => 'sometimes|required|in:new,used,refurbished',
+            'location' => 'sometimes|required|string|max:120',
+            'category_id' => 'nullable|integer',
+            'image' => 'nullable|image|max:5120',
+        ]);
+
+        if ($request->hasFile('image')) {
+            $data['image_path'] = $request->file('image')->store('listings', 'public');
+            unset($data['image']);
+        }
+
+        if ($listing->status === 'active') $data['status'] = 'pending';
+        $listing->update($data);
+
+        return response()->json(['message' => 'Listing saved and submitted for moderation.', 'data' => $listing->fresh()]);
+    }
+
+    public function remove(Request $request, Listing $listing)
+    {
+        abort_unless($listing->user_id === $request->user()->id, 403);
+        abort_if($listing->status === 'reserved' || $listing->status === 'sold', 409, 'Listings with an active or completed sale cannot be deleted.');
+        $listing->delete();
+        return response()->json(['message' => 'Listing deleted.']);
+    }
+
+    public function adminQueue()
+    {
+        return response()->json(['data' => Listing::with('user:id,name,email')
+            ->where('status', 'pending')->latest()->paginate(30)]);
+    }
+
+    public function adminReview(Request $request, Listing $listing)
+    {
+        abort_unless($listing->status === 'pending', 409, 'Only pending listings can be reviewed.');
+        $data = $request->validate([
+            'decision' => 'required|in:active,rejected',
+            'reason' => 'nullable|string|max:1000',
+        ]);
+        $listing->update(['status' => $data['decision']]);
+        return response()->json(['message' => 'Listing moderation decision saved.', 'data' => $listing->fresh()]);
+    }
+
     public function uploadReceipt(Request $request, Listing $listing)
     {
         $data = $request->validate([
