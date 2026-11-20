@@ -45,6 +45,12 @@ class ProfileController extends Controller
             'account_name' => ['nullable', 'string', 'max:120'],
             'account_number' => ['nullable', 'string', 'max:80'],
             'account_type' => ['required', Rule::in(['buyer', 'seller', 'both'])],
+            'seller_bio' => ['nullable', 'string', 'max:2000'],
+            'seller_website' => ['nullable', 'url', 'max:2048'],
+            'seller_facebook_url' => ['nullable', 'url', 'max:2048'],
+            'seller_x_url' => ['nullable', 'url', 'max:2048'],
+            'seller_linkedin_url' => ['nullable', 'url', 'max:2048'],
+            'sme_tin' => ['nullable', 'string', 'min:5', 'max:80'],
         ]);
 
         $bankFields = ['bank_name', 'account_name', 'account_number'];
@@ -59,6 +65,18 @@ class ProfileController extends Controller
 
         if (!empty($data['province'])) {
             $data['location'] = trim(implode(', ', array_filter([$data['town'] ?? null, $data['province']])));
+        }
+        if (array_key_exists('sme_tin', $data)) {
+            if (trim((string) $data['sme_tin']) !== '') {
+                $data['sme_status'] = 'pending';
+                $data['sme_review_note'] = null;
+                $data['sme_reviewed_at'] = null;
+            } else {
+                $data['sme_tin'] = null;
+                $data['sme_status'] = 'not_submitted';
+                $data['sme_review_note'] = null;
+                $data['sme_reviewed_at'] = null;
+            }
         }
         $request->user()->update($data);
 
