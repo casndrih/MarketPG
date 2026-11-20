@@ -17,7 +17,7 @@ class ProfileController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'phone' => ['nullable', 'string', 'max:40'],
-            'location' => ['nullable', 'string', 'max:120'],
+            'location' => ['nullable', 'string', 'max:120'],\n            'town' => ['nullable', 'string', 'max:100'],\n            'province' => ['nullable', 'string', 'max:100'],
             'account_type' => ['required', Rule::in(['buyer', 'seller', 'both'])],
         ]);
 
