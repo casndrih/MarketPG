@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Foundation\Application;
-use Illuminate\Foundation\Configuration\Exceptions;
-use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\\Foundation\\Application;
+use Illuminate\\Foundation\\Configuration\\Exceptions;
+use Illuminate\\Foundation\\Configuration\\Middleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -12,9 +12,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Render terminates TLS at its edge proxy. Trust forwarded headers and redirect all HTTP requests to HTTPS.
+        // Render terminates TLS at its edge proxy. Trust forwarded headers so Laravel
+        // correctly detects HTTPS requests and generates secure URLs behind the proxy.
         $middleware->trustProxies(at: '*');
-        $middleware->redirectToHttps();
+        // Render enforces HTTPS at the edge; redirectToHttps() is not available
+        // in this project's installed Laravel framework version.
         // MarketPG API authentication uses Sanctum bearer tokens, not cookie-based SPA sessions.
         // Keep API routes stateless so browser Origin headers cannot trigger CSRF checks on /api/auth/login.
     })
