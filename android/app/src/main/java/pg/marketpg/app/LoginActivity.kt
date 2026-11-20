@@ -153,16 +153,11 @@ class LoginActivity : ComponentActivity() {
                                         MarketApi.saveToken(result.token)
                                         setResult(RESULT_OK)
                                         finish()
-                                    } catch (e: retrofit2.HttpException) {
-                                        val serverMessage = try {
-                                            org.json.JSONObject(e.response()?.errorBody()?.string().orEmpty())
-                                                .optString("message").takeIf { it.isNotBlank() }
-                                        } catch (_: Exception) { null }
-                                        error = serverMessage ?: "Sign-in failed (HTTP ${e.code()}). Please check your details and try again."
-                                    } catch (e: com.google.gson.JsonParseException) {
-                                        error = "The server returned an invalid response. Please try again shortly."
                                     } catch (e: Exception) {
-                                        error = e.localizedMessage ?: "Unable to sign in. Please try again."
+                                        error = MarketApiErrors.userMessage(
+                                            e,
+                                            if (register) "create your account" else "sign in"
+                                        )
                                     } finally { busy = false }
                                 }
                             },
