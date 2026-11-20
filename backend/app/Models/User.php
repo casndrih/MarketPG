@@ -33,6 +33,7 @@ class User extends Authenticatable
         'remember_token',
         'payout_account_details',
         'sme_tin',
+        'sme_review_note',
     ];
 
     public function getProfilePhotoUrlAttribute(): ?string
