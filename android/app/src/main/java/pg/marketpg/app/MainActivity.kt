@@ -129,6 +129,7 @@ fun MarketPGApp() {
     var newDescription by remember { mutableStateOf("") }
     var newPrice by remember { mutableStateOf("") }
     var newLocation by remember { mutableStateOf("") }
+    var newImages by remember { mutableStateOf<List<Uri>>(emptyList()) }
     var newCondition by remember { mutableStateOf("used") }
     var newCategoryId by remember { mutableIntStateOf(1) }
     var createBusy by remember { mutableStateOf(false) }
@@ -152,6 +153,7 @@ fun MarketPGApp() {
     var authError by remember { mutableStateOf<String?>(null) }
     var authBusy by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val listingImagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { newImages = it }
     val profilePhotoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) scope.launch {
             profileBusy = true
@@ -412,6 +414,7 @@ fun MarketPGApp() {
                     OutlinedTextField(newPrice, { newPrice = it }, label = { Text("Price (PGK)") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
                     OutlinedTextField(newLocation, { newLocation = it }, label = { Text("Town / City") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
                     PngProvinceDropdown(newProvince, { newProvince = it })
+                    OutlinedButton(onClick = { listingImagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth()) { Text(if (newImages.isEmpty()) "Add item photos (up to 10)" else "${newImages.size} item photos selected") }
                     Text("Condition", fontWeight = FontWeight.SemiBold)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         listOf("new", "used", "refurbished").forEach { condition ->
@@ -432,9 +435,24 @@ fun MarketPGApp() {
                                 createBusy = true
                                 createError = null
                                 try {
-                                    MarketApi.service.createListing(CreateListingRequest(newTitle.trim(), newDescription.trim(), newPrice.trim(), newCondition, listOf(newLocation.trim(), newProvince).filter { it.isNotBlank() }.joinToString(", "), newCategoryId, newLocation.trim(), newProvince))
+                                    if (newImages.isEmpty()) {
+                                        MarketApi.service.createListing(CreateListingRequest(newTitle.trim(), newDescription.trim(), newPrice.trim(), newCondition, listOf(newLocation.trim(), newProvince).filter { it.isNotBlank() }.joinToString(", "), newCategoryId, newLocation.trim(), newProvince))
+                                    } else {
+                                        val textType = "text/plain".toMediaTypeOrNull()
+                                        val fields = mapOf(
+                                            "title" to newTitle.trim().toRequestBody(textType),
+                                            "description" to newDescription.trim().toRequestBody(textType),
+                                            "price" to newPrice.trim().toRequestBody(textType),
+                                            "condition" to newCondition.toRequestBody(textType),
+                                            "location" to listOf(newLocation.trim(), newProvince).joinToString(", ").toRequestBody(textType),
+                                            "town" to newLocation.trim().toRequestBody(textType),
+                                            "province" to newProvince.toRequestBody(textType),
+                                            "category_id" to newCategoryId.toString().toRequestBody(textType)
+                                        )
+                                        MarketApi.service.createListingWithImages(fields, newImages.map { it.toUploadPart(context, "images[]") })
+                                    }
                                     myListings = MarketApi.service.myListings().data
-                                    newTitle = ""; newDescription = ""; newPrice = ""; newLocation = ""; newProvince = ""
+                                    newTitle = ""; newDescription = ""; newPrice = ""; newLocation = ""; newProvince = ""; newImages = emptyList()
                                     tab = 0
                                     retry++
                                     snackbarHost.showSnackbar("Listing submitted for review.")
@@ -1101,7 +1119,7 @@ private fun Uri.toUploadPart(context: android.content.Context, field: String): M
     val mime = context.contentResolver.getType(this) ?: "application/octet-stream"
     val bytes = context.contentResolver.openInputStream(this)?.use { it.readBytes() }
         ?: throw IllegalStateException("Could not read selected file.")
-    val fileName = when (field) { "id_front" -> "id-front"; "id_back" -> "id-back"; "selfie" -> "selfie"; "cover_photo" -> "cover"; else -> "profile" } +
+    val fileName = when (field) { "id_front" -> "id-front"; "id_back" -> "id-back"; "selfie" -> "selfie"; "cover_photo" -> "cover"; "images[]" -> "listing-image"; else -> "profile" } +
         if (mime == "application/pdf") ".pdf" else ".jpg"
     return MultipartBody.Part.createFormData(field, fileName, bytes.toRequestBody(mime.toMediaTypeOrNull()))
 }
