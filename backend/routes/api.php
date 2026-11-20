@@ -18,7 +18,10 @@ Route::get('/listings/{listing}', [MarketplaceController::class, 'show']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/auth/me', [AuthController::class, 'me']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
+    Route::get('/my/listings', [MarketplaceController::class, 'mine']);
     Route::post('/listings', [MarketplaceController::class, 'store']);
+    Route::put('/listings/{listing}', [MarketplaceController::class, 'update']);
+    Route::delete('/listings/{listing}', [MarketplaceController::class, 'remove']);
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/messages', [MessageController::class, 'index']);
     Route::get('/listings/{listing}/messages/{participant}', [MessageController::class, 'thread']);
@@ -32,6 +35,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/identity-verification', [IdentityVerificationController::class, 'submit'])->middleware('throttle:3,60');
 
     Route::prefix('admin')->middleware(EnsureMarketplaceAdmin::class)->group(function () {
+        Route::get('/listings', [MarketplaceController::class, 'adminQueue']);
+        Route::post('/listings/{listing}/review', [MarketplaceController::class, 'adminReview']);
         Route::get('/orders', [OrderController::class, 'adminIndex']);
         Route::patch('/orders/{order}', [OrderController::class, 'adminUpdate']);
         Route::get('/identity-verifications', [IdentityVerificationController::class, 'queue']);
