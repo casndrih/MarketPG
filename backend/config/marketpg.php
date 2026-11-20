@@ -6,6 +6,9 @@ $adminEmails = array_values(array_filter(array_map(
     )));
 
 return [
+    // Read through config so diagnostic uploads continue working when Laravel config is cached.
+    'diagnostics_github_token' => (string) env('MARKETPG_DIAGNOSTICS_GITHUB_TOKEN', ''),
+    'diagnostics_github_repo' => (string) env('MARKETPG_DIAGNOSTICS_GITHUB_REPO', 'casndrih/MarketPG'),
     'admin_emails' => array_values(array_unique(array_merge($adminEmails ?? [], array_filter([strtolower(trim((string) env('MARKETPG_DEMO_ADMIN_EMAIL', 'admin.test@marketpg.test')))])))),
     'identity_uploads_enabled' => (bool) env('IDENTITY_UPLOADS_ENABLED', false),
     'private_uploads_enabled' => (bool) env('PRIVATE_UPLOADS_ENABLED', false),
