@@ -184,7 +184,13 @@ A submission is designed to include the document front and a selfie; the reverse
 
 Seller payout bank details are stored as encrypted application data and are intended for authorized payout administration. A payout release can only be recorded for a delivered order awaiting payout and requires a payout reference. The platform must still verify the actual transfer through its banking records.
 
-### Advertising
+### Seller profiles and home carousel
+
+Seller profiles support a business bio, website, Facebook page, X page, and LinkedIn page. Sellers may submit a business TIN for manual registered-SME review. TIN values are encrypted at rest and excluded from public API responses. The public profile shows only the SME review status; the verified badge is awarded only after an administrator checks the submitted details.
+
+The Android home carousel is managed from the Flowbite admin dashboard. Administrators can add HTTPS image URLs or upload JPG, PNG, or WebP images up to 2 MB, attach an optional HTTPS click-through link, and remove slides. Uploaded carousel images require persistent public object storage and `BANNER_UPLOADS_ENABLED=true` in Render. URL-based slides do not require enabling file uploads.
+
+## Advertising
 
 The platform includes administrator-managed integration settings for:
 
