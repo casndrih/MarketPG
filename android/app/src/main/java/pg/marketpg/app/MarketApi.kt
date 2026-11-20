@@ -15,6 +15,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.http.Multipart
 import retrofit2.http.Part
+import retrofit2.http.PartMap
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
@@ -119,6 +120,7 @@ interface MarketService {
     @POST("orders/{id}/cancel") suspend fun cancelOrder(@Path("id") id: Long): Map<String, Any>
     @GET("categories") suspend fun categories(): CategoryPage
     @POST("listings") suspend fun createListing(@Body request: CreateListingRequest): ListingDetailResponse
+    @Multipart @POST("listings") suspend fun createListingWithImages(@PartMap fields: Map<String, @JvmSuppressWildcards RequestBody>, @Part images: List<MultipartBody.Part>): ListingDetailResponse
     @retrofit2.http.PUT("listings/{id}") suspend fun updateListing(@Path("id") id: Long, @Body request: CreateListingRequest): ListingDetailResponse
     @GET("my/listings") suspend fun myListings(): ListingPage
     @retrofit2.http.DELETE("listings/{id}") suspend fun deleteListing(@Path("id") id: Long): Map<String, Any>
