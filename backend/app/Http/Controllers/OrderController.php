@@ -33,7 +33,8 @@ class OrderController extends Controller
         abort_unless($request->user()->profile_photo_path && $request->user()->cover_photo_path, 403, 'Upload a profile photo and cover photo before placing an order.');
 
         if ($data['payment_method'] === 'bank_transfer') {
-            abort_if(trim((string) config('marketpg.bank_transfer_details')) === '', 503, 'MarketPG bank-transfer instructions are still using the setup template. The platform administrator must replace the placeholder bank details before payments can be accepted.');
+            $bankInstructions = (string) config('marketpg.bank_transfer_details');
+            abort_if(trim($bankInstructions) === '' || str_contains($bankInstructions, 'SETUP TEMPLATE') || str_contains($bankInstructions, '[ENTER '), 503, 'MarketPG bank-transfer instructions are still using the setup template. The platform administrator must replace the placeholder bank details before payments can be accepted.');
         }
 
         $order = DB::transaction(function () use ($request, $listing, $data) {
