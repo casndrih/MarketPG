@@ -48,6 +48,12 @@ class MainActivity : ComponentActivity() {
 fun MarketPGApp() {
     var search by remember { mutableStateOf("") }
     var categoryId by remember { mutableStateOf<Int?>(null) }
+    var showFilters by remember { mutableStateOf(false) }
+    var minPrice by remember { mutableStateOf("") }
+    var maxPrice by remember { mutableStateOf("") }
+    var locationFilter by remember { mutableStateOf("") }
+    var conditionFilter by remember { mutableStateOf<String?>(null) }
+    var sortOrder by remember { mutableStateOf("newest") }
     var categories by remember { mutableStateOf<List<CategoryDto>>(emptyList()) }
     var listings by remember { mutableStateOf<List<ListingDto>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
@@ -150,14 +156,19 @@ fun MarketPGApp() {
             finally { inboxLoading = false }
         }
     }
-    LaunchedEffect(search, categoryId, retry) {
+    LaunchedEffect(search, categoryId, minPrice, maxPrice, locationFilter, conditionFilter, sortOrder, retry) {
         delay(300)
         loading = true
         error = null
         try {
             listings = MarketApi.service.listings(
                 query = search.trim().takeIf { it.isNotEmpty() },
-                categoryId = categoryId
+                categoryId = categoryId,
+                location = locationFilter.trim().takeIf { it.isNotEmpty() },
+                sort = sortOrder,
+                minPrice = minPrice.toDoubleOrNull(),
+                maxPrice = maxPrice.toDoubleOrNull(),
+                condition = conditionFilter
             ).data
         } catch (e: Exception) {
             error = e.localizedMessage ?: "Unable to connect to MarketPG."
@@ -203,9 +214,12 @@ fun MarketPGApp() {
                             FilterChip(categoryId == category.id, { categoryId = category.id }, label = { Text(category.name) })
                         }
                     }
-                    Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Fresh finds", fontSize = 19.sp, fontWeight = FontWeight.Bold)
-                        Text(listings.size.toString() + " listings", color = Color.Gray, fontSize = 12.sp)
+                    Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Column {
+                            Text("Fresh finds", fontSize = 19.sp, fontWeight = FontWeight.Bold)
+                            Text(listings.size.toString() + " listings", color = Color.Gray, fontSize = 12.sp)
+                        }
+                        TextButton(onClick = { showFilters = true }) { Text("Filter & sort") }
                     }
                     when {
                         loading -> Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Ink) }
@@ -483,6 +497,59 @@ fun MarketPGApp() {
                     Text(listOf("", "Sign in to see your saved listings.", "Seller tools are being connected to your account.", "Buyer and seller conversations will appear here.", "Sign in to manage your account.")[tab], color = Color.Gray)
                 }
             }
+        }
+
+        if (showFilters) {
+            AlertDialog(
+                onDismissRequest = { showFilters = false },
+                title = { Text("Filter & sort listings") },
+                text = {
+                    Column(
+                        Modifier.heightIn(max = 480.dp).verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text("Price range (PGK)", fontWeight = FontWeight.SemiBold)
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(minPrice, { minPrice = it.filter { c -> c.isDigit() || c == '.' } }, label = { Text("Minimum") }, modifier = Modifier.weight(1f), singleLine = true)
+                            OutlinedTextField(maxPrice, { maxPrice = it.filter { c -> c.isDigit() || c == '.' } }, label = { Text("Maximum") }, modifier = Modifier.weight(1f), singleLine = true)
+                        }
+                        Text("Location", fontWeight = FontWeight.SemiBold)
+                        OutlinedTextField(locationFilter, { locationFilter = it }, placeholder = { Text("Town or province") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                        Text("Condition", fontWeight = FontWeight.SemiBold)
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            FilterChip(conditionFilter == null, { conditionFilter = null }, label = { Text("Any") })
+                            listOf("new", "used", "refurbished").forEach { value ->
+                                FilterChip(conditionFilter == value, { conditionFilter = value }, label = { Text(value.replaceFirstChar(Char::uppercase)) })
+                            }
+                        }
+                        Text("Sort by", fontWeight = FontWeight.SemiBold)
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            listOf("newest" to "Newest first", "oldest" to "Oldest first", "price_asc" to "Price: low to high", "price_desc" to "Price: high to low").forEach { (value, label) ->
+                                FilterChip(sortOrder == value, { sortOrder = value }, label = { Text(label) })
+                            }
+                        }
+                        if (minPrice.isNotBlank() && minPrice.toDoubleOrNull() == null || maxPrice.isNotBlank() && maxPrice.toDoubleOrNull() == null) {
+                            Text("Enter valid prices.", color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                        } else if (minPrice.isNotBlank() && maxPrice.isNotBlank() && minPrice.toDouble() > maxPrice.toDouble()) {
+                            Text("Minimum price cannot exceed maximum price.", color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        enabled = (minPrice.isBlank() || minPrice.toDoubleOrNull() != null) &&
+                            (maxPrice.isBlank() || maxPrice.toDoubleOrNull() != null) &&
+                            (minPrice.isBlank() || maxPrice.isBlank() || minPrice.toDouble() <= maxPrice.toDouble()),
+                        onClick = { showFilters = false }
+                    ) { Text("Apply filters") }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        minPrice = ""; maxPrice = ""; locationFilter = ""
+                        conditionFilter = null; sortOrder = "newest"
+                    }) { Text("Reset") }
+                }
+            )
         }
 
         editingListing?.let { listing ->
