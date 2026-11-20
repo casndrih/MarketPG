@@ -164,10 +164,7 @@ class LoginActivity : ComponentActivity() {
                                             e,
                                             if (register) "create your account" else "sign in"
                                         )
-                                        MarketDiagnostics.record(
-                                            "ERROR", "auth-submit",
-                                            "mode=${if (register) "register" else "login"} failed: ${e.javaClass.simpleName}; detail=${e.message ?: "no detail"}"
-                                        )
+                                        MarketDiagnostics.recordException("auth-submit", e, "mode=${if (register) "register" else "login"}")
                                         // Upload immediately, including before authentication succeeds.
                                         try {
                                             val appVersion = packageManager.getPackageInfo(packageName, 0).versionName ?: "unknown"
@@ -180,7 +177,7 @@ class LoginActivity : ComponentActivity() {
                                             )
                                             MarketDiagnostics.record("INFO", "diagnostics-upload", "automatic auth-failure upload succeeded: ${uploaded.path ?: "path unavailable"}")
                                         } catch (uploadError: Exception) {
-                                            MarketDiagnostics.record("ERROR", "diagnostics-upload", "automatic auth-failure upload failed: ${uploadError.javaClass.simpleName}; ${uploadError.message ?: "no detail"}")
+                                            MarketDiagnostics.recordException("diagnostics-upload", uploadError, "automatic auth-failure upload")
                                         }
                                         error = friendlyMessage
                                     } finally { busy = false }
