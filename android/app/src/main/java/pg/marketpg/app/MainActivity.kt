@@ -66,6 +66,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         MarketApi.initialize(applicationContext)
+        MarketDiagnostics.initialize(applicationContext)
         setContent { MarketPGApp() }
     }
 }
@@ -678,6 +679,36 @@ fun MarketPGApp() {
                             }
                         }
                         Text("Seller level: " + (currentUser?.seller_rank ?: "New Seller"), color = colors.primary, fontWeight = FontWeight.SemiBold)
+                        HorizontalDivider()
+                        Text("App diagnostics", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Text("Upload a redacted technical report to the MarketPG GitHub repository to help troubleshoot app and network errors. No passwords, tokens, request bodies or identity documents are recorded.", color = colors.onSurfaceVariant, fontSize = 12.sp)
+                        var diagnosticsBusy by remember { mutableStateOf(false) }
+                        OutlinedButton(
+                            enabled = !diagnosticsBusy,
+                            onClick = {
+                                scope.launch {
+                                    diagnosticsBusy = true
+                                    try {
+                                        val version = packageManager.getPackageInfo(packageName, 0).versionName ?: "unknown"
+                                        val result = MarketApi.service.uploadDiagnostics(
+                                            DiagnosticLogRequest(
+                                                report = MarketDiagnostics.exportReport(),
+                                                app_version = version,
+                                                device = MarketDiagnostics.deviceSummary()
+                                            )
+                                        )
+                                        snackbarHost.showSnackbar(result.message ?: "Diagnostic report uploaded.")
+                                    } catch (e: Exception) {
+                                        MarketDiagnostics.record("ERROR", "diagnostics-upload", e.javaClass.simpleName)
+                                        snackbarHost.showSnackbar(MarketApiErrors.userMessage(e, "upload diagnostics"))
+                                    } finally { diagnosticsBusy = false }
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(50)
+                        ) {
+                            Text(if (diagnosticsBusy) "Uploading diagnostic report..." else "Upload diagnostic logs to GitHub")
+                        }
                         if (profileAccountType != "buyer") {
                             HorizontalDivider()
                             Text("Seller profile", fontWeight = FontWeight.Bold, fontSize = 18.sp)
