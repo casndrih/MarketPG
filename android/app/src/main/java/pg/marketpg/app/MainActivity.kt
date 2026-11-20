@@ -347,10 +347,10 @@ fun MarketPGApp() {
                 ) {
                     Text("Create a listing", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = colors.primary)
                     Text("Your listing will be reviewed before it appears publicly.", color = colors.onSurfaceVariant)
-                    OutlinedTextField(newTitle, { newTitle = it }, label = { Text("Item title") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-                    OutlinedTextField(newDescription, { newDescription = it }, label = { Text("Description") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
-                    OutlinedTextField(newPrice, { newPrice = it }, label = { Text("Price (PGK)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-                    OutlinedTextField(newLocation, { newLocation = it }, label = { Text("Town / Province") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                    OutlinedTextField(newTitle, { newTitle = it }, label = { Text("Item title") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
+                    OutlinedTextField(newDescription, { newDescription = it }, label = { Text("Description") }, modifier = Modifier.fillMaxWidth(), minLines = 3, shape = RoundedCornerShape(14.dp))
+                    OutlinedTextField(newPrice, { newPrice = it }, label = { Text("Price (PGK)") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
+                    OutlinedTextField(newLocation, { newLocation = it }, label = { Text("Town / Province") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
                     Text("Condition", fontWeight = FontWeight.SemiBold)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         listOf("new", "used", "refurbished").forEach { condition ->
@@ -452,9 +452,9 @@ fun MarketPGApp() {
                     Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("Your profile", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = colors.primary)
                         Text(currentUser?.email ?: "", color = colors.onSurfaceVariant)
-                        OutlinedTextField(profileName, { profileName = it }, label = { Text("Full name") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-                        OutlinedTextField(profilePhone, { profilePhone = it }, label = { Text("Phone number") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-                        OutlinedTextField(profileLocation, { profileLocation = it }, label = { Text("Town / Province") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                        OutlinedTextField(profileName, { profileName = it }, label = { Text("Full name") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
+                        OutlinedTextField(profilePhone, { profilePhone = it }, label = { Text("Phone number") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
+                        OutlinedTextField(profileLocation, { profileLocation = it }, label = { Text("Town / Province") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
                         Text("Account type", fontWeight = FontWeight.SemiBold)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             listOf("buyer", "seller", "both").forEach { type ->
@@ -573,11 +573,11 @@ fun MarketPGApp() {
                     ) {
                         Text("Price range (PGK)", fontWeight = FontWeight.SemiBold)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedTextField(minPrice, { minPrice = it.filter { c -> c.isDigit() || c == '.' } }, label = { Text("Minimum") }, modifier = Modifier.weight(1f), singleLine = true)
-                            OutlinedTextField(maxPrice, { maxPrice = it.filter { c -> c.isDigit() || c == '.' } }, label = { Text("Maximum") }, modifier = Modifier.weight(1f), singleLine = true)
+                            OutlinedTextField(minPrice, { minPrice = it.filter { c -> c.isDigit() || c == '.' } }, label = { Text("Minimum") }, modifier = Modifier.weight(1f), singleLine = true, shape = RoundedCornerShape(14.dp))
+                            OutlinedTextField(maxPrice, { maxPrice = it.filter { c -> c.isDigit() || c == '.' } }, label = { Text("Maximum") }, modifier = Modifier.weight(1f), singleLine = true, shape = RoundedCornerShape(14.dp))
                         }
                         Text("Location", fontWeight = FontWeight.SemiBold)
-                        OutlinedTextField(locationFilter, { locationFilter = it }, placeholder = { Text("Town or province") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                        OutlinedTextField(locationFilter, { locationFilter = it }, placeholder = { Text("Town or province") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
                         Text("Condition", fontWeight = FontWeight.SemiBold)
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             FilterChip(conditionFilter == null, { conditionFilter = null }, label = { Text("Any") })
@@ -625,10 +625,10 @@ fun MarketPGApp() {
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text("Saving changes to an active listing sends it back for moderation.", color = colors.onSurfaceVariant, fontSize = 12.sp)
-                        OutlinedTextField(editTitle, { editTitle = it }, label = { Text("Item title") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-                        OutlinedTextField(editDescription, { editDescription = it }, label = { Text("Description") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
-                        OutlinedTextField(editPrice, { editPrice = it }, label = { Text("Price (PGK)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-                        OutlinedTextField(editLocation, { editLocation = it }, label = { Text("Town / Province") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                        OutlinedTextField(editTitle, { editTitle = it }, label = { Text("Item title") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
+                        OutlinedTextField(editDescription, { editDescription = it }, label = { Text("Description") }, modifier = Modifier.fillMaxWidth(), minLines = 3, shape = RoundedCornerShape(14.dp))
+                        OutlinedTextField(editPrice, { editPrice = it }, label = { Text("Price (PGK)") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
+                        OutlinedTextField(editLocation, { editLocation = it }, label = { Text("Town / Province") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
                         Text("Condition", fontWeight = FontWeight.SemiBold)
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             listOf("new", "used", "refurbished").forEach { condition ->
@@ -685,7 +685,7 @@ fun MarketPGApp() {
                         listOf("item_not_received", "not_as_described", "damaged_item", "payment_issue", "other").forEach { reason ->
                             FilterChip(disputeReason == reason, { disputeReason = reason }, label = { Text(reason.replace('_', ' ')) })
                         }
-                        OutlinedTextField(disputeDetails, { disputeDetails = it }, label = { Text("Explain the issue (at least 20 characters)") }, minLines = 3)
+                        OutlinedTextField(disputeDetails, { disputeDetails = it }, label = { Text("Explain the issue (at least 20 characters)") }, minLines = 3, shape = RoundedCornerShape(14.dp))
                     }
                 },
                 confirmButton = {
@@ -709,7 +709,7 @@ fun MarketPGApp() {
             AlertDialog(
                 onDismissRequest = { replyingTo = null },
                 title = { Text("Reply to " + (message.sender?.name ?: message.recipient?.name ?: "buyer/seller")) },
-                text = { OutlinedTextField(replyText, { replyText = it }, label = { Text("Your message") }, minLines = 3) },
+                text = { OutlinedTextField(replyText, { replyText = it }, label = { Text("Your message") }, minLines = 3, shape = RoundedCornerShape(14.dp)) },
                 confirmButton = {
                     Button(enabled = replyText.isNotBlank(), onClick = {
                         scope.launch {
@@ -736,12 +736,12 @@ fun MarketPGApp() {
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         if (registerMode) {
-                            OutlinedTextField(authName, { authName = it }, label = { Text("Full name") }, singleLine = true)
+                            OutlinedTextField(authName, { authName = it }, label = { Text("Full name") }, singleLine = true, shape = RoundedCornerShape(14.dp))
                         }
-                        OutlinedTextField(authEmail, { authEmail = it }, label = { Text("Email address") }, singleLine = true)
-                        OutlinedTextField(authPassword, { authPassword = it }, label = { Text("Password") }, visualTransformation = PasswordVisualTransformation(), singleLine = true)
+                        OutlinedTextField(authEmail, { authEmail = it }, label = { Text("Email address") }, singleLine = true, shape = RoundedCornerShape(14.dp))
+                        OutlinedTextField(authPassword, { authPassword = it }, label = { Text("Password") }, visualTransformation = PasswordVisualTransformation(), singleLine = true, shape = RoundedCornerShape(14.dp))
                         if (registerMode) {
-                            OutlinedTextField(authConfirm, { authConfirm = it }, label = { Text("Confirm password") }, visualTransformation = PasswordVisualTransformation(), singleLine = true)
+                            OutlinedTextField(authConfirm, { authConfirm = it }, label = { Text("Confirm password") }, visualTransformation = PasswordVisualTransformation(), singleLine = true, shape = RoundedCornerShape(14.dp))
                         }
                         authError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                         TextButton(onClick = { registerMode = !registerMode; authError = null }) {
@@ -796,7 +796,7 @@ fun MarketPGApp() {
                             placeholder = { Text("Write your message...") },
                             minLines = 3,
                             maxLines = 5
-                        )
+                        , shape = RoundedCornerShape(14.dp))
                         messageError?.let { Text(it, color = MaterialTheme.colorScheme.error, fontSize = 12.sp) }
                     }
                 },
