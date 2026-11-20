@@ -3,115 +3,72 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>MarketPG Admin</title>
+    <script>tailwind = { config: { darkMode: 'class', theme: { extend: { colors: { brand: { 50:'#f7fee7',100:'#ecfccb',400:'#a3e635',500:'#84cc16',600:'#65a30d',700:'#4d7c0f',900:'#365314' } } } } };</script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet">
 </head>
-<body class="min-h-screen bg-slate-100 text-slate-900">
-<header class="bg-slate-950 text-white">
-    <div class="mx-auto flex max-w-7xl items-center justify-between px-5 py-5">
-        <div><a href="/" class="text-2xl font-black text-lime-400">MarketPG</a><span class="ml-3 text-slate-400">Administration</span></div>
-        <form method="POST" action="{{ route('admin.logout') }}">@csrf<button class="rounded-lg border border-slate-700 px-4 py-2 text-sm">Sign out</button></form>
+<body class="bg-gray-50 text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100">
+<nav class="fixed top-0 z-50 w-full border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+    <div class="px-4 py-3 lg:px-6">
+        <div class="flex items-center justify-between">
+            <a href="/" class="flex items-center gap-3"><span class="grid h-10 w-10 place-items-center rounded-xl bg-lime-400 text-lg font-black text-gray-950">M</span><span class="text-xl font-extrabold tracking-tight dark:text-white">Market<span class="text-lime-600 dark:text-lime-400">PG</span><span class="ml-2 text-xs font-medium text-gray-400">ADMIN</span></span></a>
+            <div class="flex items-center gap-3">
+                <span class="hidden text-sm text-gray-500 sm:inline">Marketplace control centre</span>
+                <form method="POST" action="{{ route('admin.logout') }}">@csrf<button type="submit" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800">Sign out</button></form>
+            </div>
+        </div>
     </div>
-</header>
-<main class="mx-auto max-w-7xl space-y-8 px-5 py-8">
-    <div>
-        <h1 class="text-3xl font-black">Admin dashboard</h1>
-        <p class="mt-1 text-slate-500">Review listings, payments, orders and identity checks.</p>
+</nav>
+<aside class="fixed left-0 top-0 z-40 hidden h-screen w-64 border-r border-gray-200 bg-white pt-20 dark:border-gray-800 dark:bg-gray-900 lg:block">
+    <div class="h-full overflow-y-auto px-3 pb-4">
+        <p class="mb-3 px-3 pt-4 text-xs font-semibold uppercase tracking-wider text-gray-400">Workspace</p>
+        <ul class="space-y-1 text-sm font-medium">
+            <li><a href="#overview" class="flex items-center rounded-lg bg-lime-50 px-3 py-2.5 text-lime-800 dark:bg-lime-950/40 dark:text-lime-300">Overview</a></li>
+            <li><a href="#listings" class="flex items-center rounded-lg px-3 py-2.5 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">Listing moderation</a></li>
+            <li><a href="#orders" class="flex items-center rounded-lg px-3 py-2.5 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">Orders & payouts</a></li>
+            <li><a href="#disputes" class="flex items-center rounded-lg px-3 py-2.5 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">Disputes</a></li>
+            <li><a href="#receipts" class="flex items-center rounded-lg px-3 py-2.5 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">Payment receipts</a></li>
+            <li><a href="#identity" class="flex items-center rounded-lg px-3 py-2.5 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">Identity checks</a></li>
+        </ul>
+        <div class="mt-8 rounded-xl border border-lime-200 bg-lime-50 p-4 dark:border-lime-900 dark:bg-lime-950/30"><p class="text-xs font-bold uppercase text-lime-800 dark:text-lime-300">Admin reminder</p><p class="mt-2 text-xs leading-5 text-lime-900 dark:text-lime-200">Verify every payment receipt against the platform bank statement before marking an order as paid.</p></div>
     </div>
-    @if (session('status'))
-        <div class="rounded-xl border border-lime-300 bg-lime-50 px-4 py-3 text-lime-900">{{ session('status') }}</div>
-    @endif
-    <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+</aside>
+<main class="px-4 pb-12 pt-24 lg:ml-64 lg:px-8">
+    <div id="overview" class="mb-8 flex flex-col justify-between gap-3 sm:flex-row sm:items-end"><div><p class="text-sm font-semibold text-lime-700 dark:text-lime-400">MARKETPLACE OPERATIONS</p><h1 class="mt-1 text-3xl font-extrabold tracking-tight">Dashboard</h1><p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Review listings, payments, orders and identity checks.</p></div><span class="w-fit rounded-full bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-600 dark:bg-gray-800 dark:text-gray-300">Administrator workspace</span></div>
+    @if (session('status'))<div class="mb-6 flex items-center rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800 dark:border-green-900 dark:bg-green-950/30 dark:text-green-300" role="alert">{{ session('status') }}</div>@endif
+    <section class="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         @foreach (['Users' => $counts['users'], 'Active listings' => $counts['active_listings'], 'Pending listings' => $counts['pending_listings'], 'Orders' => $counts['orders']] as $label => $value)
-            <div class="rounded-2xl bg-white p-5 shadow-sm"><p class="text-sm text-slate-500">{{ $label }}</p><p class="mt-2 text-3xl font-black">{{ number_format($value) }}</p></div>
+            <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"><p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ $label }}</p><p class="mt-2 text-3xl font-extrabold">{{ number_format($value) }}</p><div class="mt-3 h-1 w-12 rounded-full bg-lime-400"></div></div>
         @endforeach
     </section>
-
-    <section class="rounded-2xl bg-white p-5 shadow-sm">
-        <div class="mb-4 flex items-center justify-between"><h2 class="text-xl font-bold">Pending listings</h2><span class="text-sm text-slate-500">{{ $pendingListings->count() }} awaiting review</span></div>
-        @forelse ($pendingListings as $listing)
-            <div class="grid gap-4 border-t py-4 lg:grid-cols-[1fr_360px]">
-                <div><h3 class="font-bold">{{ $listing->title }}</h3><p class="mt-1 text-sm text-slate-500">K {{ number_format($listing->price, 2) }} · {{ $listing->location }} · {{ $listing->condition }}</p><p class="mt-2 text-sm">{{ $listing->description }}</p><p class="mt-2 text-xs text-slate-500">Seller: {{ $listing->user?->name }} ({{ $listing->user?->email }})</p></div>
-                <form method="POST" action="{{ route('admin.listings.review', $listing) }}" class="space-y-2">@csrf
-                    <textarea name="reason" rows="2" placeholder="Optional moderation note" class="w-full rounded-lg border p-2 text-sm"></textarea>
-                    <div class="flex gap-2"><button name="decision" value="active" class="flex-1 rounded-lg bg-lime-500 px-3 py-2 text-sm font-bold">Approve</button><button name="decision" value="rejected" class="flex-1 rounded-lg bg-red-100 px-3 py-2 text-sm font-bold text-red-800">Reject</button></div>
-                </form>
-            </div>
-        @empty <p class="border-t py-5 text-sm text-slate-500">No listings are waiting for moderation.</p> @endforelse
+    <section id="listings" class="mb-8 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+        <div class="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-800"><div><h2 class="text-lg font-bold">Pending listings</h2><p class="text-xs text-gray-500">Moderate new marketplace posts</p></div><span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800 dark:bg-amber-950 dark:text-amber-300">{{ $pendingListings->count() }} pending</span></div>
+        <div class="divide-y divide-gray-100 px-5 dark:divide-gray-800">@forelse ($pendingListings as $listing)
+            <div class="grid gap-4 py-5 lg:grid-cols-[1fr_340px]"><div><h3 class="font-bold">{{ $listing->title }}</h3><p class="mt-1 text-sm text-gray-500">K {{ number_format($listing->price, 2) }} · {{ $listing->location }} · {{ $listing->condition }}</p><p class="mt-2 text-sm leading-6 text-gray-700 dark:text-gray-300">{{ $listing->description }}</p><p class="mt-2 text-xs text-gray-500">Seller: {{ $listing->user?->name }} ({{ $listing->user?->email }})</p></div>
+            <form method="POST" action="{{ route('admin.listings.review', $listing) }}" class="space-y-2">@csrf<textarea name="reason" rows="2" placeholder="Optional moderation note" class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm focus:border-lime-500 focus:ring-lime-500 dark:border-gray-700 dark:bg-gray-800"></textarea><div class="flex gap-2"><button name="decision" value="active" class="flex-1 rounded-lg bg-lime-400 px-3 py-2.5 text-sm font-bold text-gray-950 hover:bg-lime-300">Approve listing</button><button name="decision" value="rejected" class="flex-1 rounded-lg bg-red-100 px-3 py-2.5 text-sm font-bold text-red-800 hover:bg-red-200 dark:bg-red-950 dark:text-red-300">Reject</button></div></form></div>
+        @empty<p class="py-8 text-center text-sm text-gray-500">No listings are waiting for moderation.</p>@endforelse</div>
     </section>
-
-    <section class="rounded-2xl bg-white p-5 shadow-sm">
-        <div class="mb-4 flex items-center justify-between"><h2 class="text-xl font-bold">Orders</h2><span class="text-sm text-slate-500">Latest 40</span></div>
-        @forelse ($orders as $order)
-            <div class="grid gap-3 border-t py-4 lg:grid-cols-[1fr_360px]">
-                <div><h3 class="font-bold">{{ $order->order_number }} · {{ $order->listing?->title }}</h3><p class="mt-1 text-sm text-slate-500">K {{ number_format($order->amount, 2) }} {{ $order->currency }} · {{ str_replace('_', ' ', $order->status) }} · {{ $order->payment_method }}</p><p class="mt-1 text-xs text-slate-500">Buyer: {{ $order->buyer?->email }} · Seller: {{ $order->seller?->email }}</p><p class="mt-1 text-xs text-slate-500">Shipment: {{ $order->tracking_reference ?: 'Not shipped' }} · Payout: {{ $order->payout_status ?: 'held' }}</p>
-                @if ($order->seller?->payout_account_details)
-                    <p class="mt-1 text-xs text-slate-600">Seller payout: {{ $order->seller->payout_account_details['bank_name'] ?? '—' }} · {{ $order->seller->payout_account_details['account_name'] ?? '—' }} · {{ $order->seller->payout_account_details['account_number'] ?? '—' }}</p>
-                @endif</div>
-                <form method="POST" action="{{ route('admin.orders.review', $order) }}" class="space-y-2">@csrf
-                    <select name="status" class="w-full rounded-lg border p-2 text-sm"><option value="paid">Mark paid</option><option value="cancelled">Cancel</option><option value="disputed">Mark disputed</option></select>
-                    <input name="admin_note" placeholder="Admin note" class="w-full rounded-lg border p-2 text-sm">
-                    <button class="w-full rounded-lg bg-slate-900 px-3 py-2 text-sm font-bold text-white">Save order status</button>
-                </form>
-                @if ($order->status === 'delivered' && $order->payout_status === 'pending')
-                    <form method="POST" action="{{ route('admin.orders.release-payout', $order) }}" class="space-y-2 lg:col-span-2">@csrf
-                        <input name="payout_reference" required placeholder="Verified seller bank transfer reference" class="w-full rounded-lg border p-2 text-sm">
-                        <button class="rounded-lg bg-blue-600 px-3 py-2 text-sm font-bold text-white">Record seller payout release</button>
-                    </form>
-                @endif
-            </div>
-        @empty <p class="border-t py-5 text-sm text-slate-500">No orders yet.</p> @endforelse
+    <section id="orders" class="mb-8 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+        <div class="border-b border-gray-200 px-5 py-4 dark:border-gray-800"><h2 class="text-lg font-bold">Orders & payouts</h2><p class="text-xs text-gray-500">Latest 40 orders · release seller funds only after delivery confirmation</p></div>
+        <div class="divide-y divide-gray-100 px-5 dark:divide-gray-800">@forelse ($orders as $order)
+            <div class="grid gap-3 py-5 lg:grid-cols-[1fr_340px]"><div><h3 class="font-bold">{{ $order->order_number }} · {{ $order->listing?->title }}</h3><p class="mt-1 text-sm text-gray-500">K {{ number_format($order->amount, 2) }} {{ $order->currency }} · <span class="font-semibold">{{ str_replace('_', ' ', $order->status) }}</span> · {{ $order->payment_method }}</p><p class="mt-1 text-xs text-gray-500">Buyer: {{ $order->buyer?->email }} · Seller: {{ $order->seller?->email }}</p><p class="mt-1 text-xs text-gray-500">Shipment: {{ $order->tracking_reference ?: 'Not shipped' }} · Payout: {{ $order->payout_status ?: 'held' }}</p>@if ($order->seller?->payout_account_details)<div class="mt-3 rounded-lg bg-gray-50 p-3 text-xs dark:bg-gray-800"><span class="font-semibold">Seller payout account:</span> {{ $order->seller->payout_account_details['bank_name'] ?? '—' }} · {{ $order->seller->payout_account_details['account_name'] ?? '—' }} · {{ $order->seller->payout_account_details['account_number'] ?? '—' }}</div>@endif</div>
+            <div class="space-y-2"><form method="POST" action="{{ route('admin.orders.review', $order) }}" class="space-y-2">@csrf<select name="status" class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm dark:border-gray-700 dark:bg-gray-800"><option value="paid">Mark paid</option><option value="cancelled">Cancel</option><option value="disputed">Mark disputed</option></select><input name="admin_note" placeholder="Admin note" class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm dark:border-gray-700 dark:bg-gray-800"><button class="w-full rounded-lg bg-gray-900 px-3 py-2.5 text-sm font-semibold text-white hover:bg-gray-700 dark:bg-gray-700">Save order status</button></form>
+            @if ($order->status === 'delivered' && $order->payout_status === 'pending')<form method="POST" action="{{ route('admin.orders.release-payout', $order) }}" class="space-y-2 border-t border-gray-100 pt-3 dark:border-gray-800">@csrf<input name="payout_reference" required placeholder="Verified bank transfer reference" class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm dark:border-gray-700 dark:bg-gray-800"><button class="w-full rounded-lg bg-blue-700 px-3 py-2.5 text-sm font-bold text-white hover:bg-blue-800">Record seller payout release</button></form>@endif</div></div>
+        @empty<p class="py-8 text-center text-sm text-gray-500">No orders yet.</p>@endforelse</div>
     </section>
-
-    <section class="rounded-2xl bg-white p-5 shadow-sm">
-        <div class="mb-4 flex items-center justify-between"><h2 class="text-xl font-bold">Open disputes</h2><span class="text-sm text-slate-500">{{ $disputes->count() }} open</span></div>
-        @forelse ($disputes as $dispute)
-            <div class="grid gap-3 border-t py-4 lg:grid-cols-[1fr_360px]">
-                <div><h3 class="font-bold">{{ $dispute->order?->order_number }} · {{ $dispute->order?->listing?->title }}</h3><p class="mt-1 text-sm text-slate-500">{{ str_replace('_', ' ', $dispute->reason) }} · Raised by {{ $dispute->raiser?->name }}</p><p class="mt-2 text-sm">{{ $dispute->details }}</p><p class="mt-1 text-xs text-slate-500">Buyer: {{ $dispute->order?->buyer?->email }} · Seller: {{ $dispute->order?->seller?->email }}</p></div>
-                <form method="POST" action="{{ route('admin.disputes.resolve', $dispute) }}" class="space-y-2">@csrf
-                    <textarea name="resolution" required minlength="10" rows="3" placeholder="Record the resolution or reason for rejection" class="w-full rounded-lg border p-2 text-sm"></textarea>
-                    <div class="flex gap-2"><button name="decision" value="resolved" class="flex-1 rounded-lg bg-lime-500 px-3 py-2 text-sm font-bold">Resolve</button><button name="decision" value="rejected" class="flex-1 rounded-lg bg-red-100 px-3 py-2 text-sm font-bold text-red-800">Reject</button></div>
-                </form>
-            </div>
-        @empty <p class="border-t py-5 text-sm text-slate-500">No open disputes.</p> @endforelse
-    </section>
-
-    <section class="rounded-2xl bg-white p-5 shadow-sm">
-        <div class="mb-4 flex items-center justify-between"><h2 class="text-xl font-bold">Payment receipts</h2><span class="text-sm text-slate-500">{{ $pendingReceipts->count() }} pending</span></div>
-        @forelse ($pendingReceipts as $receipt)
-            <div class="grid gap-3 border-t py-4 lg:grid-cols-[1fr_360px]">
-                <div><h3 class="font-bold">{{ $receipt->order?->order_number ?? $receipt->order_reference }}</h3><p class="mt-1 text-sm text-slate-500">{{ $receipt->user?->name }} · {{ $receipt->user?->email }}</p><p class="mt-1 text-sm">Listing: {{ $receipt->listing?->title }}</p><a class="mt-2 inline-block text-sm font-semibold text-blue-700 underline" href="{{ route('admin.receipts.document', $receipt) }}" target="_blank" rel="noopener noreferrer">View private payment receipt</a></div>
-                <form method="POST" action="{{ route('admin.receipts.review', $receipt) }}" class="space-y-2">@csrf
-                    <input name="notes" placeholder="Required if rejecting" class="w-full rounded-lg border p-2 text-sm">
-                    <div class="flex gap-2"><button name="decision" value="approved" class="flex-1 rounded-lg bg-lime-500 px-3 py-2 text-sm font-bold">Approve</button><button name="decision" value="rejected" class="flex-1 rounded-lg bg-red-100 px-3 py-2 text-sm font-bold text-red-800">Reject</button></div>
-                </form>
-            </div>
-        @empty <p class="border-t py-5 text-sm text-slate-500">No pending payment receipts.</p> @endforelse
-    </section>
-
-    <section class="rounded-2xl bg-white p-5 shadow-sm">
-        <div class="mb-4 flex items-center justify-between"><h2 class="text-xl font-bold">Identity verification</h2><span class="text-sm text-slate-500">{{ $pendingVerifications->count() }} pending</span></div>
-        <p class="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">New identity uploads are disabled until persistent encrypted storage and the privacy review are completed.</p>
-        @forelse ($pendingVerifications as $verification)
-            <div class="grid gap-3 border-t py-4 lg:grid-cols-[1fr_360px]">
-                <div><h3 class="font-bold">{{ $verification->user?->name }}</h3><p class="mt-1 text-sm text-slate-500">{{ $verification->user?->email }} · {{ $verification->document_type }}</p><p class="mt-1 text-xs text-slate-500">Document ending {{ $verification->document_last_four ?: '—' }}</p>
-                    <div class="mt-3 flex flex-wrap gap-3 text-sm font-semibold">
-                        @foreach (['front' => 'View ID front', 'back' => 'View ID back', 'selfie' => 'View selfie'] as $kind => $label)
-                            @if ($kind !== 'back' || $verification->back_path)
-                                @if (($kind === 'front' && $verification->front_path) || ($kind === 'back' && $verification->back_path) || ($kind === 'selfie' && $verification->selfie_path))
-                                    <a class="text-lime-700 underline" href="{{ route('admin.identity.document', [$verification, $kind]) }}" target="_blank" rel="noopener noreferrer">{{ $label }}</a>
-                                @endif
-                            @endif
-                        @endforeach
-                    </div>
-                </div>
-                <form method="POST" action="{{ route('admin.identity.review', $verification) }}" class="space-y-2">@csrf
-                    <input name="reason" placeholder="Required if rejecting" class="w-full rounded-lg border p-2 text-sm">
-                    <div class="flex gap-2"><button name="decision" value="approved" class="flex-1 rounded-lg bg-lime-500 px-3 py-2 text-sm font-bold">Approve</button><button name="decision" value="rejected" class="flex-1 rounded-lg bg-red-100 px-3 py-2 text-sm font-bold text-red-800">Reject</button></div>
-                </form>
-            </div>
-        @empty <p class="border-t py-5 text-sm text-slate-500">No pending identity checks.</p> @endforelse
-    </section>
+    <section id="disputes" class="mb-8 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900"><div class="border-b border-gray-200 px-5 py-4 dark:border-gray-800"><h2 class="text-lg font-bold">Open disputes</h2><p class="text-xs text-gray-500">{{ $disputes->count() }} cases requiring review</p></div><div class="divide-y divide-gray-100 px-5 dark:divide-gray-800">@forelse ($disputes as $dispute)
+        <div class="grid gap-3 py-5 lg:grid-cols-[1fr_340px]"><div><h3 class="font-bold">{{ $dispute->order?->order_number }} · {{ $dispute->order?->listing?->title }}</h3><p class="mt-1 text-sm text-gray-500">{{ str_replace('_', ' ', $dispute->reason) }} · Raised by {{ $dispute->raiser?->name }}</p><p class="mt-2 text-sm">{{ $dispute->details }}</p><p class="mt-1 text-xs text-gray-500">Buyer: {{ $dispute->order?->buyer?->email }} · Seller: {{ $dispute->order?->seller?->email }}</p></div><form method="POST" action="{{ route('admin.disputes.resolve', $dispute) }}" class="space-y-2">@csrf<textarea name="resolution" required minlength="10" rows="3" placeholder="Record the resolution or reason for rejection" class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm dark:border-gray-700 dark:bg-gray-800"></textarea><div class="flex gap-2"><button name="decision" value="resolved" class="flex-1 rounded-lg bg-lime-400 px-3 py-2.5 text-sm font-bold text-gray-950">Resolve</button><button name="decision" value="rejected" class="flex-1 rounded-lg bg-red-100 px-3 py-2.5 text-sm font-bold text-red-800 dark:bg-red-950 dark:text-red-300">Reject</button></div></form></div>
+        @empty<p class="py-8 text-center text-sm text-gray-500">No open disputes.</p>@endforelse</div></section>
+    <section id="receipts" class="mb-8 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900"><div class="border-b border-gray-200 px-5 py-4 dark:border-gray-800"><h2 class="text-lg font-bold">Payment receipts</h2><p class="text-xs text-gray-500">{{ $pendingReceipts->count() }} pending receipt reviews</p></div><div class="divide-y divide-gray-100 px-5 dark:divide-gray-800">@forelse ($pendingReceipts as $receipt)
+        <div class="grid gap-3 py-5 lg:grid-cols-[1fr_340px]"><div><h3 class="font-bold">{{ $receipt->order?->order_number ?? $receipt->order_reference }}</h3><p class="mt-1 text-sm text-gray-500">{{ $receipt->user?->name }} · {{ $receipt->user?->email }}</p><p class="mt-1 text-sm">Listing: {{ $receipt->listing?->title }}</p><a class="mt-2 inline-block text-sm font-semibold text-blue-700 underline dark:text-blue-400" href="{{ route('admin.receipts.document', $receipt) }}" target="_blank" rel="noopener noreferrer">View private payment receipt</a></div><form method="POST" action="{{ route('admin.receipts.review', $receipt) }}" class="space-y-2">@csrf<input name="notes" placeholder="Required if rejecting" class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm dark:border-gray-700 dark:bg-gray-800"><div class="flex gap-2"><button name="decision" value="approved" class="flex-1 rounded-lg bg-lime-400 px-3 py-2.5 text-sm font-bold text-gray-950">Approve</button><button name="decision" value="rejected" class="flex-1 rounded-lg bg-red-100 px-3 py-2.5 text-sm font-bold text-red-800 dark:bg-red-950 dark:text-red-300">Reject</button></div></form></div>
+        @empty<p class="py-8 text-center text-sm text-gray-500">No pending payment receipts.</p>@endforelse</div></section>
+    <section id="identity" class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900"><div class="border-b border-gray-200 px-5 py-4 dark:border-gray-800"><h2 class="text-lg font-bold">Identity verification</h2><p class="text-xs text-gray-500">{{ $pendingVerifications->count() }} pending identity checks</p></div><div class="p-5"><div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">New identity uploads remain disabled until persistent private storage and the privacy review are completed.</div>@forelse ($pendingVerifications as $verification)
+        <div class="grid gap-3 border-t border-gray-100 py-5 dark:border-gray-800 lg:grid-cols-[1fr_340px]"><div><h3 class="font-bold">{{ $verification->user?->name }}</h3><p class="mt-1 text-sm text-gray-500">{{ $verification->user?->email }} · {{ $verification->document_type }}</p><p class="mt-1 text-xs text-gray-500">Document ending {{ $verification->document_last_four ?: '—' }}</p><div class="mt-3 flex flex-wrap gap-3 text-sm font-semibold">@foreach (['front' => 'View ID front', 'back' => 'View ID back', 'selfie' => 'View selfie'] as $kind => $label)@if (($kind === 'front' && $verification->front_path) || ($kind === 'back' && $verification->back_path) || ($kind === 'selfie' && $verification->selfie_path))<a class="text-lime-700 underline dark:text-lime-400" href="{{ route('admin.identity.document', [$verification, $kind]) }}" target="_blank" rel="noopener noreferrer">{{ $label }}</a>@endif @endforeach</div></div><form method="POST" action="{{ route('admin.identity.review', $verification) }}" class="space-y-2">@csrf<input name="reason" placeholder="Required if rejecting" class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm dark:border-gray-700 dark:bg-gray-800"><div class="flex gap-2"><button name="decision" value="approved" class="flex-1 rounded-lg bg-lime-400 px-3 py-2.5 text-sm font-bold text-gray-950">Approve</button><button name="decision" value="rejected" class="flex-1 rounded-lg bg-red-100 px-3 py-2.5 text-sm font-bold text-red-800 dark:bg-red-950 dark:text-red-300">Reject</button></div></form></div>
+        @empty<p class="py-8 text-center text-sm text-gray-500">No pending identity checks.</p>@endforelse</div></section>
+    <footer class="mt-8 text-center text-xs text-gray-400">MarketPG administration · Papua New Guinea</footer>
 </main>
+<script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
 </body>
 </html>
