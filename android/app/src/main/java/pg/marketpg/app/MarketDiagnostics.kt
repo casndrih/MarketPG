@@ -38,7 +38,7 @@ object MarketDiagnostics {
     }
 
     /** Records exception class and source frames only; never records exception messages or request data. */
-    fun recordException(tag: String, error: Throwable, context: String = "") {\n        // Keep stack-frame diagnostics safe for public GitHub reports.
+    fun recordException(tag: String, error: Throwable, context: String = "") {
         val frames = error.stackTrace.take(12).joinToString(" <- ") {
             "${it.className.substringAfterLast('.')}.${it.methodName}:${it.lineNumber}"
         }
