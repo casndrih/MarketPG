@@ -1,57 +1,113 @@
 package pg.marketpg.app
 
+import android.content.res.Configuration
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+
+private val AuthLightColors = lightColorScheme(
+    primary = Color(0xFF2563EB), onPrimary = Color.White,
+    background = Color(0xFFF7F8FA), onBackground = Color(0xFF111827),
+    surface = Color.White, onSurface = Color(0xFF111827),
+    surfaceVariant = Color(0xFFEFF1F5), onSurfaceVariant = Color(0xFF64748B),
+    outline = Color.Transparent
+)
+private val AuthDarkColors = darkColorScheme(
+    primary = Color(0xFF60A5FA), onPrimary = Color(0xFF071A33),
+    background = Color(0xFF000000), onBackground = Color(0xFFF9FAFB),
+    surface = Color(0xFF171717), onSurface = Color(0xFFF3F4F6),
+    surfaceVariant = Color(0xFF242424), onSurfaceVariant = Color(0xFFA3A3A3),
+    outline = Color.Transparent
+)
 
 class LoginActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val dark = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val pageColor = if (dark) android.graphics.Color.BLACK else android.graphics.Color.rgb(247, 248, 250)
+        window.statusBarColor = pageColor
+        window.navigationBarColor = pageColor
+        @Suppress("DEPRECATION")
+        window.decorView.systemUiVisibility = if (dark) 0 else (
+            android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or
+                android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+            )
+
         setContent {
+            val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+            val colors = if (isDark) AuthDarkColors else AuthLightColors
             var register by remember { mutableStateOf(false) }
             var name by remember { mutableStateOf("") }
             var email by remember { mutableStateOf("") }
             var password by remember { mutableStateOf("") }
             var confirm by remember { mutableStateOf("") }
+            var passwordVisible by remember { mutableStateOf(false) }
+            var confirmVisible by remember { mutableStateOf(false) }
             var busy by remember { mutableStateOf(false) }
             var error by remember { mutableStateOf<String?>(null) }
             val scope = rememberCoroutineScope()
-            MaterialTheme {
-                Scaffold(containerColor = MaterialTheme.colorScheme.background) { padding ->
+
+            MaterialTheme(colorScheme = colors) {
+                Scaffold(containerColor = colors.background) { padding ->
                     Column(
-                        Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 28.dp),
+                        Modifier.fillMaxSize().padding(padding)
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = 24.dp, vertical = 28.dp),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("MarketPG", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                        Spacer(Modifier.height(8.dp))
-                        Text(if (register) "Create your account" else "Welcome back", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                        Text("Buy and sell across Papua New Guinea", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Spacer(Modifier.height(28.dp))
-                        if (register) OutlinedTextField(name, { name = it; error = null }, modifier = Modifier.fillMaxWidth(), label = { Text("Full name") }, singleLine = true, shape = RoundedCornerShape(14.dp))
-                        Spacer(Modifier.height(10.dp))
-                        OutlinedTextField(email, { email = it; error = null }, modifier = Modifier.fillMaxWidth(), label = { Text("Email address") }, singleLine = true, shape = RoundedCornerShape(14.dp))
-                        Spacer(Modifier.height(10.dp))
-                        OutlinedTextField(password, { password = it; error = null }, modifier = Modifier.fillMaxWidth(), label = { Text("Password") }, visualTransformation = PasswordVisualTransformation(), singleLine = true, shape = RoundedCornerShape(14.dp))
+                        Text("MarketPG", style = MaterialTheme.typography.headlineMedium, color = colors.primary)
+                        Spacer(Modifier.height(12.dp))
+                        Text(if (register) "Create your account" else "Welcome back", style = MaterialTheme.typography.headlineSmall, color = colors.onBackground)
+                        Spacer(Modifier.height(4.dp))
+                        Text("Buy and sell across Papua New Guinea", color = colors.onSurfaceVariant, fontSize = 16.sp)
+                        Spacer(Modifier.height(38.dp))
+
                         if (register) {
-                            Spacer(Modifier.height(10.dp))
-                            OutlinedTextField(confirm, { confirm = it; error = null }, modifier = Modifier.fillMaxWidth(), label = { Text("Confirm password") }, visualTransformation = PasswordVisualTransformation(), singleLine = true, shape = RoundedCornerShape(14.dp))
+                            AuthInput(name, { name = it; error = null }, "Full name", colors)
+                            Spacer(Modifier.height(12.dp))
                         }
-                        error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 10.dp)) }
-                        Spacer(Modifier.height(18.dp))
+                        AuthInput(email, { email = it; error = null }, "Email address", colors)
+                        Spacer(Modifier.height(12.dp))
+                        AuthInput(
+                            value = password,
+                            onValueChange = { password = it; error = null },
+                            label = "Password",
+                            colors = colors,
+                            passwordVisible = passwordVisible,
+                            onTogglePassword = { passwordVisible = !passwordVisible }
+                        )
+                        if (register) {
+                            Spacer(Modifier.height(12.dp))
+                            AuthInput(
+                                value = confirm,
+                                onValueChange = { confirm = it; error = null },
+                                label = "Confirm password",
+                                colors = colors,
+                                passwordVisible = confirmVisible,
+                                onTogglePassword = { confirmVisible = !confirmVisible }
+                            )
+                        }
+                        error?.let { Text(it, color = colors.error, modifier = Modifier.padding(top = 12.dp)) }
+                        Spacer(Modifier.height(22.dp))
                         Button(
                             onClick = {
                                 scope.launch {
@@ -71,29 +127,83 @@ class LoginActivity : ComponentActivity() {
                                     } finally { busy = false }
                                 }
                             },
-                            enabled = !busy && email.isNotBlank() && password.isNotBlank() && (!register || (name.isNotBlank() && confirm.isNotBlank())),
-                            modifier = Modifier.fillMaxWidth().height(52.dp),
-                            shape = RoundedCornerShape(50)
-                        ) { Text(if (busy) "Please wait..." else if (register) "Create account" else "Sign in") }
-                        Spacer(Modifier.height(12.dp))
-                        OutlinedButton(
-                            onClick = {
-                                Toast.makeText(this@LoginActivity, "Google sign-in needs the MarketPG Google OAuth Web Client ID and server verification configuration.", Toast.LENGTH_LONG).show()
-                            },
-                            modifier = Modifier.fillMaxWidth().height(52.dp),
+                            enabled = !busy && email.isNotBlank() && password.isNotBlank() &&
+                                (!register || (name.isNotBlank() && confirm.isNotBlank())),
+                            modifier = Modifier.fillMaxWidth().height(56.dp),
                             shape = RoundedCornerShape(50)
                         ) {
-                            Text("G", fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.primary)
+                            Text(if (busy) "Please wait..." else if (register) "Create account" else "Sign in", fontSize = 17.sp)
+                        }
+                        Spacer(Modifier.height(14.dp))
+                        Button(
+                            onClick = {
+                                // OAuth credentials and backend ID-token verification are not configured yet.
+                                android.widget.Toast.makeText(
+                                    this@LoginActivity,
+                                    "Google sign-in setup is required before this option can authenticate.",
+                                    android.widget.Toast.LENGTH_LONG
+                                ).show()
+                            },
+                            modifier = Modifier.fillMaxWidth().height(58.dp),
+                            shape = RoundedCornerShape(50),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isDark) Color(0xFF292929) else Color.Black,
+                                contentColor = Color.White
+                            )
+                        ) {
+                            Text("G", color = if (isDark) Color.White else Color(0xFF4285F4), fontSize = 21.sp)
                             Spacer(Modifier.width(12.dp))
-                            Text("Continue with Google")
+                            Text("Continue with Google", fontSize = 17.sp)
                         }
+                        Spacer(Modifier.height(14.dp))
                         TextButton(onClick = { register = !register; error = null }) {
-                            Text(if (register) "Already have an account? Sign in" else "New to MarketPG? Create an account")
+                            Text(if (register) "Sign in", fontSize = 16.sp, color = colors.primary)
                         }
-                        TextButton(onClick = { finish() }) { Text("Continue browsing") }
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun AuthInput(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    colors: ColorScheme,
+    passwordVisible: Boolean? = null,
+    onTogglePassword: (() -> Unit)? = null
+) {
+    TextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = Modifier.fillMaxWidth(),
+        placeholder = { Text(label, color = colors.onSurfaceVariant, fontSize = 16.sp) },
+        singleLine = true,
+        shape = RoundedCornerShape(18.dp),
+        visualTransformation = if (passwordVisible == null || passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+        trailingIcon = if (passwordVisible != null && onTogglePassword != null) {
+            {
+                IconButton(onClick = onTogglePassword) {
+                    Icon(
+                        imageVector = if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                        contentDescription = if (passwordVisible) "Hide password" else "Show password",
+                        tint = colors.onSurfaceVariant
+                    )
+                }
+            }
+        } else null,
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = colors.surfaceVariant,
+            unfocusedContainerColor = colors.surfaceVariant,
+            disabledContainerColor = colors.surfaceVariant,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent,
+            cursorColor = colors.primary,
+            focusedTextColor = colors.onSurface,
+            unfocusedTextColor = colors.onSurface
+        )
+    )
 }
