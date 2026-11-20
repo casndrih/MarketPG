@@ -153,6 +153,8 @@ fun MarketPGApp() {
     var authConfirm by remember { mutableStateOf("") }
     var authError by remember { mutableStateOf<String?>(null) }
     var authBusy by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val view = LocalView.current
     val scope = rememberCoroutineScope()
     val listingImagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { newImages = it }
     val profilePhotoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -187,8 +189,6 @@ fun MarketPGApp() {
     }
 
 
-    val context = LocalContext.current
-    val view = LocalView.current
     SideEffect {
         val window = (view.context as? android.app.Activity)?.window
         window?.navigationBarColor = if (darkTheme) android.graphics.Color.BLACK else android.graphics.Color.WHITE
