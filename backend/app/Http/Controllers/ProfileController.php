@@ -41,8 +41,21 @@ class ProfileController extends Controller
             'location' => ['nullable', 'string', 'max:120'],
             'town' => ['nullable', 'string', 'max:100'],
             'province' => ['nullable', Rule::in(config('marketpg.png_provinces'))],
+            'bank_name' => ['nullable', 'string', 'max:120'],
+            'account_name' => ['nullable', 'string', 'max:120'],
+            'account_number' => ['nullable', 'string', 'max:80'],
             'account_type' => ['required', Rule::in(['buyer', 'seller', 'both'])],
         ]);
+
+        $bankFields = ['bank_name', 'account_name', 'account_number'];
+        $providedBankFields = array_filter($bankFields, fn ($field) => !empty($data[$field]));
+        if ($providedBankFields && count($providedBankFields) !== 3) {
+            return response()->json(['message' => 'Provide bank name, account name and account number together.'], 422);
+        }
+        if (count($providedBankFields) === 3) {
+            $data['payout_account_details'] = array_intersect_key($data, array_flip($bankFields));
+        }
+        foreach ($bankFields as $field) unset($data[$field]);
 
         if (!empty($data['province'])) {
             $data['location'] = trim(implode(', ', array_filter([$data['town'] ?? null, $data['province']])));
