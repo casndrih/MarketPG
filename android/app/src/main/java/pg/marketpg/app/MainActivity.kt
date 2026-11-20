@@ -1048,6 +1048,8 @@ fun MarketPGApp() {
                     putExtra("image_url", listing.imageUrl ?: "")
                     putStringArrayListExtra("gallery_urls", ArrayList(listing.images.map { it.url }))
                     putExtra("seller_rank", listing.user?.seller_rank ?: "New Seller")
+                    putExtra("seller_id", listing.user?.id?.toLong() ?: 0L)
+                    putExtra("seller_avatar", listing.user?.profile_photo_url ?: "")
                 })
                 selected = null
             }
