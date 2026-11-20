@@ -25,8 +25,12 @@ class OrderController extends Controller
     {
         $data = $request->validate([
             'buyer_note' => ['nullable', 'string', 'max:1000'],
-            'payment_method' => ['required', Rule::in(['cash_on_pickup', 'bank_transfer'])],
+            'payment_method' => ['required', Rule::in(['bank_transfer'])],
         ]);
+
+        $identityApproved = \App\Models\IdentityVerification::where('user_id', $request->user()->id)->where('status', 'approved')->exists();
+        abort_unless($identityApproved, 403, 'Buyer identity verification must be approved before placing an order.');
+        abort_unless($request->user()->profile_photo_path && $request->user()->cover_photo_path, 403, 'Upload a profile photo and cover photo before placing an order.');
 
         if ($data['payment_method'] === 'bank_transfer') {
             abort_if(trim((string) config('marketpg.bank_transfer_details')) === '', 503, 'Bank transfer is not configured yet. Choose cash on pickup or contact MarketPG support.');
@@ -36,6 +40,8 @@ class OrderController extends Controller
             $locked = Listing::whereKey($listing->id)->lockForUpdate()->firstOrFail();
             abort_unless($locked->status === 'active', 409, 'This listing is no longer available.');
             abort_if($locked->user_id === $request->user()->id, 422, 'You cannot purchase your own listing.');
+            $seller = \App\Models\User::findOrFail($locked->user_id);
+            abort_unless($seller->profile_photo_path && $seller->cover_photo_path, 409, 'The seller must complete their profile before accepting orders.');
 
             $order = Order::create([
                 'order_number' => 'MPG-' . strtoupper(Str::random(10)),
@@ -44,8 +50,9 @@ class OrderController extends Controller
                 'seller_id' => $locked->user_id,
                 'amount' => $locked->price,
                 'currency' => 'PGK',
-                'payment_method' => $data['payment_method'],
+                'payment_method' => 'bank_transfer',
                 'status' => 'awaiting_payment',
+                'payout_status' => 'held',
                 'buyer_note' => $data['buyer_note'] ?? null,
             ]);
 
@@ -54,8 +61,8 @@ class OrderController extends Controller
         });
 
         return response()->json([
-            'message' => $data['payment_method'] === 'cash_on_pickup' ? 'Order reserved. Contact the seller to arrange collection and cash payment.' : 'Order reserved. Transfer payment using the details below, then upload your receipt.',
-            'payment_instructions' => $data['payment_method'] === 'bank_transfer' ? config('marketpg.bank_transfer_details') : null,
+            'message' => 'Order reserved. Pay the MarketPG platform account using the instructions below, then upload your receipt for verification.',
+            'payment_instructions' => config('marketpg.bank_transfer_details'),
             'data' => $order->load(['listing:id,title,price,image_path', 'seller:id,name']),
         ], 201);
     }
@@ -86,27 +93,32 @@ class OrderController extends Controller
     }
 
 
-    public function confirmCash(Request $request, Order $order)
+    public function ship(Request $request, Order $order)
     {
         $this->authorizeParticipant($request, $order);
         abort_unless($order->seller_id === $request->user()->id, 403);
-        abort_unless($order->payment_method === 'cash_on_pickup', 409, 'This order is not a cash-on-pickup order.');
-        abort_unless($order->status === 'awaiting_payment', 409, 'Only unpaid orders can be confirmed.');
-
-        $order->update(['status' => 'paid', 'paid_at' => now()]);
-        return response()->json(['message' => 'Cash payment confirmed by seller.', 'data' => $order->fresh()]);
+        abort_unless($order->status === 'paid', 409, 'Payment must be verified before shipment.');
+        $data = $request->validate(['tracking_reference' => ['required', 'string', 'max:120']]);
+        $order->update(['status' => 'shipped', 'shipped_at' => now(), 'tracking_reference' => $data['tracking_reference']]);
+        return response()->json(['message' => 'Shipment recorded. Awaiting buyer confirmation.', 'data' => $order->fresh()]);
     }
 
-    public function complete(Request $request, Order $order)
+    public function confirmReceived(Request $request, Order $order)
     {
         $this->authorizeParticipant($request, $order);
-        abort_unless($order->seller_id === $request->user()->id, 403);
-        abort_unless($order->status === 'paid', 409, 'The order must be marked paid by an administrator first.');
-
-        $order->update(['status' => 'completed', 'completed_at' => now()]);
+        abort_unless($order->buyer_id === $request->user()->id, 403);
+        abort_unless($order->status === 'shipped', 409, 'Only shipped orders can be marked received.');
+        $order->update(['status' => 'delivered', 'delivered_at' => now(), 'completed_at' => now(), 'payout_status' => 'pending']);
         Listing::whereKey($order->listing_id)->update(['status' => 'sold']);
+        return response()->json(['message' => 'Delivery confirmed. Seller payout is now pending platform release.', 'data' => $order->fresh()]);
+    }
 
-        return response()->json(['message' => 'Order marked as completed.', 'data' => $order->fresh()]);
+    public function adminReleasePayout(Request $request, Order $order)
+    {
+        $data = $request->validate(['payout_reference' => ['required', 'string', 'max:120']]);
+        abort_unless($order->status === 'delivered' && $order->payout_status === 'pending', 409, 'Only delivered orders awaiting payout can be released.');
+        $order->update(['payout_status' => 'released', 'released_at' => now(), 'payout_reference' => $data['payout_reference']]);
+        return response()->json(['message' => 'Seller payout recorded as released. Confirm the transfer in the platform banking provider before using this action.', 'data' => $order->fresh()]);
     }
 
     public function adminIndex()
