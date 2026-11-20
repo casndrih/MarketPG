@@ -23,6 +23,7 @@ class User extends Authenticatable
         'profile_photo_path',
         'cover_photo_path',
         'payout_account_details',
+        'seller_bio', 'seller_website', 'seller_facebook_url', 'seller_x_url', 'seller_linkedin_url', 'sme_tin', 'sme_status', 'sme_review_note', 'sme_reviewed_at',
     ];
 
     protected $appends = ['seller_rank', 'profile_photo_url', 'cover_photo_url'];
@@ -31,6 +32,7 @@ class User extends Authenticatable
         'password',
         'remember_token',
         'payout_account_details',
+        'sme_tin',
     ];
 
     public function getProfilePhotoUrlAttribute(): ?string
@@ -68,6 +70,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'payout_account_details' => 'encrypted:array',
+            'sme_tin' => 'encrypted',
+            'sme_reviewed_at' => 'datetime',
         ];
     }
 }
