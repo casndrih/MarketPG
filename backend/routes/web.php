@@ -35,6 +35,7 @@ Route::get('/seller/{user}', function (User $user) {
 })->name('seller.show');
 
 Route::view('/login', 'login')->name('login');
+Route::view('/register', 'register')->name('register');
 Route::get('/password/reset', [\App\Http\Controllers\PasswordResetController::class, 'requestForm'])->name('password.request');
 Route::post('/password/email', [\App\Http\Controllers\PasswordResetController::class, 'sendLink'])->middleware('throttle:5,1')->name('password.email');
 Route::get('/password/reset/{token}', [\App\Http\Controllers\PasswordResetController::class, 'resetForm'])->name('password.reset');
