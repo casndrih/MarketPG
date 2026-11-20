@@ -65,6 +65,7 @@ interface MarketService {
     @POST("auth/login") suspend fun login(@Body request: LoginRequest): AuthResponse
     @POST("auth/register") suspend fun register(@Body request: RegisterRequest): AuthResponse
     @GET("auth/me") suspend fun me(): MeResponse
+    @POST("auth/logout") suspend fun logout(): Map<String, Any>
     @GET("wishlist") suspend fun wishlist(): WishlistPage
     @GET("messages") suspend fun messages(): MessagePage
     @POST("listings/{id}/messages") suspend fun sendMessage(@Path("id") id: Long, @Body request: MessageRequest): Map<String, Any>
