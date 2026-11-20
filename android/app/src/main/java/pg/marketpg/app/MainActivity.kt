@@ -61,6 +61,11 @@ fun MarketPGApp() {
     var savedLoading by remember { mutableStateOf(false) }
     var savedError by remember { mutableStateOf<String?>(null) }
     var currentUser by remember { mutableStateOf<AuthUser?>(null) }
+    var profileName by remember { mutableStateOf("") }
+    var profilePhone by remember { mutableStateOf("") }
+    var profileLocation by remember { mutableStateOf("") }
+    var profileAccountType by remember { mutableStateOf("both") }
+    var profileBusy by remember { mutableStateOf(false) }
     var savedRefresh by remember { mutableIntStateOf(0) }
     var inboxMessages by remember { mutableStateOf<List<MessageDto>>(emptyList()) }
     var myOrders by remember { mutableStateOf<List<OrderDto>>(emptyList()) }
@@ -107,7 +112,13 @@ fun MarketPGApp() {
             }
         }
         if ((tab == 3 || tab == 4) && signedIn) {
-            try { currentUser = MarketApi.service.me().user } catch (_: Exception) { currentUser = null }
+            try {
+                currentUser = MarketApi.service.me().user
+                profileName = currentUser?.name ?: ""
+                profilePhone = currentUser?.phone ?: ""
+                profileLocation = currentUser?.location ?: ""
+                profileAccountType = currentUser?.account_type ?: "both"
+            } catch (_: Exception) { currentUser = null }
         }
         if (tab == 4 && signedIn) {
             ordersLoading = true
@@ -334,10 +345,29 @@ fun MarketPGApp() {
                 }
             } else if (tab == 4 && signedIn) {
                 Column(Modifier.fillMaxSize().padding(padding)) {
-                    Column(Modifier.fillMaxWidth().padding(20.dp)) {
+                    Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("Your profile", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Ink)
-                        Text(currentUser?.name ?: "Loading profile...", fontWeight = FontWeight.SemiBold)
                         Text(currentUser?.email ?: "", color = Color.Gray)
+                        OutlinedTextField(profileName, { profileName = it }, label = { Text("Full name") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                        OutlinedTextField(profilePhone, { profilePhone = it }, label = { Text("Phone number") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                        OutlinedTextField(profileLocation, { profileLocation = it }, label = { Text("Town / Province") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                        Text("Account type", fontWeight = FontWeight.SemiBold)
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            listOf("buyer", "seller", "both").forEach { type ->
+                                FilterChip(profileAccountType == type, { profileAccountType = type }, label = { Text(type.replaceFirstChar(Char::uppercase)) })
+                            }
+                        }
+                        Button(enabled = !profileBusy && profileName.isNotBlank(), onClick = {
+                            scope.launch {
+                                profileBusy = true
+                                try {
+                                    currentUser = MarketApi.service.updateProfile(ProfileUpdateRequest(profileName.trim(), profilePhone.trim().ifBlank { null }, profileLocation.trim().ifBlank { null }, profileAccountType)).user
+                                    snackbarHost.showSnackbar("Profile updated.")
+                                } catch (e: Exception) {
+                                    snackbarHost.showSnackbar(e.localizedMessage ?: "Could not update profile.")
+                                } finally { profileBusy = false }
+                            }
+                        }) { Text(if (profileBusy) "Saving..." else "Save profile") }
                         TextButton(onClick = {
                             scope.launch {
                                 try { MarketApi.service.logout() } catch (_: Exception) { }
