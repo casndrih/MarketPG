@@ -14,6 +14,11 @@ return new class extends Migration {
             $table->string('cover_photo_path')->nullable();
         });
 
+        Schema::table('listings', function (Blueprint $table) {
+            $table->string('town', 100)->nullable();
+            $table->string('province', 100)->nullable();
+        });
+
         Schema::table('orders', function (Blueprint $table) {
             $table->timestamp('shipped_at')->nullable();
             $table->timestamp('delivered_at')->nullable();
@@ -37,6 +42,9 @@ return new class extends Migration {
         Schema::dropIfExists('listing_images');
         Schema::table('orders', function (Blueprint $table) {
             $table->dropColumn(['shipped_at', 'delivered_at', 'released_at', 'tracking_reference', 'payout_status', 'payout_reference']);
+        });
+        Schema::table('listings', function (Blueprint $table) {
+            $table->dropColumn(['town', 'province']);
         });
         Schema::table('users', function (Blueprint $table) {
             $table->dropColumn(['town', 'province', 'profile_photo_path', 'cover_photo_path']);
