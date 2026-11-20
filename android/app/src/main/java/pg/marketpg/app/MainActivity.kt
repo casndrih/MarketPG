@@ -289,11 +289,11 @@ fun MarketPGApp() {
             if (tab == 0) {
                 Column(Modifier.fillMaxSize().padding(padding)) {
                     OutlinedTextField(search, { search = it }, Modifier.fillMaxWidth().padding(horizontal = 16.dp), placeholder = { Text("Search phones, cars, furniture...") }, leadingIcon = { Icon(Icons.Default.Search, null) }, singleLine = true, shape = RoundedCornerShape(16.dp))
-                    Card(Modifier.fillMaxWidth().padding(16.dp), colors = CardDefaults.cardColors(containerColor = Ink), shape = RoundedCornerShape(22.dp)) {
+                    Card(Modifier.fillMaxWidth().padding(16.dp), colors = CardDefaults.cardColors(containerColor = colors.primaryContainer), shape = RoundedCornerShape(22.dp)) {
                         Column(Modifier.padding(20.dp)) {
                             Text("GREAT LOCAL FINDS", color = MarketLime, fontWeight = FontWeight.Bold, fontSize = 11.sp)
-                            Text("Give good things\na second life.", color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold)
-                            Text("Discover real listings from sellers across Papua New Guinea.", color = Color.LightGray)
+                            Text("Give good things\na second life.", color = colors.onPrimaryContainer, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold)
+                            Text("Discover real listings from sellers across Papua New Guinea.", color = colors.onSurfaceVariant)
                         }
                     }
                     Text("Browse categories", Modifier.padding(start = 18.dp), fontWeight = FontWeight.Bold, fontSize = 18.sp)
@@ -315,10 +315,10 @@ fun MarketPGApp() {
                         loading -> Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = colors.primary) }
                         error != null -> Column(Modifier.fillMaxWidth().padding(28.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                             Text("Couldn't load listings", fontWeight = FontWeight.Bold)
-                            Text(error ?: "Network error", color = Color.Gray)
+                            Text(error ?: "Network error", color = colors.onSurfaceVariant)
                             Button(onClick = { retry++ }) { Text("Try again") }
                         }
-                        listings.isEmpty() -> Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { Text("No active listings found. Try another search.", color = Color.Gray) }
+                        listings.isEmpty() -> Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { Text("No active listings found. Try another search.", color = colors.onSurfaceVariant) }
                         else -> LazyVerticalGrid(GridCells.Fixed(2), Modifier.weight(1f), contentPadding = PaddingValues(12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                             items(listings, key = { it.id }) { listing ->
                                 Card(Modifier.clickable { selected = listing }, shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = colors.surface)) {
@@ -328,7 +328,7 @@ fun MarketPGApp() {
                                         Column(Modifier.padding(11.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                             Text(listing.title, fontWeight = FontWeight.SemiBold, maxLines = 2, minLines = 2, overflow = TextOverflow.Ellipsis)
                                             Text("K " + listing.price, color = colors.primary, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
-                                            Text("⌖ " + listing.location, color = Color.Gray, fontSize = 11.sp, maxLines = 1)
+                                            Text("⌖ " + listing.location, color = colors.onSurfaceVariant, fontSize = 11.sp, maxLines = 1)
                                         }
                                     }
                                 }
@@ -338,18 +338,18 @@ fun MarketPGApp() {
                 }
             } else if (tab == 1 && signedIn) {
                 Column(Modifier.fillMaxSize().padding(padding)) {
-                    Text("Saved listings", Modifier.padding(20.dp), fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Ink)
+                    Text("Saved listings", Modifier.padding(20.dp), fontSize = 24.sp, fontWeight = FontWeight.Bold, color = colors.primary)
                     when {
                         savedLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
                         savedError != null -> Text(savedError ?: "Error", Modifier.padding(20.dp), color = MaterialTheme.colorScheme.error)
-                        savedListings.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("You haven't saved any listings yet.", color = Color.Gray) }
+                        savedListings.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("You haven't saved any listings yet.", color = colors.onSurfaceVariant) }
                         else -> LazyColumn(contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                             items(savedListings, key = { it.id }) { item ->
-                                Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                                Card(colors = CardDefaults.cardColors(containerColor = colors.surface)) {
                                     Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                                         Column(Modifier.weight(1f)) {
                                             Text(item.title, fontWeight = FontWeight.SemiBold)
-                                            Text("K " + item.price + " • " + item.location, color = Color.Gray)
+                                            Text("K " + item.price + " • " + item.location, color = colors.onSurfaceVariant)
                                         }
                                         TextButton(onClick = {
                                             scope.launch {
@@ -372,8 +372,8 @@ fun MarketPGApp() {
                     Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("Create a listing", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Ink)
-                    Text("Your listing will be reviewed before it appears publicly.", color = Color.Gray)
+                    Text("Create a listing", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = colors.primary)
+                    Text("Your listing will be reviewed before it appears publicly.", color = colors.onSurfaceVariant)
                     OutlinedTextField(newTitle, { newTitle = it }, label = { Text("Item title") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                     OutlinedTextField(newDescription, { newDescription = it }, label = { Text("Description") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
                     OutlinedTextField(newPrice, { newPrice = it }, label = { Text("Price (PGK)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
@@ -416,14 +416,14 @@ fun MarketPGApp() {
                     Spacer(Modifier.height(12.dp))
                     Text("Your listings", fontSize = 19.sp, fontWeight = FontWeight.Bold)
                     if (myListings.isEmpty()) {
-                        Text("You have not posted any listings yet.", color = Color.Gray)
+                        Text("You have not posted any listings yet.", color = colors.onSurfaceVariant)
                     } else {
                         myListings.forEach { own ->
-                            Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                            Card(colors = CardDefaults.cardColors(containerColor = colors.surface)) {
                                 Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                                     Column(Modifier.weight(1f)) {
                                         Text(own.title, fontWeight = FontWeight.SemiBold)
-                                        Text("K " + own.price + " • " + (own.status ?: "pending"), color = Color.Gray, fontSize = 12.sp)
+                                        Text("K " + own.price + " • " + (own.status ?: "pending"), color = colors.onSurfaceVariant, fontSize = 12.sp)
                                     }
                                     if (own.status != "reserved" && own.status != "sold") {
                                         TextButton(onClick = {
@@ -455,17 +455,17 @@ fun MarketPGApp() {
                 }
             } else if (tab == 3 && signedIn) {
                 Column(Modifier.fillMaxSize().padding(padding)) {
-                    Text("Inbox", Modifier.padding(20.dp), fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Ink)
+                    Text("Inbox", Modifier.padding(20.dp), fontSize = 24.sp, fontWeight = FontWeight.Bold, color = colors.primary)
                     when {
                         inboxLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
                         inboxError != null -> Text(inboxError ?: "Error", Modifier.padding(20.dp), color = MaterialTheme.colorScheme.error)
-                        inboxMessages.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("No messages yet.", color = Color.Gray) }
+                        inboxMessages.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("No messages yet.", color = colors.onSurfaceVariant) }
                         else -> LazyColumn(contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             items(inboxMessages, key = { it.id }) { message ->
-                                Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                                Card(colors = CardDefaults.cardColors(containerColor = colors.surface)) {
                                     Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                                         Text(message.listing?.title ?: "Marketplace conversation", fontWeight = FontWeight.Bold)
-                                        Text("From: " + (message.sender?.name ?: "MarketPG user") + " • To: " + (message.recipient?.name ?: "MarketPG user"), color = Color.Gray, fontSize = 12.sp)
+                                        Text("From: " + (message.sender?.name ?: "MarketPG user") + " • To: " + (message.recipient?.name ?: "MarketPG user"), color = colors.onSurfaceVariant, fontSize = 12.sp)
                                         Text(message.body, maxLines = 3, overflow = TextOverflow.Ellipsis)
                                         TextButton(onClick = { replyingTo = message; replyText = "" }) { Text("Reply") }
                                     }
@@ -477,8 +477,8 @@ fun MarketPGApp() {
             } else if (tab == 4 && signedIn) {
                 Column(Modifier.fillMaxSize().padding(padding)) {
                     Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Your profile", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Ink)
-                        Text(currentUser?.email ?: "", color = Color.Gray)
+                        Text("Your profile", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = colors.primary)
+                        Text(currentUser?.email ?: "", color = colors.onSurfaceVariant)
                         OutlinedTextField(profileName, { profileName = it }, label = { Text("Full name") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                         OutlinedTextField(profilePhone, { profilePhone = it }, label = { Text("Phone number") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                         OutlinedTextField(profileLocation, { profileLocation = it }, label = { Text("Town / Province") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
@@ -511,7 +511,7 @@ fun MarketPGApp() {
                     Text("Your disputes", Modifier.padding(horizontal = 20.dp), fontSize = 19.sp, fontWeight = FontWeight.Bold)
                     when {
                         disputesLoading -> LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 20.dp))
-                        myDisputes.isEmpty() -> Text("No disputes raised.", Modifier.padding(horizontal = 20.dp), color = Color.Gray, fontSize = 12.sp)
+                        myDisputes.isEmpty() -> Text("No disputes raised.", Modifier.padding(horizontal = 20.dp), color = colors.onSurfaceVariant, fontSize = 12.sp)
                         else -> LazyRow(
                             Modifier.fillMaxWidth(),
                             contentPadding = PaddingValues(horizontal = 12.dp),
@@ -520,12 +520,12 @@ fun MarketPGApp() {
                             items(myDisputes, key = { it.id }) { dispute ->
                                 Card(
                                     Modifier.width(230.dp),
-                                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                                    colors = CardDefaults.cardColors(containerColor = colors.surface)
                                 ) {
                                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                         Text(dispute.order?.listing?.title ?: dispute.order?.order_number ?: "Order dispute", fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                        Text(dispute.reason.replace('_', ' '), color = Color.Gray, fontSize = 12.sp)
-                                        Text("Status: " + dispute.status.replace('_', ' '), color = Ink, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                                        Text(dispute.reason.replace('_', ' '), color = colors.onSurfaceVariant, fontSize = 12.sp)
+                                        Text("Status: " + dispute.status.replace('_', ' '), color = colors.primary, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                                         if (!dispute.resolution.isNullOrBlank()) {
                                             Text("Resolution: " + dispute.resolution, fontSize = 12.sp, maxLines = 3, overflow = TextOverflow.Ellipsis)
                                         }
@@ -538,15 +538,15 @@ fun MarketPGApp() {
                     if (ordersLoading) {
                         Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
                     } else if (myOrders.isEmpty()) {
-                        Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { Text("No orders yet.", color = Color.Gray) }
+                        Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { Text("No orders yet.", color = colors.onSurfaceVariant) }
                     } else {
                         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             items(myOrders, key = { it.id }) { order ->
-                                Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                                Card(colors = CardDefaults.cardColors(containerColor = colors.surface)) {
                                     Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                                         Text(order.listing?.title ?: order.order_number, fontWeight = FontWeight.Bold)
-                                        Text(order.order_number, color = Color.Gray, fontSize = 12.sp)
-                                        Text("K " + order.amount + " • " + order.status.replace('_', ' '), color = Ink)
+                                        Text(order.order_number, color = colors.onSurfaceVariant, fontSize = 12.sp)
+                                        Text("K " + order.amount + " • " + order.status.replace('_', ' '), color = colors.primary)
                                         if (order.seller_id == currentUser?.id && order.status == "awaiting_payment" && order.payment_method == "cash_on_pickup") {
                                             TextButton(onClick = {
                                                 scope.launch {
@@ -582,9 +582,9 @@ fun MarketPGApp() {
                 }
             } else {
                 Column(Modifier.fillMaxSize().padding(padding).padding(28.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(listOf("Explore", "Saved items", "Sell on MarketPG", "Messages", "Your profile")[tab], fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Ink)
+                    Text(listOf("Explore", "Saved items", "Sell on MarketPG", "Messages", "Your profile")[tab], fontSize = 24.sp, fontWeight = FontWeight.Bold, color = colors.primary)
                     Spacer(Modifier.height(8.dp))
-                    Text(listOf("", "Sign in to see your saved listings.", "Seller tools are being connected to your account.", "Buyer and seller conversations will appear here.", "Sign in to manage your account.")[tab], color = Color.Gray)
+                    Text(listOf("", "Sign in to see your saved listings.", "Seller tools are being connected to your account.", "Buyer and seller conversations will appear here.", "Sign in to manage your account.")[tab], color = colors.onSurfaceVariant)
                 }
             }
         }
@@ -651,7 +651,7 @@ fun MarketPGApp() {
                         Modifier.heightIn(max = 440.dp).verticalScroll(rememberScrollState()),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("Saving changes to an active listing sends it back for moderation.", color = Color.Gray, fontSize = 12.sp)
+                        Text("Saving changes to an active listing sends it back for moderation.", color = colors.onSurfaceVariant, fontSize = 12.sp)
                         OutlinedTextField(editTitle, { editTitle = it }, label = { Text("Item title") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                         OutlinedTextField(editDescription, { editDescription = it }, label = { Text("Description") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
                         OutlinedTextField(editPrice, { editPrice = it }, label = { Text("Price (PGK)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
@@ -708,7 +708,7 @@ fun MarketPGApp() {
                 title = { Text("Report an order issue") },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(order.order_number, color = Color.Gray)
+                        Text(order.order_number, color = colors.onSurfaceVariant)
                         listOf("item_not_received", "not_as_described", "damaged_item", "payment_issue", "other").forEach { reason ->
                             FilterChip(disputeReason == reason, { disputeReason = reason }, label = { Text(reason.replace('_', ' ')) })
                         }
@@ -813,7 +813,7 @@ fun MarketPGApp() {
                 title = { Text("Message seller") },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Ask a question about " + listing.title + ". Keep payments and personal information safe.", color = Color.Gray, fontSize = 12.sp)
+                        Text("Ask a question about " + listing.title + ". Keep payments and personal information safe.", color = colors.onSurfaceVariant, fontSize = 12.sp)
                         OutlinedTextField(
                             value = messageDraft,
                             onValueChange = { messageDraft = it; messageError = null },
