@@ -1,0 +1,55 @@
+name: Build and deploy MarketPG to Appetize
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - '.github/workflows/appetize-deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: marketpg-appetize-deploy
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+
+      - name: Build debug APK
+        working-directory: android
+        run: gradle --no-daemon :app:assembleDebug
+
+      - name: Upload APK to Appetize
+        id: appetize
+        uses: appetizeio/github-action-appetize@v1.1.0
+        with:
+          apiToken: ${{ secrets.APPETIZE_API_TOKEN }}
+          appFile: android/app/build/outputs/apk/debug/app-debug.apk
+          platform: android
+          note: MarketPG main ${{ github.sha }}
+
+      - name: Publish emulator link
+        env:
+          PUBLIC_KEY: ${{ steps.appetize.outputs.publicKey }}
+        run: |
+          echo "## MarketPG cloud emulator" >> "$GITHUB_STEP_SUMMARY"
+          echo "APK built from commit: ${GITHUB_SHA}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Appetize session: https://appetize.io/app/${PUBLIC_KEY}" >> "$GITHUB_STEP_SUMMARY"
