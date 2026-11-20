@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\IdentityVerification;
 use App\Models\Listing;
 use App\Models\Order;
+use App\Models\OrderDispute;
 use App\Models\PaymentReceipt;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -46,6 +47,7 @@ class AdminWebController extends Controller
         return view('admin.dashboard', [
             'pendingListings' => Listing::with('user:id,name,email')->where('status', 'pending')->latest()->get(),
             'orders' => Order::with(['listing:id,title', 'buyer:id,name,email', 'seller:id,name,email'])->latest()->take(40)->get(),
+            'disputes' => OrderDispute::with(['order.listing:id,title', 'order.buyer:id,name,email', 'order.seller:id,name,email', 'raiser:id,name,email'])->where('status', 'open')->latest()->get(),
             'pendingReceipts' => PaymentReceipt::with(['user:id,name,email', 'listing:id,title', 'order:id,order_number,amount,currency'])->where('status', 'pending')->latest()->get(),
             'pendingVerifications' => IdentityVerification::with('user:id,name,email')->where('status', 'pending')->latest()->get(),
             'counts' => [
@@ -119,6 +121,31 @@ class AdminWebController extends Controller
         });
 
         return back()->with('status', 'Payment receipt review saved.');
+    }
+
+
+    public function resolveDispute(Request $request, OrderDispute $dispute)
+    {
+        abort_unless($dispute->status === 'open', 409);
+        $data = $request->validate([
+            'decision' => ['required', Rule::in(['resolved', 'rejected'])],
+            'resolution' => ['required', 'string', 'min:10', 'max:2000'],
+        ]);
+
+        DB::transaction(function () use ($request, $dispute, $data) {
+            $locked = OrderDispute::whereKey($dispute->id)->lockForUpdate()->firstOrFail();
+            abort_unless($locked->status === 'open', 409);
+            $locked->update([
+                'status' => $data['decision'],
+                'resolution' => $data['resolution'],
+                'resolved_by' => Auth::id(),
+                'resolved_at' => now(),
+            ]);
+            Order::whereKey($locked->order_id)->where('status', 'disputed')
+                ->update(['status' => $locked->previous_order_status]);
+        });
+
+        return back()->with('status', 'Dispute decision saved.');
     }
 
     public function reviewIdentity(Request $request, IdentityVerification $verification)
