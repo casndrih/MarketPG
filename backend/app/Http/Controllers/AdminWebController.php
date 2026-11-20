@@ -159,11 +159,11 @@ class AdminWebController extends Controller
             'selfie' => $verification->selfie_path,
         };
 
-        abort_unless($path && Storage::disk('local')->exists($path), 404);
-        $mime = Storage::disk('local')->mimeType($path);
+        abort_unless($path && Storage::disk(config('marketpg.private_disk'))->exists($path), 404);
+        $mime = Storage::disk(config('marketpg.private_disk'))->mimeType($path);
         abort_unless(in_array($mime, ['image/jpeg', 'image/png', 'application/pdf'], true), 404);
 
-        return Storage::disk('local')->response($path, null, [
+        return Storage::disk(config('marketpg.private_disk'))->response($path, null, [
             'Cache-Control' => 'private, no-store, max-age=0',
             'Pragma' => 'no-cache',
             'X-Content-Type-Options' => 'nosniff',
