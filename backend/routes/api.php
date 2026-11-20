@@ -11,6 +11,7 @@ use App\Http\Controllers\PaymentReceiptController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\OrderDisputeController;
 use App\Http\Controllers\IdentityVerificationController;
+use App\Http\Controllers\CommunityController;
 use App\Http\Middleware\EnsureMarketplaceAdmin;
 
 Route::get('/home-carousel', function () {
