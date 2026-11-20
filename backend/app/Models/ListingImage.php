@@ -13,7 +13,7 @@ class ListingImage extends Model
 
     public function getUrlAttribute(): string
     {
-        return \\Illuminate\\Support\\Facades\\Storage::disk(config('marketpg.public_disk'))->url($this->image_path);
+        return \Illuminate\Support\Facades\Storage::disk(config('marketpg.public_disk'))->url($this->image_path);
     }
 
     public function listing(): BelongsTo
