@@ -629,9 +629,9 @@ fun MarketPGApp() {
                     Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("Your profile", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = colors.primary)
                         Text(currentUser?.email ?: "", color = colors.onSurfaceVariant)
-                        currentUser?.cover_photo_url?.let { AsyncImage(model = it, contentDescription = "Profile cover photo", modifier = Modifier.fillMaxWidth().height(116.dp)) }
+                        currentUser?.cover_photo_url?.let { AsyncImage(model = secureMarketPgUrl(it), contentDescription = "Profile cover photo", modifier = Modifier.fillMaxWidth().height(116.dp)) }
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                            if (currentUser?.profile_photo_url != null) AsyncImage(model = currentUser?.profile_photo_url, contentDescription = "Profile photo", modifier = Modifier.size(76.dp))
+                            if (currentUser?.profile_photo_url != null) AsyncImage(model = secureMarketPgUrl(currentUser?.profile_photo_url), contentDescription = "Profile photo", modifier = Modifier.size(76.dp))
                             else Box(Modifier.size(76.dp).background(colors.surfaceVariant, RoundedCornerShape(50)), contentAlignment = Alignment.Center) { Text("Photo", color = colors.onSurfaceVariant, fontSize = 11.sp) }
                             Column(Modifier.weight(1f)) {
                                 Text("Profile and cover photos are required", fontWeight = FontWeight.SemiBold)
