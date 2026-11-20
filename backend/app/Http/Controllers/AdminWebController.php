@@ -81,7 +81,7 @@ class AdminWebController extends Controller
             'web_publisher_id' => ['nullable', 'string', 'regex:/^ca-pub-[0-9]{6,30}$/'],
             'web_slot_id' => ['nullable', 'string', 'regex:/^[0-9]{6,30}$/'],
             'mobile_app_id' => ['nullable', 'string', 'regex:/^ca-app-pub-[0-9]{6,30}~[0-9]{6,30}$/'],
-            'mobile_banner_ad_unit_id' => ['nullable', 'string', 'regex:/^ca-app-pub-[0-9]{6,30}\\/[0-9]{6,30}$/'],
+            'mobile_banner_ad_unit_id' => ['nullable', 'string', 'regex:#^ca-app-pub-[0-9]{6,30}/[0-9]{6,30}$#'],
         ]);
 
         $settings = [
