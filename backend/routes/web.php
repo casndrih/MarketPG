@@ -62,6 +62,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', EnsureMarketplaceAdm
     Route::get('/', [AdminWebController::class, 'dashboard'])->name('dashboard');
     Route::post('/logout', [AdminWebController::class, 'logout'])->name('logout');
     Route::post('/ads', [AdminWebController::class, 'updateAds'])->name('ads.update');
+    Route::post('/support/tickets/{ticket}/reply', [AdminWebController::class, 'adminTicketReply'])->name('support.reply');
+    Route::post('/support/tickets/{ticket}/status', [AdminWebController::class, 'adminTicketStatus'])->name('support.status');
     Route::post('/carousel', [AdminWebController::class, 'addCarouselItem'])->name('carousel.add');
     Route::delete('/carousel/{id}', [AdminWebController::class, 'deleteCarouselItem'])->name('carousel.delete');
     Route::post('/sellers/{user}/sme-review', [AdminWebController::class, 'reviewSme'])->name('sellers.sme-review');
