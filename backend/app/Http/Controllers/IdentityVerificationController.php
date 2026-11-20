@@ -17,6 +17,7 @@ class IdentityVerificationController extends Controller
 
     public function submit(Request $request)
     {
+        abort_unless(config('marketpg.identity_uploads_enabled'), 503, 'Identity document submissions are temporarily unavailable while secure private storage is being configured.');
         $data = $request->validate([
             'document_type' => ['required', Rule::in(['png_nid', 'passport', 'drivers_licence', 'other_government_id'])],
             'document_number' => ['nullable', 'string', 'max:80'],
