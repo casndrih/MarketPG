@@ -104,7 +104,10 @@ interface MarketService {
         @Query("q") query: String? = null,
         @Query("category_id") categoryId: Int? = null,
         @Query("location") location: String? = null,
-        @Query("sort") sort: String? = null
+        @Query("sort") sort: String? = null,
+        @Query("min_price") minPrice: Double? = null,
+        @Query("max_price") maxPrice: Double? = null,
+        @Query("condition") condition: String? = null
     ): ListingPage
     @GET("listings/{id}") suspend fun listing(@Path("id") id: Long): ListingDetailResponse
 }
