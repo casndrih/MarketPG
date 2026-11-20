@@ -397,3 +397,21 @@ MAIL_FROM_NAME=MarketPG
 ```
 
 Use the SMTP host, port, security mode and verified sender supplied by your email provider. Do not commit real SMTP credentials to GitHub. After deployment, run the normal Laravel database migrations so the password reset token table is created. Password recovery cannot deliver messages until valid SMTP credentials and sender-domain authentication are configured.
+
+
+## Android diagnostic logging
+
+The Android app keeps a small rolling diagnostic log in its private app storage. It records app startup, uncaught crashes, API request paths, HTTP status codes, request durations, and network exception types. It deliberately does **not** record request or response bodies, passwords, bearer tokens, identity documents, payment receipts, or full URLs/query strings.
+
+Signed-in users can open **Profile → App diagnostics → Upload diagnostic logs to GitHub**. Uploads are explicit (not automatic), authenticated with the user's MarketPG session, and limited to three attempts per hour. Reports are stored under `debug-logs/YYYY/MM/DD/` in this repository. The backend applies a second pass of common secret redaction before creating the GitHub file.
+
+### Configure GitHub diagnostic uploads on Render
+
+Set these environment variables on the MarketPG web service:
+
+- `MARKETPG_DIAGNOSTICS_GITHUB_REPO=casndrih/MarketPG`
+- `MARKETPG_DIAGNOSTICS_GITHUB_TOKEN=<fine-grained GitHub token>`
+
+Create a fine-grained GitHub token restricted to this repository with **Contents: Read and write** permission. Keep the token only in Render's environment settings; never add it to source code, the Android app, a build secret, or a client configuration. Prefer keeping the repository private because diagnostic reports include technical device and account-ID context. After setting the variables, redeploy the MarketPG web service.
+
+If the token is not configured, the endpoint returns HTTP 503 and the app will display that uploads are not configured. This does not affect normal marketplace use.
