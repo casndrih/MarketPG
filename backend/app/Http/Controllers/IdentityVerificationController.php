@@ -33,7 +33,7 @@ class IdentityVerificationController extends Controller
             return response()->json(['message' => 'You already have a verification awaiting review.'], 409);
         }
 
-        $front = $request->file('id_front')->store('identity-verifications', 'local');
+        $front = $request->file('id_front')->store('identity-verifications', config('marketpg.private_disk'));
         $back = $request->hasFile('id_back') ? $request->file('id_back')->store('identity-verifications', 'local') : null;
         $selfie = $request->file('selfie')->store('identity-verifications', 'local');
 
@@ -87,7 +87,7 @@ class IdentityVerificationController extends Controller
             'back' => $verification->back_path,
             'selfie' => $verification->selfie_path,
         };
-        abort_unless($path && Storage::disk('local')->exists($path), 404);
-        return Storage::disk('local')->download($path);
+        abort_unless($path && Storage::disk(config('marketpg.private_disk'))->exists($path), 404);
+        return Storage::disk(config('marketpg.private_disk'))->download($path);
     }
 }
