@@ -689,7 +689,7 @@ fun MarketPGApp() {
                                 scope.launch {
                                     diagnosticsBusy = true
                                     try {
-                                        val version = packageManager.getPackageInfo(packageName, 0).versionName ?: "unknown"
+                                        val version = context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "unknown"
                                         val result = MarketApi.service.uploadDiagnostics(
                                             DiagnosticLogRequest(
                                                 report = MarketDiagnostics.exportReport(),
