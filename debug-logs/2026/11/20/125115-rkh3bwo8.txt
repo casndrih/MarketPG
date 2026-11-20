@@ -1,0 +1,55 @@
+MarketPG Android diagnostic report
+Received UTC: 2026-11-20T12:51:15+00:00
+App version: 1.0.0
+Device: Android 13; SDK 33
+
+2026-11-20T22:34:07.256Z INFO/diagnostics: Logger initialized; Android 13; Xiaomi 21121119SG
+2026-11-20T22:34:09.543Z INFO/http: GET /api/categories -> 200 (708ms)
+2026-11-20T22:34:09.983Z INFO/http: GET /api/home-carousel -> 200 (410ms)
+2026-11-20T22:34:10.079Z INFO/http: GET /api/listings -> 200 (871ms)
+2026-11-20T22:34:10.229Z INFO/http: GET /api/public-config -> 200 (229ms)
+2026-11-20T22:34:33.432Z INFO/auth-submit: mode=login email_chars=24 email_has_at=true password_present=true
+2026-11-20T22:34:33.688Z WARN/http: POST /api/auth/login -> 422 (249ms)
+2026-11-20T22:34:33.692Z ERROR/api-error: r: HTTP 422 
+2026-11-20T22:34:33.694Z ERROR/auth-submit: mode=login failed: r; detail=HTTP 422 
+2026-11-20T22:34:33.927Z WARN/http: POST /api/diagnostics/logs -> 422 (224ms)
+2026-11-20T22:34:33.935Z ERROR/diagnostics-upload: automatic auth-failure upload failed: r; HTTP 422 
+2026-11-20T22:34:35.171Z INFO/auth-submit: mode=login email_chars=24 email_has_at=true password_present=true
+2026-11-20T22:34:35.451Z WARN/http: POST /api/auth/login -> 422 (276ms)
+2026-11-20T22:34:35.457Z ERROR/api-error: r: HTTP 422 
+2026-11-20T22:34:35.461Z ERROR/auth-submit: mode=login failed: r; detail=HTTP 422 
+2026-11-20T22:34:35.707Z WARN/http: POST /api/diagnostics/logs -> 429 (237ms)
+2026-11-20T22:34:35.713Z ERROR/diagnostics-upload: automatic auth-failure upload failed: r; HTTP 429 
+2026-11-20T22:34:41.500Z INFO/auth-submit: mode=login email_chars=23 email_has_at=true password_present=true
+2026-11-20T22:34:41.788Z WARN/http: POST /api/auth/login -> 422 (285ms)
+2026-11-20T22:34:41.792Z ERROR/api-error: r: HTTP 422 
+2026-11-20T22:34:41.796Z ERROR/auth-submit: mode=login failed: r; detail=HTTP 422 
+2026-11-20T22:34:42.038Z WARN/http: POST /api/diagnostics/logs -> 429 (230ms)
+2026-11-20T22:34:42.042Z ERROR/diagnostics-upload: automatic auth-failure upload failed: r; HTTP 429 
+2026-11-20T22:49:13.784Z INFO/diagnostics: Logger initialized; Android 13; Xiaomi 21121119SG
+2026-11-20T22:49:16.361Z INFO/http: GET /api/categories -> 200 (674ms)
+2026-11-20T22:49:16.502Z INFO/http: GET /api/listings -> 200 (309ms)
+2026-11-20T22:49:16.613Z INFO/http: GET /api/home-carousel -> 200 (227ms)
+2026-11-20T22:49:16.923Z INFO/http: GET /api/public-config -> 200 (218ms)
+2026-11-20T22:49:28.221Z INFO/auth-submit: mode=login email_chars=24 email_has_at=true password_present=true
+2026-11-20T22:49:29.884Z WARN/http: POST /api/auth/login -> 422 (1657ms)
+2026-11-20T22:49:29.887Z ERROR/api-error: q: HTTP 422 
+2026-11-20T22:49:29.889Z ERROR/auth-submit: mode=login failed: q; detail=HTTP 422 
+2026-11-20T22:49:31.950Z INFO/http: POST /api/diagnostics/logs -> 201 (2054ms)
+2026-11-20T22:49:31.954Z ERROR/diagnostics-upload: automatic auth-failure upload failed: ClassCastException; no detail
+2026-11-20T22:49:49.715Z INFO/auth-submit: mode=login email_chars=24 email_has_at=true password_present=true
+2026-11-20T22:49:51.387Z WARN/http: POST /api/auth/login -> 422 (1669ms)
+2026-11-20T22:49:51.389Z ERROR/api-error: q: HTTP 422 
+2026-11-20T22:49:51.391Z ERROR/auth-submit: mode=login failed: q; detail=HTTP 422 
+2026-11-20T22:49:52.947Z INFO/http: POST /api/diagnostics/logs -> 201 (1548ms)
+2026-11-20T22:49:52.955Z ERROR/diagnostics-upload: automatic auth-failure upload failed: ClassCastException; no detail
+2026-11-20T22:51:04.454Z INFO/auth-submit: mode=login email_chars=24 email_has_at=true password_present=true
+2026-11-20T22:51:06.194Z INFO/http: POST /api/auth/login -> 200 (1731ms)
+2026-11-20T22:51:06.200Z ERROR/api-error: ClassCastException: no detail
+2026-11-20T22:51:06.203Z ERROR/auth-submit: mode=login failed: ClassCastException; detail=no detail
+2026-11-20T22:51:07.907Z INFO/http: POST /api/diagnostics/logs -> 201 (1696ms)
+2026-11-20T22:51:07.914Z ERROR/diagnostics-upload: automatic auth-failure upload failed: ClassCastException; no detail
+2026-11-20T22:51:13.162Z INFO/auth-submit: mode=login email_chars=24 email_has_at=true password_present=true
+2026-11-20T22:51:14.899Z INFO/http: POST /api/auth/login -> 200 (1734ms)
+2026-11-20T22:51:14.908Z ERROR/api-error: ClassCastException: no detail
+2026-11-20T22:51:14.912Z ERROR/auth-submit: mode=login failed: ClassCastException; detail=no detail
