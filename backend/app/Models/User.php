@@ -22,6 +22,7 @@ class User extends Authenticatable
         'province',
         'profile_photo_path',
         'cover_photo_path',
+        'payout_account_details',
     ];
 
     protected $appends = ['seller_rank', 'profile_photo_url', 'cover_photo_url'];
@@ -29,6 +30,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'payout_account_details',
     ];
 
     public function getProfilePhotoUrlAttribute(): ?string
@@ -65,6 +67,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'payout_account_details' => 'encrypted:array',
         ];
     }
 }
