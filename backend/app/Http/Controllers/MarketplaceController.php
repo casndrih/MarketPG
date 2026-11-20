@@ -129,6 +129,7 @@ class MarketplaceController extends Controller
 
     public function uploadReceipt(Request $request, Listing $listing)
     {
+        abort_unless(config('marketpg.private_uploads_enabled'), 503, 'Receipt uploads are temporarily unavailable while secure persistent storage is being configured.');
         $data = $request->validate([
             'receipt' => 'required|file|mimes:jpg,jpeg,png,pdf|max:10240',
             'order_reference' => 'required|string|max:80',
