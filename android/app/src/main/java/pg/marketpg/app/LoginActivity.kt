@@ -157,7 +157,7 @@ class LoginActivity : ComponentActivity() {
                         }
                         Spacer(Modifier.height(14.dp))
                         TextButton(onClick = { register = !register; error = null }) {
-                            Text(if (register) "Sign in", fontSize = 16.sp, color = colors.primary)
+                            Text(if (register) "Sign in" else "Create new account", fontSize = 16.sp, color = colors.primary)
                         }
                     }
                 }
