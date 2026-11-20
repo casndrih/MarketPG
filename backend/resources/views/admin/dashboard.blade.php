@@ -9,7 +9,20 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet">
 <script>(function(){try{if(localStorage.getItem('marketpg_theme')==='dark')document.documentElement.classList.add('dark');}catch(e){}})();</script>
-<style>.admin-theme-toggle{display:inline-flex;align-items:center;justify-content:center;min-width:42px;height:38px;padding:0 .8rem;border:0;border-radius:9999px;background:#f3f4f6;color:#374151;font-size:13px;font-weight:600}.dark .admin-theme-toggle{background:#292f3b;color:#facc15}</style></head>
+<style>
+.admin-theme-toggle{display:inline-flex;align-items:center;justify-content:center;min-width:42px;height:38px;padding:0 .8rem;border:0;border-radius:9999px;background:#f3f4f6;color:#374151;font-size:13px;font-weight:600}
+.dark .admin-theme-toggle{background:#292f3b;color:#facc15}
+html.dark,html.dark body{background:#000!important;color:#f3f4f6!important}
+html.dark nav,html.dark aside{background:#101318!important;border-color:transparent!important}
+html.dark main section,html.dark main .rounded-xl.border,html.dark main .rounded-lg.border{background:#171a22!important;border-color:transparent!important;box-shadow:none!important}
+html.dark main section>div.border-b,html.dark main section .border-t,html.dark main section .divide-y>*{border-color:#292f3b!important}
+html.dark input:not([type=checkbox]):not([type=radio]):not([type=file]),html.dark textarea,html.dark select{background:#222631!important;color:#f3f4f6!important;border:0!important;border-radius:9999px!important;box-shadow:none!important;outline:none}
+html.dark input::placeholder,html.dark textarea::placeholder{color:#929baa!important}
+html.dark button{border:0!important;border-radius:9999px!important}
+html.dark input[type=file]::file-selector-button{border:0!important;border-radius:9999px!important}
+html.dark .admin-theme-toggle{border:0!important;border-radius:9999px!important}
+html.dark a:focus-visible,html.dark button:focus-visible,html.dark input:focus-visible,html.dark textarea:focus-visible,html.dark select:focus-visible{outline:2px solid #60a5fa;outline-offset:2px}
+</style></head>
 <body class="bg-gray-50 text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100">
 <nav class="fixed top-0 z-50 w-full border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
     <div class="px-4 py-3 lg:px-6">
