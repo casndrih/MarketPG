@@ -108,6 +108,9 @@ fun MarketPGApp() {
     var savedRefresh by remember { mutableIntStateOf(0) }
     var inboxMessages by remember { mutableStateOf<List<MessageDto>>(emptyList()) }
     var myOrders by remember { mutableStateOf<List<OrderDto>>(emptyList()) }
+    var receiptOrder by remember { mutableStateOf<OrderDto?>(null) }
+    var trackingOrder by remember { mutableStateOf<OrderDto?>(null) }
+    var trackingText by remember { mutableStateOf("") }
     var ordersLoading by remember { mutableStateOf(false) }
     var myDisputes by remember { mutableStateOf<List<DisputeDto>>(emptyList()) }
     var disputesLoading by remember { mutableStateOf(false) }
@@ -168,6 +171,18 @@ fun MarketPGApp() {
     val idFrontPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { idFrontUri = it }
     val idBackPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { idBackUri = it }
     val selfiePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { selfieUri = it }
+    val receiptPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        val order = receiptOrder
+        if (uri != null && order != null) scope.launch {
+            try {
+                MarketApi.service.uploadReceipt(order.id, uri.toUploadPart(context, "receipt"))
+                snackbarHost.showSnackbar("Payment receipt submitted for admin verification.")
+                savedRefresh++
+            } catch (e: Exception) { snackbarHost.showSnackbar(e.localizedMessage ?: "Receipt upload unavailable.") }
+            finally { receiptOrder = null }
+        }
+    }
+
 
     val context = LocalContext.current
     val view = LocalView.current
@@ -605,32 +620,30 @@ fun MarketPGApp() {
                                         Text(order.listing?.title ?: order.order_number, fontWeight = FontWeight.Bold)
                                         Text(order.order_number, color = colors.onSurfaceVariant, fontSize = 12.sp)
                                         Text("K " + order.amount + " • " + order.status.replace('_', ' '), color = colors.primary)
-                                        if (order.seller_id == currentUser?.id && order.status == "awaiting_payment" && order.payment_method == "cash_on_pickup") {
-                                            TextButton(onClick = {
-                                                scope.launch {
-                                                    try { MarketApi.service.confirmCash(order.id); savedRefresh++ }
-                                                    catch (e: Exception) { snackbarHost.showSnackbar(e.localizedMessage ?: "Could not confirm payment.") }
-                                                }
-                                            }) { Text("Confirm cash received") }
-                                        }
-                                        if (order.seller_id == currentUser?.id && order.status == "paid") {
-                                            TextButton(onClick = {
-                                                scope.launch {
-                                                    try { MarketApi.service.completeOrder(order.id); savedRefresh++ }
-                                                    catch (e: Exception) { snackbarHost.showSnackbar(e.localizedMessage ?: "Could not complete order.") }
-                                                }
-                                            }) { Text("Mark completed") }
-                                        }
-                                        if (order.status == "paid" || order.status == "completed") {
-                                            TextButton(onClick = { disputeOrder = order; disputeReason = "not_as_described"; disputeDetails = "" }) { Text("Report an issue") }
-                                        }
+                                        Text("Seller payout: " + (order.payout_status ?: "held").replaceFirstChar(Char::uppercase), color = colors.onSurfaceVariant, fontSize = 12.sp)
+                                        order.tracking_reference?.let { Text("Tracking: $it", fontSize = 12.sp) }
                                         if (order.buyer_id == currentUser?.id && order.status == "awaiting_payment") {
+                                            TextButton(onClick = { receiptOrder = order; receiptPicker.launch("*/*") }) { Text("Upload payment receipt") }
                                             TextButton(onClick = {
                                                 scope.launch {
                                                     try { MarketApi.service.cancelOrder(order.id); savedRefresh++ }
                                                     catch (e: Exception) { snackbarHost.showSnackbar(e.localizedMessage ?: "Could not cancel order.") }
                                                 }
                                             }) { Text("Cancel order") }
+                                        }
+                                        if (order.seller_id == currentUser?.id && order.status == "paid") {
+                                            TextButton(onClick = { trackingOrder = order; trackingText = "" }) { Text("Mark shipped") }
+                                        }
+                                        if (order.buyer_id == currentUser?.id && order.status == "shipped") {
+                                            Button(onClick = {
+                                                scope.launch {
+                                                    try { MarketApi.service.confirmReceived(order.id); myOrders = MarketApi.service.orders().data; snackbarHost.showSnackbar("Delivery confirmed. Seller payout is pending.") }
+                                                    catch (e: Exception) { snackbarHost.showSnackbar(e.localizedMessage ?: "Could not confirm delivery.") }
+                                                }
+                                            }) { Text("Confirm item received") }
+                                        }
+                                        if (order.status in listOf("paid", "shipped", "delivered")) {
+                                            TextButton(onClick = { disputeOrder = order; disputeReason = "not_as_described"; disputeDetails = "" }) { Text("Report an issue") }
                                         }
                                     }
                                 }
@@ -916,6 +929,28 @@ fun MarketPGApp() {
                 dismissButton = {
                     TextButton(enabled = !messageBusy, onClick = { messageListing = null }) { Text("Cancel") }
                 }
+            )
+        }
+
+
+        trackingOrder?.let { order ->
+            AlertDialog(
+                onDismissRequest = { trackingOrder = null },
+                title = { Text("Shipment details") },
+                text = { OutlinedTextField(trackingText, { trackingText = it }, label = { Text("Tracking reference") }, modifier = Modifier.fillMaxWidth(), singleLine = true) },
+                confirmButton = {
+                    Button(enabled = trackingText.isNotBlank(), onClick = {
+                        scope.launch {
+                            try {
+                                MarketApi.service.shipOrder(order.id, ShipOrderRequest(trackingText.trim()))
+                                myOrders = MarketApi.service.orders().data
+                                trackingOrder = null
+                                snackbarHost.showSnackbar("Shipment recorded.")
+                            } catch (e: Exception) { snackbarHost.showSnackbar(e.localizedMessage ?: "Could not record shipment.") }
+                        }
+                    }) { Text("Confirm shipment") }
+                },
+                dismissButton = { TextButton(onClick = { trackingOrder = null }) { Text("Cancel") } }
             )
         }
 
