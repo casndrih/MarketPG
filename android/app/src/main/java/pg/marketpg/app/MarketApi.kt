@@ -11,6 +11,10 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 import com.google.gson.annotations.SerializedName
 import okhttp3.OkHttpClient
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import retrofit2.http.Multipart
+import retrofit2.http.Part
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
@@ -43,6 +47,8 @@ data class LoginRequest(val email: String, val password: String)
 data class RegisterRequest(val name: String, val email: String, val password: String, val password_confirmation: String)
 data class AuthResponse(val message: String? = null, val user: AuthUser? = null, val token: String)
 data class MeResponse(val user: AuthUser)
+data class IdentityStatusDto(val id: Long? = null, val status: String? = null, val document_type: String? = null, val rejection_reason: String? = null)
+data class IdentityStatusResponse(val data: IdentityStatusDto?)
 data class CreateOrderRequest(val payment_method: String = "bank_transfer", val buyer_note: String? = null)
 data class CreateListingRequest(val title: String, val description: String, val price: String, val condition: String, val location: String, val category_id: Int)
 data class OrderListingDto(val id: Long, val title: String, val location: String? = null)
@@ -93,6 +99,9 @@ interface MarketService {
     @GET("auth/me") suspend fun me(): MeResponse
     @retrofit2.http.PATCH("profile") suspend fun updateProfile(@Body request: ProfileUpdateRequest): MeResponse
     @POST("auth/logout") suspend fun logout(): Map<String, Any>
+    @Multipart @POST("profile/media") suspend fun uploadProfileMedia(@Part profilePhoto: MultipartBody.Part?, @Part coverPhoto: MultipartBody.Part?): MeResponse
+    @GET("identity-verification") suspend fun identityStatus(): IdentityStatusResponse
+    @Multipart @POST("identity-verification") suspend fun submitIdentity(@Part("document_type") documentType: RequestBody, @Part("consent") consent: RequestBody, @Part idFront: MultipartBody.Part, @Part idBack: MultipartBody.Part?, @Part selfie: MultipartBody.Part): Map<String, Any>
     @GET("wishlist") suspend fun wishlist(): WishlistPage
     @GET("messages") suspend fun messages(): MessagePage
     @POST("listings/{id}/messages") suspend fun sendMessage(@Path("id") id: Long, @Body request: MessageRequest): Map<String, Any>
