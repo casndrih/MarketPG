@@ -13,8 +13,21 @@ android {
         versionCode = 1
         versionName = "1.0.0"
     }
-    buildTypes { release { isMinifyEnabled = false } }
-    compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
+    buildTypes {
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
+    }
     kotlinOptions { jvmTarget = "17" }
 }
 dependencies {
@@ -28,5 +41,7 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
     implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk:1.7.0")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     debugImplementation("androidx.compose.ui:ui-tooling")
 }
