@@ -6,6 +6,7 @@ use App\Http\Controllers\MarketplaceController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\WishlistController;
+use App\Http\Controllers\PaymentReceiptController;
 use App\Http\Controllers\IdentityVerificationController;
 use App\Http\Middleware\EnsureMarketplaceAdmin;
 
@@ -42,6 +43,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/listings', [MarketplaceController::class, 'adminQueue']);
         Route::post('/listings/{listing}/review', [MarketplaceController::class, 'adminReview']);
         Route::get('/orders', [OrderController::class, 'adminIndex']);
+        Route::get('/payment-receipts', [PaymentReceiptController::class, 'index']);
+        Route::get('/payment-receipts/{receipt}/document', [PaymentReceiptController::class, 'document']);
+        Route::post('/payment-receipts/{receipt}/review', [PaymentReceiptController::class, 'review']);
         Route::patch('/orders/{order}', [OrderController::class, 'adminUpdate']);
         Route::get('/identity-verifications', [IdentityVerificationController::class, 'queue']);
         Route::post('/identity-verifications/{verification}/review', [IdentityVerificationController::class, 'review']);
