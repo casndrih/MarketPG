@@ -249,6 +249,8 @@ object MarketApi {
     val service: MarketService by lazy {
         val client = OkHttpClient.Builder().addInterceptor { chain ->
             val request = chain.request().newBuilder().apply {
+                // Tell Laravel this is an API request so validation/auth errors are JSON, never HTML redirects.
+                header("Accept", "application/json")
                 token?.takeIf { it.isNotBlank() }?.let { header("Authorization", "Bearer " + it) }
             }.build()
             chain.proceed(request)
