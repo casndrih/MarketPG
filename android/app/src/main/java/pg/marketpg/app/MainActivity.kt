@@ -420,7 +420,7 @@ fun MarketPGApp() {
                             items(homeBanners, key = { it.id }) { banner ->
                                 Card(
                                     Modifier.width(330.dp).height(156.dp).clickable {
-                                        banner.link_url?.takeIf { it.startsWith("https://") || it.startsWith("http://") }?.let {
+                                        banner.link_url?.takeIf { it.startsWith("https://", ignoreCase = true) }?.let {
                                             try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(it))) } catch (_: Exception) { }
                                         }
                                     },
@@ -1295,7 +1295,7 @@ class ListingDetailActivity : ComponentActivity() {
                                 "f Facebook" to sellerFacebookPublic,
                                 "𝕏 X" to sellerXPublic,
                                 "in LinkedIn" to sellerLinkedInPublic
-                            ).filter { it.second.startsWith("https://") || it.second.startsWith("http://") }
+                            ).filter { it.second.startsWith("https://", ignoreCase = true) }
                             socialLinks.forEach { (label, url) ->
                                 TextButton(onClick = { try { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) } catch (_: Exception) { } }) {
                                     Text(label, color = MaterialTheme.colorScheme.primary)
