@@ -131,6 +131,22 @@ html.dark a:focus-visible,html.dark button:focus-visible,html.dark input:focus-v
             @empty<p class="py-8 text-center text-sm text-gray-500">No support tickets have been submitted.</p>@endforelse
         </div>
     </section>
+
+    <section id="demo-accounts" class="mb-8 rounded-xl bg-white p-5 shadow-sm dark:bg-gray-900">
+        <div class="mb-4"><h2 class="text-lg font-bold">Demo account credentials</h2><p class="text-sm text-gray-500">Change test passwords at any time. Leave a field blank to keep its current password. Minimum 12 characters.</p></div>
+        <div class="mb-4 grid gap-3 text-sm sm:grid-cols-3">
+            <div class="rounded-xl bg-gray-100 p-3 dark:bg-gray-800"><strong>Buyer</strong><p>buyer.test@marketpg.test</p></div>
+            <div class="rounded-xl bg-gray-100 p-3 dark:bg-gray-800"><strong>Seller</strong><p>seller.test@marketpg.test</p></div>
+            <div class="rounded-xl bg-gray-100 p-3 dark:bg-gray-800"><strong>Admin</strong><p>{{ env('MARKETPG_DEMO_ADMIN_EMAIL', 'admin.test@marketpg.test') }}</p></div>
+        </div>
+        <form method="POST" action="{{ route('admin.demo.passwords') }}" class="grid gap-4 md:grid-cols-3">@csrf
+            @foreach ([['buyer','Buyer'],['seller','Seller'],['admin','Admin']] as [$key,$label])
+                <div><label class="mb-1 block text-sm font-semibold">{{ $label }} new password</label><input type="password" name="{{ $key }}_password" minlength="12" autocomplete="new-password" placeholder="Leave blank to keep current" class="w-full rounded-full border-0 bg-gray-100 px-4 py-3 text-sm dark:bg-gray-800"><label class="mb-1 mt-2 block text-sm">Confirm password</label><input type="password" name="{{ $key }}_password_confirmation" minlength="12" autocomplete="new-password" class="w-full rounded-full border-0 bg-gray-100 px-4 py-3 text-sm dark:bg-gray-800"></div>
+            @endforeach
+            <div class="md:col-span-3"><button class="rounded-full bg-blue-600 px-6 py-3 text-sm font-semibold text-white">Update demo passwords</button></div>
+        </form>
+        <p class="mt-3 text-xs text-amber-700 dark:text-amber-300">Demo accounts are for testing only. Change these passwords before public production use.</p>
+    </section>
     <footer class="mt-8 text-center text-xs text-gray-400">MarketPG administration · Papua New Guinea</footer>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
