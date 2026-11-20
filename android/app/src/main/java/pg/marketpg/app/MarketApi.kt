@@ -52,7 +52,8 @@ data class IdentityStatusResponse(val data: IdentityStatusDto?)
 data class CreateOrderRequest(val payment_method: String = "bank_transfer", val buyer_note: String? = null)
 data class CreateListingRequest(val title: String, val description: String, val price: String, val condition: String, val location: String, val category_id: Int)
 data class OrderListingDto(val id: Long, val title: String, val location: String? = null)
-data class OrderDto(val id: Long, val order_number: String, val buyer_id: Long, val seller_id: Long, val amount: String, val currency: String, val payment_method: String, val status: String, val listing: OrderListingDto? = null)
+data class OrderDto(val id: Long, val order_number: String, val buyer_id: Long, val seller_id: Long, val amount: String, val currency: String, val payment_method: String, val status: String, val payout_status: String? = null, val tracking_reference: String? = null, val listing: OrderListingDto? = null)
+data class ShipOrderRequest(val tracking_reference: String)
 data class OrderResponse(val message: String? = null, val payment_instructions: String? = null, val data: OrderDto)
 data class OrderPage(val data: List<OrderDto> = emptyList())
 data class WishlistItemDto(val id: Long, val listing: ListingDto?)
@@ -112,7 +113,9 @@ interface MarketService {
     @GET("disputes") suspend fun disputes(): DisputePage
     @POST("orders/{id}/disputes") suspend fun raiseDispute(@Path("id") id: Long, @Body request: DisputeRequest): Map<String, Any>
     @POST("orders/{id}/confirm-cash") suspend fun confirmCash(@Path("id") id: Long): Map<String, Any>
-    @POST("orders/{id}/complete") suspend fun completeOrder(@Path("id") id: Long): Map<String, Any>
+    @POST("orders/{id}/ship") suspend fun shipOrder(@Path("id") id: Long, @Body request: ShipOrderRequest): Map<String, Any>
+    @POST("orders/{id}/confirm-received") suspend fun confirmReceived(@Path("id") id: Long): Map<String, Any>
+    @Multipart @POST("orders/{id}/receipt") suspend fun uploadReceipt(@Path("id") id: Long, @Part receipt: MultipartBody.Part): Map<String, Any>
     @POST("orders/{id}/cancel") suspend fun cancelOrder(@Path("id") id: Long): Map<String, Any>
     @GET("categories") suspend fun categories(): CategoryPage
     @POST("listings") suspend fun createListing(@Body request: CreateListingRequest): ListingDetailResponse
