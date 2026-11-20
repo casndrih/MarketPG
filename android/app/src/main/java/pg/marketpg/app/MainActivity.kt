@@ -426,7 +426,7 @@ fun MarketPGApp() {
                     }
                     createError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                     Button(
-                        enabled = !createBusy && newTitle.isNotBlank() && newDescription.isNotBlank() && newPrice.isNotBlank() && newLocation.isNotBlank(),
+                        enabled = !createBusy && newTitle.isNotBlank() && newDescription.isNotBlank() && newPrice.isNotBlank() && newLocation.isNotBlank() && newProvince.isNotBlank(),
                         onClick = {
                             scope.launch {
                                 createBusy = true
@@ -465,7 +465,8 @@ fun MarketPGApp() {
                                             editTitle = own.title
                                             editDescription = own.description.orEmpty()
                                             editPrice = own.price
-                                            editLocation = own.location
+                                            editLocation = own.location.substringBefore(",").trim()
+                                            editProvince = own.location.substringAfter(",", "").trim()
                                             editCondition = own.condition ?: "used"
                                             editCategoryId = categories.firstOrNull { it.id == own.categoryId }?.id ?: categories.firstOrNull()?.id ?: 1
                                             editError = null
@@ -561,7 +562,7 @@ fun MarketPGApp() {
                                 FilterChip(profileAccountType == type, { profileAccountType = type }, label = { Text(type.replaceFirstChar(Char::uppercase)) }, shape = RoundedCornerShape(50))
                             }
                         }
-                        Button(enabled = !profileBusy && profileName.isNotBlank(), onClick = {
+                        Button(enabled = !profileBusy && profileName.isNotBlank() && profileLocation.isNotBlank() && profileProvince.isNotBlank(), onClick = {
                             scope.launch {
                                 profileBusy = true
                                 try {
@@ -747,7 +748,7 @@ fun MarketPGApp() {
                 confirmButton = {
                     Button(
                         enabled = !editBusy && editTitle.isNotBlank() && editDescription.isNotBlank() &&
-                            editPrice.toBigDecimalOrNull()?.signum()?.let { it >= 0 } == true && editLocation.isNotBlank(),
+                            editPrice.toBigDecimalOrNull()?.signum()?.let { it >= 0 } == true && editLocation.isNotBlank() && editProvince.isNotBlank(),
                         onClick = {
                             scope.launch {
                                 editBusy = true
