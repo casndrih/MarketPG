@@ -148,26 +148,5 @@ class MarketplaceController extends Controller
         return response()->json(['message' => 'Listing moderation decision saved.', 'data' => $listing->fresh()]);
     }
 
-    public function uploadReceipt(Request $request, Listing $listing)
-    {
-        abort_unless(config('marketpg.private_uploads_enabled'), 503, 'Receipt uploads are temporarily unavailable while secure persistent storage is being configured.');
-        $data = $request->validate([
-            'receipt' => 'required|file|mimes:jpg,jpeg,png,pdf|max:10240',
-            'order_reference' => 'required|string|max:80',
-        ]);
-        $order = Order::where('order_number', $data['order_reference'])
-            ->where('listing_id', $listing->id)
-            ->where('buyer_id', $request->user()->id)
-            ->where('status', 'awaiting_payment')
-            ->where('payment_method', 'bank_transfer')
-            ->firstOrFail();
 
-        $path = $request->file('receipt')->store('payment-receipts','local');
-        $receipt = PaymentReceipt::create([
-            'user_id' => $request->user()->id, 'listing_id' => $listing->id,
-            'order_id' => $order->id,
-            'order_reference' => $data['order_reference'], 'file_path' => $path, 'status' => 'pending',
-        ]);
-        return response()->json(['message' => 'Receipt submitted for admin verification.', 'data' => $receipt], 201);
-    }
 }
