@@ -66,6 +66,7 @@ class LoginActivity : ComponentActivity() {
             var email by remember { mutableStateOf("") }
             var password by remember { mutableStateOf("") }
             var confirm by remember { mutableStateOf("") }
+            var accountType by remember { mutableStateOf("buyer") }
             var passwordVisible by remember { mutableStateOf(false) }
             var confirmVisible by remember { mutableStateOf(false) }
             var busy by remember { mutableStateOf(false) }
@@ -90,6 +91,27 @@ class LoginActivity : ComponentActivity() {
 
                         if (register) {
                             AuthInput(name, { name = it; error = null }, "Full name", colors)
+                            Spacer(Modifier.height(12.dp))
+                        }
+                        if (register) {
+                            Text("I want to join MarketPG as a", color = colors.onSurface, fontSize = 14.sp, modifier = Modifier.fillMaxWidth())
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                listOf("buyer" to "Buyer", "seller" to "Seller").forEach { (value, label) ->
+                                    Row(
+                                        Modifier.weight(1f).background(colors.surfaceVariant, RoundedCornerShape(14.dp)).clickable { accountType = value }.padding(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        RadioButton(selected = accountType == value, onClick = { accountType = value }, colors = RadioButtonDefaults.colors(selectedColor = colors.primary))
+                                        Text(label, color = colors.onSurface)
+                                    }
+                                }
+                            }
+                            Surface(color = colors.primary.copy(alpha = 0.08f), shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth()) {
+                                Text(
+                                    "Use your own, genuine profile photo and cover picture. Fake, misleading, or impersonated images may result in account suspension.",
+                                    modifier = Modifier.padding(14.dp), color = colors.onSurface, fontSize = 13.sp
+                                )
+                            }
                             Spacer(Modifier.height(12.dp))
                         }
                         AuthInput(email, { email = it; error = null }, "Email address", colors)
@@ -122,7 +144,7 @@ class LoginActivity : ComponentActivity() {
                                     error = null
                                     try {
                                         val result = if (register) {
-                                            MarketApi.service.register(RegisterRequest(name.trim(), email.trim(), password, confirm))
+                                            MarketApi.service.register(RegisterRequest(name.trim(), email.trim(), password, confirm, accountType))
                                         } else {
                                             MarketApi.service.login(LoginRequest(email.trim(), password))
                                         }
