@@ -28,6 +28,15 @@ jobs:
         run: |
           curl --fail --silent --show-error             "https://marketpg.onrender.com/admin/login" -o /tmp/admin-login.html
           grep -q "Administrator access" /tmp/admin-login.html
+      - name: Verify authentication boundaries
+        run: |
+          profile_status=$(curl --silent --show-error -o /tmp/profile.json -w "%{http_code}" \
+            -H "Accept: application/json" "https://marketpg.onrender.com/api/profile")
+          test "$profile_status" = "401"
+          login_status=$(curl --silent --show-error -o /tmp/login.json -w "%{http_code}" \
+            -H "Accept: application/json" -H "Content-Type: application/json" \
+            -d '{}' "https://marketpg.onrender.com/api/auth/login")
+          test "$login_status" = "422"
       - name: Verify protected admin dashboard redirect
         run: |
           curl --silent --show-error -D /tmp/admin.headers -o /dev/null \
