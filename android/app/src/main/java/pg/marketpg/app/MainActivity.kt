@@ -860,6 +860,8 @@ fun MarketPGApp() {
                     putExtra("condition", listing.condition ?: "")
                     putExtra("seller", listing.user?.name ?: "MarketPG seller")
                     putExtra("image_url", listing.imageUrl ?: "")
+                    putStringArrayListExtra("gallery_urls", ArrayList(listing.images.map { it.url }))
+                    putExtra("seller_rank", listing.user?.seller_rank ?: "New Seller")
                 })
                 selected = null
             }
@@ -908,6 +910,8 @@ class ListingDetailActivity : ComponentActivity() {
         val condition = intent.getStringExtra("condition").orEmpty()
         val seller = intent.getStringExtra("seller").orEmpty()
         val imageUrl = intent.getStringExtra("image_url").orEmpty()
+        val galleryUrls = intent.getStringArrayListExtra("gallery_urls").orEmpty().let { urls -> (listOf(imageUrl) + urls).filter { it.isNotBlank() }.distinct() }
+        val sellerRank = intent.getStringExtra("seller_rank").orEmpty()
         setContent {
             val dark = isSystemInDarkTheme()
             MaterialTheme(colorScheme = if (dark) DarkColors else LightColors) {
@@ -923,7 +927,7 @@ class ListingDetailActivity : ComponentActivity() {
                             AsyncImage(model = imageUrl, contentDescription = title, modifier = Modifier.fillMaxWidth().height(280.dp))
                             Text("Item gallery", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                items(listOf(imageUrl)) { url -> AsyncImage(model = url, contentDescription = "Item screenshot", modifier = Modifier.size(88.dp)) }
+                                items(galleryUrls) { url -> AsyncImage(model = url, contentDescription = "Item screenshot", modifier = Modifier.size(88.dp)) }
                             }
                         } else {
                             Box(Modifier.fillMaxWidth().height(220.dp).background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
@@ -937,6 +941,7 @@ class ListingDetailActivity : ComponentActivity() {
                         Text("Location: $location")
                         if (condition.isNotBlank()) Text("Condition: $condition")
                         Text("Seller: $seller")
+                        Text("Seller level: $sellerRank", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
