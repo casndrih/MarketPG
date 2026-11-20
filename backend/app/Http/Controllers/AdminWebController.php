@@ -158,6 +158,21 @@ class AdminWebController extends Controller
         return back()->with('status', 'Dispute decision saved.');
     }
 
+
+    public function receiptDocument(PaymentReceipt $receipt)
+    {
+        $disk = config('marketpg.private_disk');
+        abort_unless(Storage::disk($disk)->exists($receipt->file_path), 404);
+        $mime = Storage::disk($disk)->mimeType($receipt->file_path);
+        abort_unless(in_array($mime, ['image/jpeg', 'image/png', 'application/pdf'], true), 404);
+        return Storage::disk($disk)->response($receipt->file_path, null, [
+            'Cache-Control' => 'private, no-store, max-age=0',
+            'Pragma' => 'no-cache',
+            'X-Content-Type-Options' => 'nosniff',
+            'Content-Security-Policy' => "default-src 'none'; sandbox",
+        ], 'inline');
+    }
+
     public function identityDocument(IdentityVerification $verification, string $kind)
     {
         abort_unless(in_array($kind, ['front', 'back', 'selfie'], true), 404);
