@@ -338,7 +338,14 @@ fun MarketPGApp() {
                         Text("Your profile", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Ink)
                         Text(currentUser?.name ?: "Loading profile...", fontWeight = FontWeight.SemiBold)
                         Text(currentUser?.email ?: "", color = Color.Gray)
-                        TextButton(onClick = { MarketApi.clearToken(); signedIn = false; tab = 0 }) { Text("Sign out") }
+                        TextButton(onClick = {
+                            scope.launch {
+                                try { MarketApi.service.logout() } catch (_: Exception) { }
+                                MarketApi.clearToken()
+                                signedIn = false
+                                tab = 0
+                            }
+                        }) { Text("Sign out") }
                     }
                     Text("Your orders", Modifier.padding(horizontal = 20.dp), fontSize = 19.sp, fontWeight = FontWeight.Bold)
                     if (ordersLoading) {
