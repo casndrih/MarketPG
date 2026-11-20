@@ -48,8 +48,8 @@ object MarketDiagnostics {
     private fun safe(value: String?): String {
         if (value.isNullOrBlank()) return "-"
         return value
-            .replace(Regex("(?i)(authorization\\s*[:=]\\s*bearer\\s+)\\S+"), "$1[REDACTED]")
-            .replace(Regex("(?i)((?:password|passwd|token|secret|api[_-]?key)\\s*[:=]\\s*)[^\\s,;]+"), "$1[REDACTED]")
+            .replace(Regex("(?i)(authorization\\s*[:=]\\s*bearer\\s+)\\S+")) { it.groupValues[1] + "[REDACTED]" }
+            .replace(Regex("(?i)((?:password|passwd|token|secret|api[_-]?key)\\s*[:=]\\s*)[^\\s,;]+")) { it.groupValues[1] + "[REDACTED]" }
             .replace(Regex("[\\r\\n]+"), " ")
             .take(500)
     }
