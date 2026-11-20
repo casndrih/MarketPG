@@ -403,7 +403,7 @@ Use the SMTP host, port, security mode and verified sender supplied by your emai
 
 The Android app keeps a small rolling diagnostic log in its private app storage. It records app startup, uncaught crashes, API request paths, HTTP status codes, request durations, and network exception types. It deliberately does **not** record request or response bodies, passwords, bearer tokens, identity documents, payment receipts, or full URLs/query strings.
 
-Signed-in users can open **Profile → App diagnostics → Upload diagnostic logs to GitHub**. Uploads are explicit (not automatic), authenticated with the user's MarketPG session, and limited to three attempts per hour. Reports are stored under `debug-logs/YYYY/MM/DD/` in this repository. The backend applies a second pass of common secret redaction before creating the GitHub file.
+Authentication failures in the Android login and registration screens trigger an automatic upload, including when the user is not signed in. The diagnostics endpoint is public but rate-limited to three uploads per source IP per hour so a failed login can still be investigated. The report includes non-sensitive input metadata (such as email character count and whether it contains `@`), exception type, API path/status and timing; it never includes the entered email or password. Signed-in users can also manually upload a report from **Profile → App diagnostics → Upload diagnostic logs to GitHub**. Reports are stored under `debug-logs/YYYY/MM/DD/` in this repository. The backend applies a second pass of common secret redaction before creating the GitHub file.
 
 ### Configure GitHub diagnostic uploads on Render
 
