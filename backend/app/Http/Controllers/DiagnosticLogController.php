@@ -31,7 +31,6 @@ class DiagnosticLogController extends Controller
         $path = 'debug-logs/' . $now->format('Y/m/d') . '/' . $now->format('His') . '-' . Str::lower(Str::random(8)) . '.txt';
         $content = "MarketPG Android diagnostic report\n"
             . "Received UTC: " . $now->toIso8601String() . "\n"
-            . "User ID: " . (string) $request->user()->getAuthIdentifier() . "\n"
             . "App version: " . ($data['app_version'] ?? 'unknown') . "\n"
             . "Device: " . (preg_match('/^Android [0-9.]+; SDK [0-9]+$/', (string) ($data['device'] ?? '')) ? $data['device'] : 'Android version unavailable') . "\n\n"
             . $report . "\n";
