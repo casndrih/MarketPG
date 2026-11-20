@@ -117,6 +117,8 @@ class OrderController extends Controller
     {
         $data = $request->validate(['payout_reference' => ['required', 'string', 'max:120']]);
         abort_unless($order->status === 'delivered' && $order->payout_status === 'pending', 409, 'Only delivered orders awaiting payout can be released.');
+        $payoutDetails = $order->seller?->payout_account_details ?? [];
+        abort_unless(!empty($payoutDetails['bank_name']) && !empty($payoutDetails['account_name']) && !empty($payoutDetails['account_number']), 409, 'Seller payout bank details are incomplete.');
         $order->update(['payout_status' => 'released', 'released_at' => now(), 'payout_reference' => $data['payout_reference']]);
         return response()->json(['message' => 'Seller payout recorded as released. Confirm the transfer in the platform banking provider before using this action.', 'data' => $order->fresh()]);
     }
