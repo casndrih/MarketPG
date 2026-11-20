@@ -13,10 +13,11 @@ Route::get('/', function () {
     if (request()->filled('category')) $query->where('category_id', request('category'));
     if (request()->filled('location')) $query->where('location', 'ilike', '%' . request('location') . '%');
     $listings = $query->latest()->paginate(24)->withQueryString();
+    $topSellers = User::query()->withCount('completedSales')->orderByDesc('completed_sales_count')->take(6)->get();
     $rawAds = DB::table('marketpg_settings')->where('key', 'ads')->value('value');
     $ads = is_string($rawAds) ? json_decode($rawAds, true) : [];
     $ads = is_array($ads) ? $ads : [];
-    return view('marketplace', compact('listings', 'ads'));
+    return view('marketplace', compact('listings', 'ads', 'topSellers'));
 })->name('home');
 
 Route::get('/listing/{listing}', function (Listing $listing) {
