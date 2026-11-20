@@ -7,6 +7,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\PaymentReceiptController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\IdentityVerificationController;
 use App\Http\Middleware\EnsureMarketplaceAdmin;
 
@@ -19,6 +20,8 @@ Route::get('/listings/{listing}', [MarketplaceController::class, 'show']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/auth/me', [AuthController::class, 'me']);
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::patch('/profile', [ProfileController::class, 'update']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/my/listings', [MarketplaceController::class, 'mine']);
     Route::post('/listings', [MarketplaceController::class, 'store']);
