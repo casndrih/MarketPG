@@ -85,6 +85,10 @@ fun MarketPGApp() {
     var disputeReason by remember { mutableStateOf("not_as_described") }
     var disputeDetails by remember { mutableStateOf("") }
     var replyText by remember { mutableStateOf("") }
+    var messageListing by remember { mutableStateOf<ListingDto?>(null) }
+    var messageDraft by remember { mutableStateOf("") }
+    var messageBusy by remember { mutableStateOf(false) }
+    var messageError by remember { mutableStateOf<String?>(null) }
     var newTitle by remember { mutableStateOf("") }
     var newDescription by remember { mutableStateOf("") }
     var newPrice by remember { mutableStateOf("") }
@@ -717,6 +721,56 @@ fun MarketPGApp() {
             )
         }
 
+        messageListing?.let { listing ->
+            AlertDialog(
+                onDismissRequest = { if (!messageBusy) messageListing = null },
+                title = { Text("Message seller") },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("Ask a question about " + listing.title + ". Keep payments and personal information safe.", color = Color.Gray, fontSize = 12.sp)
+                        OutlinedTextField(
+                            value = messageDraft,
+                            onValueChange = { messageDraft = it; messageError = null },
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = { Text("Write your message...") },
+                            minLines = 3,
+                            maxLines = 5
+                        )
+                        messageError?.let { Text(it, color = MaterialTheme.colorScheme.error, fontSize = 12.sp) }
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        enabled = !messageBusy && messageDraft.isNotBlank() && listing.user != null,
+                        onClick = {
+                            scope.launch {
+                                messageBusy = true
+                                messageError = null
+                                try {
+                                    MarketApi.service.sendMessage(
+                                        listing.id,
+                                        MessageRequest(listing.user!!.id, messageDraft.trim())
+                                    )
+                                    messageListing = null
+                                    messageDraft = ""
+                                    tab = 3
+                                    inboxMessages = MarketApi.service.messages().data
+                                    snackbarHost.showSnackbar("Message sent to seller.")
+                                } catch (e: Exception) {
+                                    messageError = e.localizedMessage ?: "Could not send your message."
+                                } finally {
+                                    messageBusy = false
+                                }
+                            }
+                        }
+                    ) { Text(if (messageBusy) "Sending..." else "Send message") }
+                },
+                dismissButton = {
+                    TextButton(enabled = !messageBusy, onClick = { messageListing = null }) { Text("Cancel") }
+                }
+            )
+        }
+
         selected?.let { listing ->
             AlertDialog(
                 onDismissRequest = { selected = null },
@@ -730,6 +784,18 @@ fun MarketPGApp() {
                 } },
                 confirmButton = {
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        if (listing.user?.id != currentUser?.id) {
+                            TextButton(onClick = {
+                                if (!signedIn) {
+                                    showAuth = true
+                                } else {
+                                    messageDraft = ""
+                                    messageError = null
+                                    messageListing = listing
+                                    selected = null
+                                }
+                            }) { Text("Message seller") }
+                        }
                         TextButton(onClick = {
                             if (!signedIn) {
                                 showAuth = true
