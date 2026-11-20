@@ -12,6 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Render terminates TLS at its edge proxy. Trust forwarded headers and redirect all HTTP requests to HTTPS.
+        $middleware->trustProxies(at: '*');
+        $middleware->redirectToHttps();
         // MarketPG API authentication uses Sanctum bearer tokens, not cookie-based SPA sessions.
         // Keep API routes stateless so browser Origin headers cannot trigger CSRF checks on /api/auth/login.
     })
