@@ -11,7 +11,16 @@ class MarketplaceController extends Controller
 {
     public function categories()
     {
-        return response()->json(['data' => ['Electronics','Phones & Tablets','Vehicles','Furniture','Home & Living','Fashion','Sports','Other']]);
+        return response()->json(['data' => [
+            ['id' => 1, 'name' => 'Electronics', 'slug' => 'electronics'],
+            ['id' => 2, 'name' => 'Phones & Tablets', 'slug' => 'phones-tablets'],
+            ['id' => 3, 'name' => 'Vehicles', 'slug' => 'vehicles'],
+            ['id' => 4, 'name' => 'Furniture', 'slug' => 'furniture'],
+            ['id' => 5, 'name' => 'Home & Living', 'slug' => 'home-living'],
+            ['id' => 6, 'name' => 'Fashion', 'slug' => 'fashion'],
+            ['id' => 7, 'name' => 'Sports', 'slug' => 'sports'],
+            ['id' => 8, 'name' => 'Other', 'slug' => 'other'],
+        ]]);
     }
 
     public function listings(Request $request)
@@ -20,6 +29,16 @@ class MarketplaceController extends Controller
         if ($request->filled('q')) $query->where('title', 'ilike', '%'.$request->string('q').'%');
         if ($request->filled('category_id')) $query->where('category_id', $request->integer('category_id'));
         if ($request->filled('location')) $query->where('location', 'ilike', '%'.$request->string('location').'%');
+        if ($request->filled('condition')) $query->where('condition', $request->string('condition'));
+        if ($request->filled('min_price')) $query->where('price', '>=', $request->input('min_price'));
+        if ($request->filled('max_price')) $query->where('price', '<=', $request->input('max_price'));
+        $sort = $request->string('sort')->toString();
+        match ($sort) {
+            'price_asc' => $query->orderBy('price'),
+            'price_desc' => $query->orderByDesc('price'),
+            'oldest' => $query->oldest(),
+            default => $query->latest(),
+        };
         return response()->json($query->paginate(20));
     }
 
