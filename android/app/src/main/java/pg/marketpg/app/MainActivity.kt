@@ -1093,7 +1093,7 @@ fun MarketPGApp() {
                     putExtra("condition", listing.condition ?: "")
                     putExtra("seller", listing.user?.name ?: "MarketPG seller")
                     putExtra("image_url", listing.imageUrl ?: "")
-                    putStringArrayListExtra("gallery_urls", ArrayList(listing.images.map { it.url }))
+                    putStringArrayListExtra("gallery_urls", ArrayList(listing.images.mapNotNull { secureMarketPgUrl(it.url) }))
                     putExtra("seller_rank", listing.user?.seller_rank ?: "New Seller")
                     putExtra("seller_id", listing.user?.id?.toLong() ?: 0L)
                     putExtra("seller_avatar", listing.user?.profile_photo_url ?: "")
@@ -1151,8 +1151,8 @@ class ListingDetailActivity : ComponentActivity() {
         val location = intent.getStringExtra("location").orEmpty()
         val condition = intent.getStringExtra("condition").orEmpty()
         val seller = intent.getStringExtra("seller").orEmpty()
-        val imageUrl = intent.getStringExtra("image_url").orEmpty()
-        val galleryUrls = intent.getStringArrayListExtra("gallery_urls").orEmpty().let { urls -> (listOf(imageUrl) + urls).filter { it.isNotBlank() }.distinct() }
+        val imageUrl = secureMarketPgUrl(intent.getStringExtra("image_url")).orEmpty()
+        val galleryUrls = intent.getStringArrayListExtra("gallery_urls").orEmpty().let { urls -> (listOf(imageUrl) + urls).mapNotNull { secureMarketPgUrl(it) }.distinct() }
         val sellerRank = intent.getStringExtra("seller_rank").orEmpty()
         val sellerId = intent.getLongExtra("seller_id", 0L)
         val sellerAvatar = intent.getStringExtra("seller_avatar").orEmpty()
