@@ -21,6 +21,7 @@ Route::post('/admin/login', [AdminWebController::class, 'login'])->middleware('t
 Route::prefix('admin')->name('admin.')->middleware(['auth', EnsureMarketplaceAdmin::class])->group(function () {
     Route::get('/', [AdminWebController::class, 'dashboard'])->name('dashboard');
     Route::post('/logout', [AdminWebController::class, 'logout'])->name('logout');
+    Route::post('/ads', [AdminWebController::class, 'updateAds'])->name('ads.update');
     Route::post('/listings/{listing}/review', [AdminWebController::class, 'reviewListing'])->name('listings.review');
     Route::post('/orders/{order}/review', [AdminWebController::class, 'reviewOrder'])->name('orders.review');
     Route::post('/orders/{order}/release-payout', [AdminWebController::class, 'releasePayout'])->name('orders.release-payout');
