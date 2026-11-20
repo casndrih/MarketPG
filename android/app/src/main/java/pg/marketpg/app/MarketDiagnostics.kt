@@ -43,13 +43,15 @@ object MarketDiagnostics {
         return if (file.exists()) file.readText().takeLast(60000) else "No diagnostic events recorded."
     }
 
-    fun deviceSummary(): String = "${safe(Build.MANUFACTURER)} ${safe(Build.MODEL)}; Android ${Build.VERSION.RELEASE}; SDK ${Build.VERSION.SDK_INT}"
+    fun deviceSummary(): String = "Android ${Build.VERSION.RELEASE}; SDK ${Build.VERSION.SDK_INT}"
 
     private fun safe(value: String?): String {
         if (value.isNullOrBlank()) return "-"
         return value
             .replace(Regex("(?i)(authorization\\s*[:=]\\s*bearer\\s+)\\S+")) { it.groupValues[1] + "[REDACTED]" }
             .replace(Regex("(?i)((?:password|passwd|token|secret|api[_-]?key)\\s*[:=]\\s*)[^\\s,;]+")) { it.groupValues[1] + "[REDACTED]" }
+            .replace(Regex("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}"), "[EMAIL]")
+            .replace(Regex("(?<![A-Za-z0-9])\\+?[0-9][0-9 ()-]{6,}[0-9](?![A-Za-z0-9])"), "[PHONE/NUMBER]")
             .replace(Regex("[\\r\\n]+"), " ")
             .take(500)
     }
