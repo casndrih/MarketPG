@@ -6,6 +6,8 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -59,6 +61,14 @@ fun MarketPGApp() {
     var savedError by remember { mutableStateOf<String?>(null) }
     var currentUser by remember { mutableStateOf<AuthUser?>(null) }
     var savedRefresh by remember { mutableIntStateOf(0) }
+    var newTitle by remember { mutableStateOf("") }
+    var newDescription by remember { mutableStateOf("") }
+    var newPrice by remember { mutableStateOf("") }
+    var newLocation by remember { mutableStateOf("") }
+    var newCondition by remember { mutableStateOf("used") }
+    var newCategoryId by remember { mutableIntStateOf(1) }
+    var createBusy by remember { mutableStateOf(false) }
+    var createError by remember { mutableStateOf<String?>(null) }
     var signedIn by remember { mutableStateOf(MarketApi.hasSession()) }
     var showAuth by remember { mutableStateOf(false) }
     var registerMode by remember { mutableStateOf(false) }
@@ -202,6 +212,52 @@ fun MarketPGApp() {
                         }
                     }
                 }
+            } else if (tab == 2 && signedIn) {
+                Column(
+                    Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text("Create a listing", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Ink)
+                    Text("Your listing will be reviewed before it appears publicly.", color = Color.Gray)
+                    OutlinedTextField(newTitle, { newTitle = it }, label = { Text("Item title") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                    OutlinedTextField(newDescription, { newDescription = it }, label = { Text("Description") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
+                    OutlinedTextField(newPrice, { newPrice = it }, label = { Text("Price (PGK)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                    OutlinedTextField(newLocation, { newLocation = it }, label = { Text("Town / Province") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                    Text("Condition", fontWeight = FontWeight.SemiBold)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf("new", "used", "refurbished").forEach { condition ->
+                            FilterChip(newCondition == condition, { newCondition = condition }, label = { Text(condition.replaceFirstChar(Char::uppercase)) })
+                        }
+                    }
+                    Text("Category", fontWeight = FontWeight.SemiBold)
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(categories) { category ->
+                            FilterChip(newCategoryId == category.id, { newCategoryId = category.id }, label = { Text(category.name) })
+                        }
+                    }
+                    createError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                    Button(
+                        enabled = !createBusy && newTitle.isNotBlank() && newDescription.isNotBlank() && newPrice.isNotBlank() && newLocation.isNotBlank(),
+                        onClick = {
+                            scope.launch {
+                                createBusy = true
+                                createError = null
+                                try {
+                                    MarketApi.service.createListing(CreateListingRequest(newTitle.trim(), newDescription.trim(), newPrice.trim(), newCondition, newLocation.trim(), newCategoryId))
+                                    newTitle = ""; newDescription = ""; newPrice = ""; newLocation = ""
+                                    tab = 0
+                                    retry++
+                                    snackbarHost.showSnackbar("Listing submitted for review.")
+                                } catch (e: Exception) {
+                                    createError = e.localizedMessage ?: "Could not create listing."
+                                } finally {
+                                    createBusy = false
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) { Text(if (createBusy) "Submitting..." else "Submit listing") }
+                }
             } else if (tab == 4 && signedIn) {
                 Column(Modifier.fillMaxSize().padding(padding).padding(28.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("Your profile", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Ink)
@@ -291,6 +347,7 @@ fun MarketPGApp() {
                                 scope.launch {
                                     try {
                                         MarketApi.service.addToWishlist(listing.id)
+                                        savedRefresh++
                                         snackbarHost.showSnackbar("Saved to your wishlist.")
                                     } catch (e: Exception) {
                                         snackbarHost.showSnackbar(e.localizedMessage ?: "Could not save listing.")
