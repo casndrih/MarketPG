@@ -99,6 +99,9 @@ fun MarketPGApp() {
     var profilePhone by remember { mutableStateOf("") }
     var profileLocation by remember { mutableStateOf("") }
     var profileAccountType by remember { mutableStateOf("both") }
+    var payoutBankName by remember { mutableStateOf("") }
+    var payoutAccountName by remember { mutableStateOf("") }
+    var payoutAccountNumber by remember { mutableStateOf("") }
     var profileBusy by remember { mutableStateOf(false) }
     var identityStatus by remember { mutableStateOf<IdentityStatusDto?>(null) }
     var identityBusy by remember { mutableStateOf(false) }
@@ -584,6 +587,12 @@ fun MarketPGApp() {
                                 finally { identityBusy = false }
                             }
                         }) { Text(if (identityBusy) "Submitting..." else "Submit identity documents") }
+
+                        Text("Seller payout account", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Text("Add the bank account where MarketPG will send your payout after delivery is confirmed. Details are encrypted at rest.", color = colors.onSurfaceVariant, fontSize = 12.sp)
+                        OutlinedTextField(payoutBankName, { payoutBankName = it }, label = { Text("Bank name") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
+                        OutlinedTextField(payoutAccountName, { payoutAccountName = it }, label = { Text("Account holder name") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
+                        OutlinedTextField(payoutAccountNumber, { payoutAccountNumber = it }, label = { Text("Account number") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(14.dp))
                         Text("Account type", fontWeight = FontWeight.SemiBold)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             listOf("buyer", "seller", "both").forEach { type ->
@@ -594,7 +603,7 @@ fun MarketPGApp() {
                             scope.launch {
                                 profileBusy = true
                                 try {
-                                    currentUser = MarketApi.service.updateProfile(ProfileUpdateRequest(profileName.trim(), profilePhone.trim().ifBlank { null }, listOf(profileLocation.trim(), profileProvince).filter { it.isNotBlank() }.joinToString(", ").ifBlank { null }, profileAccountType, profileLocation.trim().ifBlank { null }, profileProvince.ifBlank { null })).user
+                                    currentUser = MarketApi.service.updateProfile(ProfileUpdateRequest(profileName.trim(), profilePhone.trim().ifBlank { null }, listOf(profileLocation.trim(), profileProvince).filter { it.isNotBlank() }.joinToString(", ").ifBlank { null }, profileAccountType, profileLocation.trim().ifBlank { null }, profileProvince.ifBlank { null }, payoutBankName.trim().ifBlank { null }, payoutAccountName.trim().ifBlank { null }, payoutAccountNumber.trim().ifBlank { null })).user
                                     snackbarHost.showSnackbar("Profile updated.")
                                 } catch (e: Exception) {
                                     snackbarHost.showSnackbar(e.localizedMessage ?: "Could not update profile.")
