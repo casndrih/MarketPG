@@ -45,6 +45,7 @@ class IdentityVerificationController extends Controller
             'back_path' => $back,
             'selfie_path' => $selfie,
             'status' => 'pending',
+            'consented_at' => now(),
         ]);
 
         return response()->json([
