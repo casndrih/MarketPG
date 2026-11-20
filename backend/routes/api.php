@@ -13,6 +13,13 @@ use App\Http\Controllers\OrderDisputeController;
 use App\Http\Controllers\IdentityVerificationController;
 use App\Http\Middleware\EnsureMarketplaceAdmin;
 
+Route::get('/home-carousel', function () {
+    $raw = DB::table('marketpg_settings')->where('key', 'home_carousel')->value('value');
+    $items = is_string($raw) ? json_decode($raw, true) : [];
+    $items = is_array($items) ? $items : [];
+    return response()->json(['data' => array_values(array_filter($items, fn ($item) => ($item['active'] ?? false) && !empty($item['image_url'])) )]);
+});
+
 Route::get('/public-config', function () {
     $raw = DB::table('marketpg_settings')->where('key', 'ads')->value('value');
     $settings = is_string($raw) ? json_decode($raw, true) : [];
