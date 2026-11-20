@@ -61,15 +61,18 @@ class MarketplaceController extends Controller
         $data = $request->validate([
             'title' => 'required|string|max:120', 'description' => 'required|string|max:5000',
             'price' => 'required|numeric|min:0', 'condition' => 'required|in:new,used,refurbished',
-            'location' => 'required|string|max:120', 'category_id' => 'nullable|integer',
+            'location' => 'required|string|max:120', 'town' => 'required|string|max:100', 'province' => 'required|in:'.implode(',', config('marketpg.png_provinces')), 'category_id' => 'nullable|integer',
             'image' => 'nullable|image|max:5120',
             'images' => 'sometimes|array|max:10',
             'images.*' => 'image|mimes:jpg,jpeg,png,webp|max:5120',
         ]);
+        if (isset($data['province'], $data['town'])) $data['location'] = trim($data['town'].', '.$data['province']);
+
         if ($request->hasFile('image') || $request->hasFile('images')) {
             abort_unless(config('marketpg.private_uploads_enabled'), 503, 'Listing image uploads are temporarily unavailable while persistent storage is being configured.');
             $data['image_path'] = $request->file('image')?->store('listings', config('marketpg.public_disk'));
         }
+        $data['location'] = trim($data['town'].', '.$data['province']);
         unset($data['image'], $data['images']);
         $data['user_id'] = $request->user()->id;
         $data['status'] = 'pending';
@@ -97,7 +100,9 @@ class MarketplaceController extends Controller
             'price' => 'sometimes|required|numeric|min:0',
             'condition' => 'sometimes|required|in:new,used,refurbished',
             'location' => 'sometimes|required|string|max:120',
-            'category_id' => 'nullable|integer',
+            'town' => 'sometimes|required|string|max:100',
+            'province' => 'sometimes|required|in:'.implode(',', config('marketpg.png_provinces')),
+            'category_id => 'nullable|integer',
             'image' => 'nullable|image|max:5120',
             'images' => 'sometimes|array|max:10',
             'images.*' => 'image|mimes:jpg,jpeg,png,webp|max:5120',
