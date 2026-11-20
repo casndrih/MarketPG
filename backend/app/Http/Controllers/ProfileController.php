@@ -46,10 +46,10 @@ class ProfileController extends Controller
             'account_number' => ['nullable', 'string', 'max:80'],
             'account_type' => ['required', Rule::in(['buyer', 'seller', 'both'])],
             'seller_bio' => ['nullable', 'string', 'max:2000'],
-            'seller_website' => ['nullable', 'url', 'max:2048'],
-            'seller_facebook_url' => ['nullable', 'url', 'max:2048'],
-            'seller_x_url' => ['nullable', 'url', 'max:2048'],
-            'seller_linkedin_url' => ['nullable', 'url', 'max:2048'],
+            'seller_website' => ['nullable', 'url', 'regex:/^https:\/\//i', 'max:2048'],
+            'seller_facebook_url' => ['nullable', 'url', 'regex:/^https:\/\//i', 'max:2048'],
+            'seller_x_url' => ['nullable', 'url', 'regex:/^https:\/\//i', 'max:2048'],
+            'seller_linkedin_url' => ['nullable', 'url', 'regex:/^https:\/\//i', 'max:2048'],
             'sme_tin' => ['nullable', 'string', 'min:5', 'max:80'],
         ]);
 
