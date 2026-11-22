@@ -1,0 +1,14 @@
+MarketPG Android diagnostic report
+Received UTC: 2026-11-22T07:25:00+00:00
+App version: 1.0.0
+Device: Android 13; SDK 33
+
+2026-11-22T17:24:23.016Z INFO/diagnostics: Logger initialized; Android 13; Xiaomi 21121119SG
+2026-11-22T17:24:33.993Z ERROR/http: GET /api/categories failed: SocketTimeoutException after 10350ms
+2026-11-22T17:24:34.016Z ERROR/http: GET /api/listings failed: SocketTimeoutException after 10001ms
+2026-11-22T17:24:44.004Z ERROR/http: GET /api/home-carousel failed: SocketTimeoutException after 10002ms
+2026-11-22T17:24:51.160Z INFO/auth-submit: mode=login email_chars=13 email_has_at=true password_present=true
+2026-11-22T17:24:54.014Z ERROR/http: GET /api/public-config failed: SocketTimeoutException after 10001ms
+2026-11-22T17:25:00.430Z INFO/http: POST /api/auth/login -> 200 (9265ms)
+2026-11-22T17:25:00.443Z ERROR/api-error: ClassCastException: no detail
+2026-11-22T17:25:00.447Z ERROR/auth-submit: mode=login exception=ClassCastException cause=- frames=l1.invokeSuspend:371 <- a.resumeWith:9 <- C.run:112 <- Y.E:24 <- X.run:3 <- Handler.handleCallback:942 <- Handler.dispatchMessage:99 <- Looper.loopOnce:211 <- Looper.loop:300 <- ActivityThread.main:8294 <- Method.invoke:-2 <- RuntimeInit$MethodAndArgsCaller.run:580
